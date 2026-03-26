@@ -241,7 +241,12 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
                 다음
                 <span className="material-symbols-outlined">arrow_forward</span>
               </>
-            ) : '완료'}
+            ) : (
+              <>
+                끝내기
+                <span className="material-symbols-outlined">check_circle</span>
+              </>
+            )}
           </button>
         </div>
 

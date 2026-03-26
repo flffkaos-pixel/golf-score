@@ -17,6 +17,16 @@ export default function Stats({ onBack }: StatsProps) {
     ? Math.min(...data.rounds.map(r => r.totalScore))
     : '-';
 
+  const totalHoles = data.rounds.reduce((count, round) => {
+    return count + round.holes.filter(h => h.score !== null).length;
+  }, 0);
+
+  const eaglesOrBetter = data.rounds.reduce((count, round) => {
+    return count + round.holes.filter(h => 
+      h.score !== null && h.score <= h.par - 2
+    ).length;
+  }, 0);
+
   const birdies = data.rounds.reduce((count, round) => {
     return count + round.holes.filter(h => 
       h.score !== null && h.score === h.par - 1
@@ -40,6 +50,11 @@ export default function Stats({ onBack }: StatsProps) {
       h.score !== null && h.score >= h.par + 2
     ).length;
   }, 0);
+
+  const eaglePercent = totalHoles > 0 ? (eaglesOrBetter / totalHoles) * 100 : 0;
+  const birdiePercent = totalHoles > 0 ? (birdies / totalHoles) * 100 : 0;
+  const parPercent = totalHoles > 0 ? (pars / totalHoles) * 100 : 0;
+  const bogeyPercent = totalHoles > 0 ? (bogeys / totalHoles) * 100 : 0;
 
   const sortedByScore = [...data.rounds].sort((a, b) => a.totalScore - b.totalScore);
 
@@ -86,34 +101,50 @@ export default function Stats({ onBack }: StatsProps) {
             <span className="material-symbols-outlined text-secondary">analytics</span>
             샷 분석
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-surface-container-lowest rounded-2xl p-4 text-center">
-              <div className="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center mx-auto mb-3">
-                <span className="text-white font-bold">2</span>
+          <div className="relative w-48 h-48 mx-auto mb-6">
+            <div className="absolute inset-0 rounded-full" style={{ background: `conic-gradient(
+              from 0deg,
+              #10b981 0deg ${eaglePercent}%,
+              #3b82f6 ${eaglePercent}% ${eaglePercent + birdiePercent}%,
+              #f59e0b ${eaglePercent + birdiePercent}% ${eaglePercent + birdiePercent + parPercent}%,
+              #ef4444 ${eaglePercent + birdiePercent + parPercent}% ${eaglePercent + birdiePercent + parPercent + bogeyPercent}%,
+              #6b7280 ${eaglePercent + birdiePercent + parPercent + bogeyPercent}% 100%
+            )` }}></div>
+            <div className="absolute inset-6 rounded-full bg-surface flex items-center justify-center">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary">${eaglesOrBetter + birdies}</div>
+                <div className="text-sm text-stone-500">버디이상</div>
               </div>
-              <p className="text-2xl font-black font-headline text-secondary">{birdies}</p>
-              <p className="text-xs text-stone-500 font-bold">버디</p>
             </div>
-            <div className="bg-surface-container-lowest rounded-2xl p-4 text-center">
-              <div className="w-10 h-10 bg-stone-400 rounded-xl flex items-center justify-center mx-auto mb-3">
-                <span className="text-white font-bold">0</span>
+          </div>
+          <div className="grid grid-cols-2 gap-4 text-center text-sm mt-4">
+            <div>
+              <div className="flex items-center justify-center mb-2">
+                <div className="w-5 h-5 rounded-full bg-green-500"></div>
+                <span className="ml-2">이글</span>
               </div>
-              <p className="text-2xl font-black font-headline">{pars}</p>
-              <p className="text-xs text-stone-500 font-bold">파</p>
+              <p className="font-medium">${eaglesOrBetter}</p>
             </div>
-            <div className="bg-surface-container-lowest rounded-2xl p-4 text-center">
-              <div className="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center mx-auto mb-3">
-                <span className="text-stone-800 font-bold">1</span>
+            <div>
+              <div className="flex items-center justify-center mb-2">
+                <div className="w-5 h-5 rounded-full bg-blue-500"></div>
+                <span className="ml-2">버디</span>
               </div>
-              <p className="text-2xl font-black font-headline text-yellow-600">{bogeys}</p>
-              <p className="text-xs text-stone-500 font-bold">보기</p>
+              <p className="font-medium">${birdies}</p>
             </div>
-            <div className="bg-surface-container-lowest rounded-2xl p-4 text-center">
-              <div className="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center mx-auto mb-3">
-                <span className="text-white font-bold">2+</span>
+            <div>
+              <div className="flex items-center justify-center mb-2">
+                <div className="w-5 h-5 rounded-full bg-yellow-400"></div>
+                <span className="ml-2">파</span>
               </div>
-              <p className="text-2xl font-black font-headline text-error">{doubleBogeyOrWorse}</p>
-              <p className="text-xs text-stone-500 font-bold">더블+</p>
+              <p className="font-medium">${pars}</p>
+            </div>
+            <div>
+              <div className="flex items-center justify-center mb-2">
+                <div className="w-5 h-5 rounded-full bg-red-500"></div>
+                <span className="ml-2">보기+</span>
+              </div>
+              <p className="font-medium">${bogeys + doubleBogeyOrWorse}</p>
             </div>
           </div>
         </section>
