@@ -199,7 +199,7 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
       </header>
 
       <main className="pt-6 px-4 max-w-md mx-auto">
-        <section className="relative overflow-hidden rounded-[1.5rem] bg-primary text-white p-6 mb-8 shadow-lg">
+        <section className="relative overflow-hidden rounded-[1.5rem] bg-primary text-white p-6 mb-6 shadow-lg">
           <div className="absolute top-0 right-0 w-24 h-24 bg-tertiary-fixed/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
           <div className="relative z-10">
             <div className="flex justify-between items-end mb-2">
@@ -212,6 +212,29 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
             </div>
           </div>
         </section>
+
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          {[3, 4, 5].map(par => (
+            <button
+              key={par}
+              onClick={() => {
+                const newHoles = [...round.holes];
+                newHoles[currentHole] = { ...newHoles[currentHole], par };
+                const calculated = calculateScore(newHoles);
+                const updated = { ...round, holes: newHoles, ...calculated };
+                setRound(updated);
+                updateRound(updated);
+              }}
+              className={`py-3 rounded-2xl font-bold font-headline transition-all active:scale-95 ${
+                currentHoleData.par === par 
+                  ? 'bg-secondary text-white shadow-lg' 
+                  : 'bg-surface-container text-stone-600'
+              }`}
+            >
+              Par {par}
+            </button>
+          ))}
+        </div>
 
         <div className="grid grid-cols-5 gap-2 mb-8">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(score => (
