@@ -12,12 +12,22 @@ export default function Competitions({ onBack }: CompetitionsProps) {
   const { t } = useAppSettings();
   const [showCreate, setShowCreate] = useState(false);
   const [newCompName, setNewCompName] = useState('');
+  const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
 
   const handleCreate = () => {
     if (!newCompName.trim()) return;
-    createCompetition(newCompName.trim());
+    createCompetition(newCompName.trim(), selectedFriends);
     setNewCompName('');
     setShowCreate(false);
+    setSelectedFriends([]);
+  };
+
+  const toggleFriend = (friendId: string) => {
+    setSelectedFriends(prev => 
+      prev.includes(friendId) 
+        ? prev.filter(id => id !== friendId)
+        : [...prev, friendId]
+    );
   };
 
   const getStatusColor = (status: string) => {
@@ -69,9 +79,34 @@ export default function Competitions({ onBack }: CompetitionsProps) {
               className="w-full bg-surface-container border-none rounded-xl px-4 py-4 outline-none mb-4 text-lg text-primary"
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
             />
+            
+            {data.friends.length > 0 && (
+              <div className="mb-4">
+                <p className="text-sm text-stone-500 font-bold mb-2">친구 초대</p>
+                <div className="flex flex-wrap gap-2">
+                  {data.friends.map(friend => (
+                    <button
+                      key={friend.id}
+                      onClick={() => toggleFriend(friend.id)}
+                      className={`px-3 py-2 rounded-xl text-sm font-bold transition-all ${
+                        selectedFriends.includes(friend.id)
+                          ? 'bg-secondary text-white'
+                          : 'bg-surface-container text-stone-600'
+                      }`}
+                    >
+                      {friend.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex gap-3">
               <button
-                onClick={() => setShowCreate(false)}
+                onClick={() => {
+                  setShowCreate(false);
+                  setSelectedFriends([]);
+                }}
                 className="flex-1 bg-surface-container text-stone-600 py-4 rounded-xl font-bold active:scale-98 transition-transform"
               >
                 {t('cancel')}

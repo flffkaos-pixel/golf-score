@@ -13,15 +13,13 @@ interface GolfContextType {
   addFriend: (name: string, userId?: string) => void;
   removeFriend: (friendId: string) => void;
   updateFriend: (friendId: string, name: string) => void;
-  createCompetition: (name: string) => Competition;
+  createCompetition: (name: string, friendIds?: string[]) => Competition;
   joinCompetition: (compId: string) => void;
   deleteCompetition: (compId: string) => void;
   addRoundToCompetition: (compId: string, round: Round) => void;
   addSampleData: () => void;
   clearAllData: () => void;
   clearLocalData: () => void;
-  generateInviteCode: () => string;
-  redeemInviteCode: (code: string) => Promise<boolean>;
   syncing: boolean;
 }
 
@@ -244,14 +242,15 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
-  const createCompetition = (name: string): Competition => {
+  const createCompetition = (name: string, friendIds: string[] = []): Competition => {
+    const invitedFriends = data.friends.filter(f => friendIds.includes(f.id));
     const comp: Competition = {
       id: generateId(),
       name,
       hostId: data.player.id,
       hostName: data.player.name,
-      players: [data.player],
-      playerIds: [data.player.id],
+      players: [data.player, ...invitedFriends],
+      playerIds: [data.player.id, ...invitedFriends.map(f => f.id)],
       rounds: [],
       startDate: new Date().toISOString(),
       status: 'pending',
@@ -342,49 +341,6 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     setData(loadData());
   };
 
-  const generateInviteCode = (): string => {
-    if (!user) return '';
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-    
-    supabase.from('friend_invites').upsert({
-      code,
-      inviter_id: user.id,
-      inviter_name: data.player.name,
-      created_at: new Date().toISOString(),
-    });
-    
-    return code;
-  };
-
-  const redeemInviteCode = async (code: string): Promise<boolean> => {
-    if (!user) return false;
-    
-    const { data: invite, error } = await supabase
-      .from('friend_invites')
-      .select('*')
-      .eq('code', code.toUpperCase())
-      .single();
-    
-    if (error || !invite) {
-      console.error('Invalid invite code');
-      return false;
-    }
-    
-    if (invite.inviter_id === user.id) {
-      console.error('Cannot add yourself');
-      return false;
-    }
-    
-    addFriend(invite.inviter_name, invite.inviter_id);
-    
-    await supabase
-      .from('friend_invites')
-      .delete()
-      .eq('code', code.toUpperCase());
-    
-    return true;
-  };
-
   return (
     <GolfContext.Provider value={{
       data,
@@ -402,8 +358,6 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       addSampleData,
       clearAllData,
       clearLocalData,
-      generateInviteCode,
-      redeemInviteCode,
       syncing,
     }}>
       {children}
