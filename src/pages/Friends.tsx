@@ -7,16 +7,31 @@ interface FriendsProps {
 }
 
 export default function Friends({ onBack }: FriendsProps) {
-  const { data, addFriend, removeFriend } = useGolf();
+  const { data, addFriend, removeFriend, updateFriend } = useGolf();
   const { t } = useAppSettings();
   const [newFriend, setNewFriend] = useState('');
   const [showAdd, setShowAdd] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
 
   const handleAdd = () => {
     if (!newFriend.trim()) return;
     addFriend(newFriend.trim());
     setNewFriend('');
     setShowAdd(false);
+  };
+
+  const handleEditStart = (id: string, name: string) => {
+    setEditingId(id);
+    setEditName(name);
+  };
+
+  const handleEditSave = (id: string) => {
+    if (editName.trim()) {
+      updateFriend(id, editName.trim());
+    }
+    setEditingId(null);
+    setEditName('');
   };
 
   const generateInviteCode = () => {
@@ -86,18 +101,46 @@ export default function Friends({ onBack }: FriendsProps) {
             <div className="space-y-3">
               {data.friends.map(friend => (
                 <div key={friend.id} className="bg-surface-container-lowest rounded-2xl p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-4 flex-1">
                     <div className="w-12 h-12 bg-secondary-container rounded-full flex items-center justify-center text-secondary font-bold text-lg font-headline">
                       {friend.name[0].toUpperCase()}
                     </div>
-                    <span className="font-bold text-primary font-headline text-lg">{friend.name}</span>
+                    {editingId === friend.id ? (
+                      <input
+                        type="text"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleEditSave(friend.id)}
+                        className="flex-1 bg-surface-container border-none rounded-xl px-4 py-2 outline-none text-lg text-primary font-headline"
+                        autoFocus
+                      />
+                    ) : (
+                      <span className="font-bold text-primary font-headline text-lg">{friend.name}</span>
+                    )}
                   </div>
-                  <button
-                    onClick={() => removeFriend(friend.id)}
-                    className="text-error p-3 bg-error-container rounded-xl active:scale-95 transition-transform"
-                  >
-                    <span className="material-symbols-outlined">person_remove</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {editingId === friend.id ? (
+                      <button
+                        onClick={() => handleEditSave(friend.id)}
+                        className="text-secondary p-3 bg-secondary-container rounded-xl active:scale-95 transition-transform"
+                      >
+                        <span className="material-symbols-outlined">check</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleEditStart(friend.id, friend.name)}
+                        className="text-primary p-3 bg-surface-container rounded-xl active:scale-95 transition-transform"
+                      >
+                        <span className="material-symbols-outlined">edit</span>
+                      </button>
+                    )}
+                    <button
+                      onClick={() => removeFriend(friend.id)}
+                      className="text-error p-3 bg-error-container rounded-xl active:scale-95 transition-transform"
+                    >
+                      <span className="material-symbols-outlined">person_remove</span>
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

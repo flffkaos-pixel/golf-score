@@ -24,7 +24,9 @@ export interface Competition {
   id: string;
   name: string;
   hostId: string;
+  hostName: string;
   players: Player[];
+  playerIds: string[];
   rounds: Round[];
   startDate: string;
   endDate?: string;

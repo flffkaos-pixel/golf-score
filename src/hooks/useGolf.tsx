@@ -12,6 +12,7 @@ interface GolfContextType {
   updatePlayer: (player: Partial<Player>) => void;
   addFriend: (name: string) => void;
   removeFriend: (friendId: string) => void;
+  updateFriend: (friendId: string, name: string) => void;
   createCompetition: (name: string) => Competition;
   joinCompetition: (compId: string) => void;
   deleteCompetition: (compId: string) => void;
@@ -73,6 +74,71 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const syncCompetitionToSupabase = async (comp: Competition) => {
+    try {
+      await supabase
+        .from('shared_competitions')
+        .upsert({
+          id: comp.id,
+          name: comp.name,
+          host_id: comp.hostId,
+          host_name: comp.hostName,
+          players: comp.players,
+          player_ids: comp.playerIds,
+          rounds: comp.rounds,
+          start_date: comp.startDate,
+          status: comp.status,
+          updated_at: new Date().toISOString(),
+        });
+    } catch (error) {
+      console.error('Sync competition error:', error);
+    }
+  };
+
+  const loadSharedCompetitions = async () => {
+    if (!user || data.friends.length === 0) return;
+    
+    try {
+      const friendIds = data.friends.map(f => f.id);
+      const allIds = [user.id, ...friendIds];
+      
+      const { data: sharedComps, error } = await supabase
+        .from('shared_competitions')
+        .select('*')
+        .overlaps('player_ids', allIds);
+      
+      if (error) {
+        console.error('Load shared competitions error:', error);
+        return;
+      }
+      
+      if (sharedComps) {
+        const remoteComps: Competition[] = sharedComps.map(c => ({
+          id: c.id,
+          name: c.name,
+          hostId: c.host_id,
+          hostName: c.host_name,
+          players: c.players,
+          playerIds: c.player_ids,
+          rounds: c.rounds,
+          startDate: c.start_date,
+          status: c.status,
+        }));
+        
+        setData(prev => {
+          const localCompIds = new Set(prev.competitions.map(c => c.id));
+          const newRemoteComps = remoteComps.filter(c => !localCompIds.has(c.id));
+          return {
+            ...prev,
+            competitions: [...prev.competitions, ...newRemoteComps],
+          };
+        });
+      }
+    } catch (error) {
+      console.error('Load shared competitions error:', error);
+    }
+  };
+
   const loadFromSupabase = async () => {
     if (!user) return;
     setSyncing(true);
@@ -102,6 +168,10 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       loadFromSupabase();
     }
   }, [user]);
+
+  useEffect(() => {
+    loadSharedCompetitions();
+  }, [user, data.friends]);
 
   useEffect(() => {
     if (user && data) {
@@ -160,20 +230,34 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
+  const updateFriend = (friendId: string, name: string) => {
+    setData(prev => ({
+      ...prev,
+      friends: prev.friends.map(f => 
+        f.id === friendId ? { ...f, name } : f
+      ),
+    }));
+  };
+
   const createCompetition = (name: string): Competition => {
     const comp: Competition = {
       id: generateId(),
       name,
       hostId: data.player.id,
+      hostName: data.player.name,
       players: [data.player],
+      playerIds: [data.player.id],
       rounds: [],
       startDate: new Date().toISOString(),
       status: 'pending',
     };
+    
     setData(prev => ({
       ...prev,
       competitions: [...prev.competitions, comp],
     }));
+    
+    syncCompetitionToSupabase(comp);
     return comp;
   };
 
@@ -182,10 +266,24 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       ...prev,
       competitions: prev.competitions.map(c => 
         c.id === compId && !c.players.find(p => p.id === data.player.id)
-          ? { ...c, players: [...c.players, data.player] }
+          ? { 
+              ...c, 
+              players: [...c.players, data.player],
+              playerIds: [...c.playerIds, data.player.id]
+            }
           : c
       ),
     }));
+    
+    const comp = data.competitions.find(c => c.id === compId);
+    if (comp) {
+      const updatedComp = {
+        ...comp,
+        players: [...comp.players, data.player],
+        playerIds: [...comp.playerIds, data.player.id],
+      };
+      syncCompetitionToSupabase(updatedComp);
+    }
   };
 
   const deleteCompetition = (compId: string) => {
@@ -248,6 +346,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       updatePlayer,
       addFriend,
       removeFriend,
+      updateFriend,
       createCompetition,
       joinCompetition,
       deleteCompetition,
