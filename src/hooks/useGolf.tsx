@@ -76,7 +76,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
 
   const syncCompetitionToSupabase = async (comp: Competition) => {
     try {
-      await supabase
+      const { error } = await supabase
         .from('shared_competitions')
         .upsert({
           id: comp.id,
@@ -90,6 +90,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
           status: comp.status,
           updated_at: new Date().toISOString(),
         });
+      if (error) console.error('Sync competition error:', error);
     } catch (error) {
       console.error('Sync competition error:', error);
     }
