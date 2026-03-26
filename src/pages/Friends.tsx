@@ -99,14 +99,6 @@ export default function Friends({ onBack }: FriendsProps) {
           내 초대 코드 만들기
         </button>
 
-        <button
-            onClick={generateCode}
-            className="w-full bg-secondary text-white py-4 rounded-2xl font-headline font-bold text-base flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-lg mb-3"
-          >
-            <span className="material-symbols-outlined">share</span>
-          내 초대 코드 만들기
-        </button>
-
         <div className="flex gap-3">
           <button
             onClick={() => setShowRedeem(!showRedeem)}
