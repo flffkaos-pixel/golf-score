@@ -37,7 +37,18 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
     }
   };
 
-  const handleExit = () => {
+  const handleExit = (save: boolean = true) => {
+    if (!save && round) {
+      const completedHoles = round.holes.filter(h => h.score !== null).length;
+      if (completedHoles > 0) {
+        if (confirm('저장하지 않고 나가면 입력한 데이터가 삭제됩니다. 나가시겠습니까?')) {
+          setStep('name');
+          setRound(null);
+          setCurrentHole(0);
+        }
+        return;
+      }
+    }
     setStep('name');
     setRound(null);
     setCurrentHole(0);
@@ -180,7 +191,7 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
       )}
 
       <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
-        <button onClick={handleExit} className="p-2 -ml-2">
+        <button onClick={() => handleExit(false)} className="p-2 -ml-2">
           <span className="material-symbols-outlined text-stone-500">close</span>
         </button>
         <div className="text-center">
@@ -266,7 +277,20 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
           </button>
         </div>
 
-        <div className="flex gap-3 mt-8">
+        <div className="flex gap-3 mt-6">
+          <button
+            onClick={() => {
+              handleExit();
+              onComplete();
+            }}
+            className="flex-1 bg-surface-container text-stone-600 font-bold py-4 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-transform"
+          >
+            <span className="material-symbols-outlined">save</span>
+            저장
+          </button>
+        </div>
+
+        <div className="flex gap-3 mt-4">
           <button
             onClick={() => setCurrentHole(Math.max(0, currentHole - 1))}
             disabled={currentHole === 0}
