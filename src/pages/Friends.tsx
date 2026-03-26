@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useGolf } from '../hooks/useGolf';
 import { useAppSettings } from '../hooks/useAppSettings';
+import { useAuth } from '../hooks/useAuth';
 
 interface FriendsProps {
   onBack: () => void;
@@ -9,10 +10,13 @@ interface FriendsProps {
 export default function Friends({ onBack }: FriendsProps) {
   const { data, addFriend, removeFriend, updateFriend } = useGolf();
   const { t } = useAppSettings();
+  const { user } = useAuth();
   const [newFriend, setNewFriend] = useState('');
   const [showAdd, setShowAdd] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
+  const [showRedeem, setShowRedeem] = useState(false);
 
   const handleAdd = () => {
     if (!newFriend.trim()) return;
@@ -34,6 +38,26 @@ export default function Friends({ onBack }: FriendsProps) {
     setEditName('');
   };
 
+  const generateCode = () => {
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    navigator.clipboard.writeText(code);
+    alert(`초대 코드: ${code}\n클립보드에 복사되었습니다!`);
+  };
+
+  const handleRedeem = () => {
+    if (!inviteCode.trim()) return;
+    const code = inviteCode.trim().toUpperCase();
+    const exists = data.friends.some(f => f.userId === code);
+    if (exists) {
+      alert('이미 추가된 친구입니다.');
+    } else {
+      addFriend(code, code);
+      alert('친구 추가 완료!');
+    }
+    setInviteCode('');
+    setShowRedeem(false);
+  };
+
   return (
     <div className="min-h-screen bg-surface pb-32">
       <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
@@ -45,16 +69,35 @@ export default function Friends({ onBack }: FriendsProps) {
       </header>
 
       <main className="px-6 pt-6 max-w-5xl mx-auto">
-        <button
-          onClick={() => setShowAdd(!showAdd)}
-          className="w-full bg-secondary text-white py-5 rounded-2xl font-headline font-bold text-lg flex items-center justify-center gap-3 active:scale-98 transition-transform shadow-lg"
-        >
-          <span className="material-symbols-outlined">person_add</span>
-          {showAdd ? t('cancel') : t('addFriend')}
-        </button>
+        {user && (
+          <button
+            onClick={generateCode}
+            className="w-full bg-secondary text-white py-4 rounded-2xl font-headline font-bold text-base flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-lg mb-3"
+          >
+            <span className="material-symbols-outlined">share</span>
+            내 초대 코드 만들기
+          </button>
+        )}
+
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowAdd(!showAdd)}
+            className="flex-1 bg-primary text-white py-3 rounded-2xl font-headline font-bold text-base flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-lg"
+          >
+            <span className="material-symbols-outlined">person_add</span>
+            {showAdd ? '취소' : '친구 추가'}
+          </button>
+          <button
+            onClick={() => setShowRedeem(!showRedeem)}
+            className="flex-1 bg-tertiary text-white py-3 rounded-2xl font-headline font-bold text-base flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-lg"
+          >
+            <span className="material-symbols-outlined">vpn_key</span>
+            코드 입력
+          </button>
+        </div>
 
         {showAdd && (
-          <div className="bg-surface-container-lowest rounded-2xl p-6 mt-4">
+          <div className="bg-surface-container-lowest rounded-2xl p-6 mt-3">
             <input
               type="text"
               value={newFriend}
@@ -68,7 +111,27 @@ export default function Friends({ onBack }: FriendsProps) {
               disabled={!newFriend.trim()}
               className="w-full bg-primary text-white py-4 rounded-xl font-bold disabled:opacity-50 active:scale-98 transition-transform"
             >
-              {t('addFriend')}
+              추가하기
+            </button>
+          </div>
+        )}
+
+        {showRedeem && (
+          <div className="bg-surface-container-lowest rounded-2xl p-6 mt-3">
+            <input
+              type="text"
+              value={inviteCode}
+              onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+              placeholder="초대 코드 입력"
+              className="w-full bg-surface-container border-none rounded-xl px-4 py-4 outline-none mb-4 text-lg text-primary"
+              onKeyDown={(e) => e.key === 'Enter' && handleRedeem()}
+            />
+            <button
+              onClick={handleRedeem}
+              disabled={!inviteCode.trim()}
+              className="w-full bg-tertiary text-white py-4 rounded-xl font-bold disabled:opacity-50 active:scale-98 transition-transform"
+            >
+              친구 추가
             </button>
           </div>
         )}
