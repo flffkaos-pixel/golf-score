@@ -155,8 +155,21 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       }
       
       if (supabaseData?.data) {
-        setData(supabaseData.data);
-        saveData(supabaseData.data);
+        const localData = loadData();
+        const mergedData = {
+          ...supabaseData.data,
+          rounds: supabaseData.data.rounds?.length > 0 
+            ? supabaseData.data.rounds 
+            : localData.rounds,
+          friends: supabaseData.data.friends?.length > 0 
+            ? supabaseData.data.friends 
+            : localData.friends,
+          competitions: supabaseData.data.competitions?.length > 0 
+            ? supabaseData.data.competitions 
+            : localData.competitions,
+        };
+        setData(mergedData);
+        saveData(mergedData);
       }
     } finally {
       setSyncing(false);
@@ -173,7 +186,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     if (user) {
       loadSharedCompetitions();
     }
-  }, [user, data.friends.map(f => f.userId).join(',')]);
+  }, [user, data.friends.map(f => f.id).join(',')]);
 
   useEffect(() => {
     if (user && data) {
