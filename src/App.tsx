@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { GolfProvider, useGolf } from './hooks/useGolf';
 import { AppSettingsProvider, useAppSettings } from './hooks/useAppSettings';
-import { AuthProvider } from './hooks/useAuth';
+import { AuthProvider, useAuth } from './hooks/useAuth';
 import Home from './pages/Home';
 import PlayGame from './pages/PlayGame';
 import Friends from './pages/Friends';
@@ -11,6 +11,32 @@ import History from './pages/History';
 import Settings from './pages/Settings';
 
 type Page = 'home' | 'play' | 'friends' | 'competitions' | 'stats' | 'history' | 'settings';
+
+function LoginWarning() {
+  const { user, signInWithGoogle, loading } = useAuth();
+
+  if (user || loading) return null;
+
+  return (
+    <div className="fixed inset-0 bg-surface/95 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+      <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
+        <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <span className="material-symbols-outlined text-5xl text-red-500">login</span>
+        </div>
+        <h2 className="text-2xl font-bold text-primary mb-3">로그인 필요</h2>
+        <p className="text-stone-500 mb-6">
+          데이터를 저장하고 친구와 대회를 공유하려면 로그인이 필요합니다.
+        </p>
+        <button
+          onClick={signInWithGoogle}
+          className="w-full bg-primary text-white py-4 rounded-2xl font-bold active:scale-98 transition-transform"
+        >
+          Google로 로그인
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function GlobalHeader() {
   const { data } = useGolf();
@@ -174,6 +200,7 @@ function NavigationBar() {
 function AppContent() {
   return (
     <div className="min-h-screen bg-surface dark:bg-stone-900">
+      <LoginWarning />
       <NavigationBar />
     </div>
   );
