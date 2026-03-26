@@ -41,14 +41,20 @@ export default function Friends({ onBack }: FriendsProps) {
           <span className="material-symbols-outlined text-stone-500">arrow_back</span>
         </button>
         <h1 className="text-xl font-extrabold text-primary font-headline">{t('friends')}</h1>
-        <button onClick={() => setShowAdd(!showAdd)} className="text-secondary font-bold">
-          {showAdd ? t('cancel') : '+ 추가'}
-        </button>
+        <div className="w-10"></div>
       </header>
 
       <main className="px-6 pt-6 max-w-5xl mx-auto">
+        <button
+          onClick={() => setShowAdd(!showAdd)}
+          className="w-full bg-secondary text-white py-5 rounded-2xl font-headline font-bold text-lg flex items-center justify-center gap-3 active:scale-98 transition-transform shadow-lg"
+        >
+          <span className="material-symbols-outlined">person_add</span>
+          {showAdd ? t('cancel') : t('addFriend')}
+        </button>
+
         {showAdd && (
-          <div className="bg-surface-container-lowest rounded-2xl p-6">
+          <div className="bg-surface-container-lowest rounded-2xl p-6 mt-4">
             <input
               type="text"
               value={newFriend}
