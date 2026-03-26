@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "inverse-surface": "#2e3132",
+              "surface-container-highest": "#e1e3e4",
+              "tertiary": "#1f2a00",
+              "on-tertiary-fixed-variant": "#3c4d00",
+              "primary-fixed-dim": "#a5d0b9",
+              "tertiary-fixed-dim": "#abd600",
+              "primary-fixed": "#c1ecd4",
+              "surface": "#f8f9fa",
+              "on-secondary": "#ffffff",
+              "on-secondary-container": "#316e52",
+              "on-tertiary": "#ffffff",
+              "on-tertiary-container": "#8fb300",
+              "on-background": "#191c1d",
+              "background": "#f8f9fa",
+              "tertiary-fixed": "#c3f400",
+              "on-error": "#ffffff",
+              "surface-variant": "#e1e3e4",
+              "surface-container": "#edeeef",
+              "outline": "#717973",
+              "outline-variant": "#c1c8c2",
+              "on-tertiary-fixed": "#161e00",
+              "surface-tint": "#3f6653",
+              "tertiary-container": "#324100",
+              "secondary-fixed": "#b1f0ce",
+              "error-container": "#ffdad6",
+              "secondary-fixed-dim": "#95d4b3",
+              "on-primary-fixed-variant": "#274e3d",
+              "on-surface-variant": "#414844",
+              "on-primary-fixed": "#002114",
+              "on-error-container": "#93000a",
+              "inverse-on-surface": "#f0f1f2",
+              "surface-container-low": "#f3f4f5",
+              "on-primary-container": "#86af99",
+              "surface-container-high": "#e7e8e9",
+              "secondary-container": "#aeeecb",
+              "secondary": "#2c694e",
+              "on-primary": "#ffffff",
+              "primary": "#012d1d",
+              "on-secondary-fixed-variant": "#0e5138",
+              "surface-bright": "#f8f9fa",
+              "inverse-primary": "#a5d0b9",
+              "primary-container": "#1b4332",
+              "surface-container-lowest": "#ffffff",
+              "surface-dim": "#d9dadb",
+              "error": "#ba1a1a",
+              "on-secondary-fixed": "#002114",
+              "on-surface": "#191c1d"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Manrope"],
+              "label": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+        h1, h2, h3, .font-headline { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="bg-white dark:bg-stone-950 fixed top-0 w-full z-50">
+<div class="flex justify-between items-center w-full px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center overflow-hidden">
+<img alt="User profile photo" class="w-full h-full object-cover" data-alt="Close-up portrait of a professional golfer smiling, warm natural sunlight, outdoor golf course blurred background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAAxjfoAEbXUERSo30Y6JfBW5I8n0yWW3yTugKfSswFOw7nyj9a7s7vjKXKqqNp26VFJWf_ojTkH5V-UAhrGCJPnYKBLTCHTEsRKrgSYDTJQ4p4iwRnofy4Spec4ztRCj4io2rg-F8T28RTkGgOHwM2wf3jLq5AtidCR_tz3bXJ2BmQp95UEsO7SO_MKfGeMStBT-3M_qglM_c07BkHxZVrwfUcJbX0f2-TQaVnR9eCMxQug4pCtFwedgq3BWl16-lxy3WBFSBQsI"/>
+</div>
+<h1 class="text-2xl font-extrabold tracking-tight text-emerald-900 dark:text-emerald-100">GreenScore</h1>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-stone-50 dark:hover:bg-stone-900 transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined text-emerald-900 dark:text-emerald-500">notifications</span>
+</button>
+</div>
+<div class="bg-stone-100 dark:bg-stone-900 h-px w-full"></div>
+</header>
+<main class="mt-20 px-6 pt-6 max-w-4xl mx-auto">
+<!-- Search Section -->
+<section class="mb-8">
+<div class="relative group">
+<div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline">search</span>
+</div>
+<input class="w-full bg-surface-container-low border-none rounded-2xl py-5 pl-12 pr-6 text-lg focus:ring-2 focus:ring-primary-container transition-all placeholder:text-outline/60" placeholder="골프장 이름 검색" type="text"/>
+</div>
+</section>
+<!-- Filter Tags -->
+<section class="flex gap-3 mb-10 overflow-x-auto pb-2 no-scrollbar">
+<button class="flex-none px-6 py-2.5 bg-primary text-on-primary rounded-full font-label font-bold text-sm transition-transform active:scale-95">
+                주변 골프장
+            </button>
+<button class="flex-none px-6 py-2.5 bg-surface-container-highest text-on-surface-variant rounded-full font-label font-bold text-sm hover:bg-surface-variant transition-colors active:scale-95">
+                최근 방문
+            </button>
+<button class="flex-none px-6 py-2.5 bg-surface-container-highest text-on-surface-variant rounded-full font-label font-bold text-sm hover:bg-surface-variant transition-colors active:scale-95">
+                토너먼트 코스
+            </button>
+<button class="flex-none px-6 py-2.5 bg-surface-container-highest text-on-surface-variant rounded-full font-label font-bold text-sm hover:bg-surface-variant transition-colors active:scale-95">
+                즐겨찾기
+            </button>
+</section>
+<!-- Hero Card (Recommended) -->
+<section class="mb-10">
+<h2 class="text-xs font-bold uppercase tracking-widest text-on-primary-container mb-4">오늘의 추천 코스</h2>
+<div class="relative rounded-[2rem] overflow-hidden aspect-[16/9] shadow-lg group">
+<img alt="Premium Golf Course" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Wide cinematic shot of a pristine golf fairway at dawn, misty atmosphere, golden sunlight hitting the emerald green grass" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEm4Bo_vvHuJZQXhW76zbmmxnQMYFg7ql6M3Iofl2x9qT0l2oYL_zvL4ooic5KNHdmv4jjT0rDfoDBZVtFoDVESMAvVV-6hHD8fKvvre29X2epbiKCUY_9NNkKHZYmdWocPmyg2_yvAeywI53YfdMtwknoUstGHZxzzG0UK7EJFR7wRshgnSAUC6Tpj_6rLp5wpAi5-5lefaXrv2FHB7Rno-eof89_VwaemolWt6ILtOAZsEnulNc_-PAIJE327OOyeKwHd854sz4"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-transparent to-transparent"></div>
+<div class="absolute bottom-8 left-8 right-8">
+<div class="flex justify-between items-end">
+<div>
+<span class="inline-block px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed rounded-lg text-[10px] font-bold uppercase mb-3">Professional</span>
+<h3 class="text-3xl font-headline font-extrabold text-white mb-1">트리니티 클럽</h3>
+<p class="text-white/80 font-body text-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">location_on</span>
+                                경기도 여주시
+                            </p>
+</div>
+<div class="text-right">
+<p class="text-white/60 text-[10px] font-bold uppercase">Par Rating</p>
+<p class="text-4xl font-headline font-black text-white">72</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Results List -->
+<section>
+<div class="flex justify-between items-center mb-6">
+<h2 class="text-xl font-headline font-bold text-primary">검색 결과</h2>
+<span class="text-sm font-medium text-outline">128개의 골프장</span>
+</div>
+<div class="space-y-4">
+<!-- Course Item 1 -->
+<div class="flex items-center gap-4 p-4 bg-surface-container-lowest rounded-[1.5rem] hover:bg-surface-container transition-colors group">
+<div class="w-24 h-24 rounded-2xl overflow-hidden flex-none">
+<img alt="South Cape Club" class="w-full h-full object-cover group-hover:scale-110 transition-transform" data-alt="Aerial view of a coastal golf course with blue ocean waves crashing against cliffs and lush green fairways" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDH3Vwhavl7qYBMAFnl5IYrNudAoVc7MtFY8cyRdQ3A5ZvLxeo9nflAmoHuw2yl21eN4HwU-f01z6IUwdKMqk0Grp8tSPk-Gty3UBkk_Z1QLLeQqmIsMOD8UDwK2F4zA8eAqZ2fnk1o34PO_4uBBUSJGhNl-7B7pvt6fBpHAQlWh-tEhYey5onlgRoa0EdUzXRQqMJQM5Yb4LvgQCd-28m5Y3WkWyq9FOYddn-WemzetSD0FEsP1ahcyznvtHmpnNNSxvx9AX8-K5E"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="text-lg font-headline font-bold text-on-surface">사우스케이프 오너스클럽</h4>
+<p class="text-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">location_on</span>
+                                    경상남도 남해군
+                                </p>
+</div>
+<div class="text-right">
+<span class="inline-block px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded text-[10px] font-bold">PAR 72</span>
+<p class="text-[10px] text-outline mt-1 font-bold">4.8 km</p>
+</div>
+</div>
+<div class="mt-3 flex gap-2">
+<span class="text-[10px] px-2 py-1 bg-stone-100 rounded-md text-stone-600 font-bold">시사이드</span>
+<span class="text-[10px] px-2 py-1 bg-stone-100 rounded-md text-stone-600 font-bold">퍼블릭</span>
+</div>
+</div>
+</div>
+<!-- Course Item 2 -->
+<div class="flex items-center gap-4 p-4 bg-surface-container-lowest rounded-[1.5rem] hover:bg-surface-container transition-colors group">
+<div class="w-24 h-24 rounded-2xl overflow-hidden flex-none">
+<img alt="Haesley Nine Bridges" class="w-full h-full object-cover group-hover:scale-110 transition-transform" data-alt="Modern architectural golf clubhouse with glass walls and timber structures overlooking a perfectly manicured green" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlPESPHMR32IGxOkdp4j4MpuCK6f7pkmsfXF4KyBC90-NOjMZGDGbI0c9eJLRljj9gN3r4JAKC6L7qjuOS0LdCoNMr9_pMPDen2x4tkMBCgIWiyXWry2uZbpRB6uzPDs0Q639BI29ZD8St-gqC1johjQJqKRl2KOFZMHA4txP_aw80Ge31TLoSqENGi2xw18UPTHvlciUiy_qoQc8M-0jYNgeFAUuT02NEUfCPBkKi_0hJ93mMRpPTQvq34j_zXN_4Llmk2WLdZTA"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="text-lg font-headline font-bold text-on-surface">해슬리 나인브릿지</h4>
+<p class="text-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">location_on</span>
+                                    경기도 여주시
+                                </p>
+</div>
+<div class="text-right">
+<span class="inline-block px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded text-[10px] font-bold">PAR 72</span>
+<p class="text-[10px] text-outline mt-1 font-bold">12.4 km</p>
+</div>
+</div>
+<div class="mt-3 flex gap-2">
+<span class="text-[10px] px-2 py-1 bg-stone-100 rounded-md text-stone-600 font-bold">멤버쉽</span>
+<span class="text-[10px] px-2 py-1 bg-stone-100 rounded-md text-stone-600 font-bold">우드구조</span>
+</div>
+</div>
+</div>
+<!-- Course Item 3 -->
+<div class="flex items-center gap-4 p-4 bg-surface-container-lowest rounded-[1.5rem] hover:bg-surface-container transition-colors group">
+<div class="w-24 h-24 rounded-2xl overflow-hidden flex-none">
+<img alt="Pine Beach Golf Links" class="w-full h-full object-cover group-hover:scale-110 transition-transform" data-alt="Golf course at sunset with long shadows across the undulating fairway and a sand bunker in the foreground" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4COWjgFd51N4ysNZXIgarhjfKp474YAsQTxbsCIsZ3YuqkTnnz8EvWkljfrmUWyuj8raeInH5DdTussoZQFS_UTd6nrxWQYrtoTwYtgLUqF6E9_8VTXBaglOB5chuprsu_a7D3o5B05TETm-2Q1sgFZ_giSZPd-2e46M1KtpR4chmUl849xbTbLQ1QLHrbXy9z7q4undM2ZdgNQeSHZXCtTe5uFHV4JOgGObqQLf0jYuD9JNf2wO9vD2rWGxGpw7BlVtkfynIaC4"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="text-lg font-headline font-bold text-on-surface">파인비치 골프링크스</h4>
+<p class="text-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">location_on</span>
+                                    전라남도 해남군
+                                </p>
+</div>
+<div class="text-right">
+<span class="inline-block px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded text-[10px] font-bold">PAR 73</span>
+<p class="text-[10px] text-outline mt-1 font-bold">32.1 km</p>
+</div>
+</div>
+<div class="mt-3 flex gap-2">
+<span class="text-[10px] px-2 py-1 bg-stone-100 rounded-md text-stone-600 font-bold">링크스</span>
+<span class="text-[10px] px-2 py-1 bg-stone-100 rounded-md text-stone-600 font-bold">해안가</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/70 dark:bg-stone-950/70 backdrop-blur-md shadow-[0_-4px_24px_rgba(25,28,29,0.06)] rounded-t-[1.5rem]">
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-emerald-700 dark:hover:text-lime-200 transition-transform active:scale-90 tap-highlight-transparent" href="#">
+<span class="material-symbols-outlined mb-1">dashboard</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-lime-400/20 dark:bg-lime-900/30 text-emerald-900 dark:text-lime-300 rounded-2xl px-5 py-2 transition-transform active:scale-90 tap-highlight-transparent" href="#">
+<span class="material-symbols-outlined mb-1">history</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider">Rounds</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-emerald-700 dark:hover:text-lime-200 transition-transform active:scale-90 tap-highlight-transparent" href="#">
+<span class="material-symbols-outlined mb-1">insights</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider">Stats</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-emerald-700 dark:hover:text-lime-200 transition-transform active:scale-90 tap-highlight-transparent" href="#">
+<span class="material-symbols-outlined mb-1">settings</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider">Settings</span>
+</a>
+</nav>
+<!-- FAB (Contextual for Home/Search) -->
+<div class="fixed bottom-28 right-6 z-40">
+<button class="w-14 h-14 bg-primary text-on-primary rounded-2xl flex items-center justify-center shadow-[0_24px_24px_rgba(25,28,29,0.06)] active:scale-90 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add</span>
+</button>
+</div>
+</body></html>

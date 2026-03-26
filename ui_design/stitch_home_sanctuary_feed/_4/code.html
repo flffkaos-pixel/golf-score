@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GreenScore Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#aaead0",
+                        "on-primary": "#175845",
+                        "surface-container-lowest": "#000000",
+                        "inverse-on-surface": "#4e5566",
+                        "surface-dim": "#070e1d",
+                        "on-surface": "#dfe5fa",
+                        "surface-container-highest": "#1b263b",
+                        "primary-fixed": "#aaead0",
+                        "on-error-container": "#ffa8a3",
+                        "primary-fixed-dim": "#9ddcc2",
+                        "on-tertiary": "#006443",
+                        "primary-container": "#6fad95",
+                        "on-surface-variant": "#a4abbf",
+                        "tertiary-fixed": "#69f6b8",
+                        "on-tertiary-container": "#005a3c",
+                        "surface-container-low": "#0b1323",
+                        "on-secondary-fixed-variant": "#456500",
+                        "secondary-fixed": "#bff365",
+                        "on-secondary": "#3d5a00",
+                        "error-container": "#9f0519",
+                        "on-primary-container": "#00291d",
+                        "primary-dim": "#9ddcc2",
+                        "surface-container-high": "#161f33",
+                        "secondary-fixed-dim": "#b2e558",
+                        "inverse-surface": "#f9f9ff",
+                        "error": "#ff716c",
+                        "on-background": "#dfe5fa",
+                        "surface-bright": "#212c43",
+                        "tertiary-fixed-dim": "#58e7ab",
+                        "on-secondary-container": "#ecffc7",
+                        "on-tertiary-fixed-variant": "#006544",
+                        "on-primary-fixed-variant": "#23624e",
+                        "tertiary-dim": "#58e7ab",
+                        "on-tertiary-fixed": "#00452d",
+                        "surface-container": "#11192b",
+                        "surface": "#070e1d",
+                        "tertiary": "#9bffce",
+                        "secondary-container": "#476800",
+                        "secondary": "#bff365",
+                        "surface-variant": "#1b263b",
+                        "secondary-dim": "#b2e558",
+                        "background": "#070e1d",
+                        "on-secondary-fixed": "#2f4600",
+                        "inverse-primary": "#2c6a55",
+                        "tertiary-container": "#69f6b8",
+                        "on-error": "#490006",
+                        "outline-variant": "#414859",
+                        "on-primary-fixed": "#004533",
+                        "surface-tint": "#aaead0",
+                        "error-dim": "#d7383b",
+                        "outline": "#6e7588"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-nav {
+            background: rgba(7, 14, 29, 0.6);
+            backdrop-filter: blur(12px);
+        }
+        .editorial-shadow {
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#070e1d]/60 backdrop-blur-md flex justify-between items-center px-6 h-16 w-full">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden">
+<img alt="User profile photo" data-alt="close-up portrait of a professional golfer in dark green attire against a soft-focus clubhouse background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWa0mOH1kXb56ijwQZ37Kd5hH3g8YYNSQ0UmF0QqK-A0HiOF3mvW8Pos_x8Jw4cIc2blLiClJYIucMvUwiCFokT9SBGx4Dv9qsFFjD_721utIR4lXP8W2GE7lPQ2yDRJ8gwYOjH9AhKdqDpQUJOs4wUb0KgmgwvnujfF_i5TsxjhQosxGNdrW55XFuLAXIKhB0K0oJ-2bcsfThMlUpILqhwJDTJWKWuH8Pg3q16HmSIl_fgMd8TzMAXEJOELNlZJBqo5xhnWt85xs"/>
+</div>
+<h1 class="text-xl font-bold tracking-tighter text-[#aaead0] font-plus-jakarta-sans tracking-tight">GreenScore</h1>
+</div>
+<button class="text-[#a4abbf] hover:opacity-80 transition-opacity active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</header>
+<main class="pt-24 px-6 max-w-lg mx-auto space-y-8">
+<!-- Score Summary Hero Card -->
+<section class="relative overflow-hidden rounded-xl bg-secondary-container p-8 editorial-shadow">
+<div class="absolute top-0 right-0 w-32 h-32 bg-secondary opacity-10 blur-3xl -mr-10 -mt-10"></div>
+<div class="relative z-10 flex flex-col items-center">
+<span class="text-secondary font-bold text-xs uppercase tracking-widest mb-2">Season Average Score</span>
+<div class="flex items-baseline">
+<span class="text-8xl font-extrabold tracking-tighter text-secondary">78</span>
+<span class="text-secondary opacity-60 text-xl font-bold ml-2">PAR</span>
+</div>
+<div class="mt-4 px-4 py-1 bg-on-secondary/20 rounded-full">
+<span class="text-secondary text-sm font-semibold">+2.4 vs Last Month</span>
+</div>
+</div>
+</section>
+<!-- Recent Round Section -->
+<section class="space-y-4">
+<div class="flex justify-between items-end">
+<h2 class="text-lg font-bold tracking-tight text-on-surface">Recent Round</h2>
+<span class="text-on-surface-variant text-sm font-medium">View All</span>
+</div>
+<div class="bg-surface-container rounded-xl overflow-hidden">
+<div class="relative h-32 w-full">
+<img alt="Golf course fairway" class="w-full h-full object-cover opacity-60" data-alt="Cinematic wide shot of a pristine golf course fairway at dusk with long shadows and deep emerald green grass" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCSxSOMb-QdGCTizIHYrt-N6w2D3i9ZPoPw0GgdUhkgb7g22RSUfKIRIjREypM0YOmSsvN37Qc7R9Vlv2jSyJ7E91Bjp54t_1P5afP70ePFBCDPfm7erfOV3IuXTcdQ763ex3-W8EtTEM-HfqEdUuvSWcKYm9Wc9dPWVr2Wvb3qFdJT4qu9EjPSKvPivAeUQAD59D1T5n_--ZhYSsr_x5XsWDeOWR2AeNC7CRaqm01GRk7WpS6MTX441TIhPoswtjOEXZOCo8Cxkrc"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container to-transparent"></div>
+<div class="absolute bottom-4 left-6">
+<h3 class="text-xl font-bold text-on-surface">South Yeoju GC</h3>
+<p class="text-on-surface-variant text-xs font-semibold tracking-wider uppercase">Oct 24, 2023 • 18 Holes</p>
+</div>
+<div class="absolute bottom-4 right-6">
+<div class="bg-surface-container-highest px-3 py-1 rounded-lg">
+<span class="text-secondary text-2xl font-black">82</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-0.5 bg-outline-variant/10 p-4">
+<div class="text-center py-2">
+<p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest mb-1">Putts</p>
+<p class="text-xl font-bold text-on-surface">31</p>
+</div>
+<div class="text-center py-2 bg-surface-container-low/40">
+<p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest mb-1">Fairway</p>
+<p class="text-xl font-bold text-on-surface">64%</p>
+</div>
+<div class="text-center py-2">
+<p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest mb-1">GIR</p>
+<p class="text-xl font-bold text-on-surface">52%</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Stats Section -->
+<section class="space-y-4">
+<h2 class="text-lg font-bold tracking-tight text-on-surface">Performance Trends</h2>
+<div class="grid grid-cols-2 gap-4">
+<!-- Fairway Accuracy -->
+<div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/15">
+<div class="flex flex-col gap-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="track_changes">track_changes</span>
+<span class="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest">Fairway</span>
+</div>
+<div class="flex flex-col">
+<span class="text-3xl font-black text-on-surface">68.5%</span>
+<div class="w-full bg-surface-container-highest h-1.5 rounded-full mt-3 overflow-hidden">
+<div class="bg-primary h-full rounded-full w-[68.5%]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- GIR Accuracy -->
+<div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/15">
+<div class="flex flex-col gap-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-sm" data-icon="golf_course">golf_course</span>
+<span class="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest">GIR %</span>
+</div>
+<div class="flex flex-col">
+<span class="text-3xl font-black text-on-surface">45.2%</span>
+<div class="w-full bg-surface-container-highest h-1.5 rounded-full mt-3 overflow-hidden">
+<div class="bg-tertiary h-full rounded-full w-[45.2%]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Asymmetric Detail Module -->
+<section class="bg-surface-container-highest rounded-xl p-6 relative overflow-hidden group">
+<div class="relative z-10">
+<h3 class="text-sm font-bold text-primary mb-4">Pro Tip for your Game</h3>
+<p class="text-on-surface text-lg font-semibold leading-snug max-w-[80%]">Your GIR is 15% higher when hitting from the left side of the fairway.</p>
+<button class="mt-4 text-xs font-bold text-primary uppercase tracking-widest flex items-center gap-2 group-hover:translate-x-1 transition-transform">
+                    View Strategy <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<span class="material-symbols-outlined absolute -bottom-4 -right-4 text-9xl text-on-surface/5 rotate-12" data-icon="insights">insights</span>
+</section>
+</main>
+<!-- Floating Action Button -->
+<button class="fixed bottom-24 right-6 bg-secondary text-on-secondary px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 active:scale-95 transition-all z-50">
+<span class="material-symbols-outlined font-bold" data-icon="add">add</span>
+<span class="font-bold text-sm uppercase tracking-widest">Start New Round</span>
+</button>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center h-20 pb-safe px-4 bg-[#11192b]/80 backdrop-blur-xl border-t border-[#dfe5fa]/15 shadow-2xl z-50 rounded-t-lg">
+<a class="flex flex-col items-center justify-center text-[#bff365] scale-110 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="home" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="text-[10px] font-bold uppercase tracking-widest font-plus-jakarta-sans">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#a4abbf] hover:text-[#aaead0] transition-colors active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="golf_course">golf_course</span>
+<span class="text-[10px] font-bold uppercase tracking-widest font-plus-jakarta-sans">Rounds</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#a4abbf] hover:text-[#aaead0] transition-colors active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="text-[10px] font-bold uppercase tracking-widest font-plus-jakarta-sans">Stats</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#a4abbf] hover:text-[#aaead0] transition-colors active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-[10px] font-bold uppercase tracking-widest font-plus-jakarta-sans">Settings</span>
+</a>
+</nav>
+</body></html>

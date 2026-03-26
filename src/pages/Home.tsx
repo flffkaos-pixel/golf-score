@@ -40,7 +40,7 @@ export default function Home({ onStartGame }: HomeProps) {
 
   const shareScore = async (round: typeof data.rounds[0]) => {
     const scoreDisplay = getScoreDisplay(round.relativeScore);
-    const text = `⛳ GreenScore ${t('recentRounds')}!\n\n📍 ${round.courseName}\n🏌️ ${round.totalScore} ${t('score')} (${scoreDisplay.text})\n📅 ${new Date(round.date).toLocaleDateString()}`;
+    const text = `⛳ GreenScore ${t('recentRounds')}\n\n📍 ${round.courseName}\n🏌️ ${round.totalScore} ${t('score')} (${scoreDisplay.text})\n📅 ${new Date(round.date).toLocaleDateString()}`;
     
     if (navigator.share) {
       try {
@@ -55,26 +55,26 @@ export default function Home({ onStartGame }: HomeProps) {
   return (
     <div className="min-h-screen pb-32 bg-surface">
       {devMode && (
-        <div className="bg-red-600 text-white px-4 py-2 text-sm">
+        <div className="bg-secondary text-on-secondary px-4 py-2 text-sm">
           <div className="flex items-center justify-between max-w-5xl mx-auto">
             <span>🔧 Dev Mode</span>
             <button onClick={() => setDevMode(false)}>✕</button>
           </div>
           <div className="flex gap-2 mt-2 max-w-5xl mx-auto">
-            <button onClick={addSampleData} className="bg-white/20 px-3 py-1 rounded text-xs">📊 Add Sample</button>
-            <button onClick={clearAllData} className="bg-red-800 px-3 py-1 rounded text-xs">🗑️ Clear All</button>
+            <button onClick={addSampleData} className="bg-on-secondary/20 px-3 py-1 rounded text-xs">📊 Add Sample</button>
+            <button onClick={clearAllData} className="bg-error px-3 py-1 rounded text-xs">🗑️ Clear All</button>
           </div>
         </div>
       )}
 
-      <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+      <header className="bg-surface-container-lowest flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center">
-            <span className="text-primary text-lg">⛳</span>
+          <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+            <span className="text-on-primary text-lg">⛳</span>
           </div>
           <div className="flex flex-col">
             <span className="font-headline font-bold text-lg text-primary">{data.player.name}</span>
-            <span className="text-[10px] uppercase tracking-widest text-stone-500 font-bold">
+            <span className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">
               {avgScore > 0 ? (avgScore - 72).toFixed(1) : '-'}
             </span>
           </div>
@@ -84,30 +84,30 @@ export default function Home({ onStartGame }: HomeProps) {
         </h1>
         <button 
           onClick={() => setShowNotifications(!showNotifications)}
-          className="text-stone-400 p-2 rounded-full active:scale-95 transition-transform relative"
+          className="text-on-surface-variant p-2 rounded-full active:scale-95 transition-transform relative"
         >
           <span className="material-symbols-outlined">notifications</span>
           {data.friends.length > 0 && (
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            <span className="absolute top-1 right-1 w-2 h-2 bg-secondary rounded-full"></span>
           )}
         </button>
       </header>
 
       {showNotifications && (
-        <div className="absolute top-16 right-4 w-72 bg-white rounded-2xl shadow-xl z-50 p-4">
+        <div className="absolute top-16 right-4 w-72 bg-surface-container-lowest rounded-2xl shadow-xl z-50 p-4">
           <h3 className="font-bold text-primary mb-3">🔔 {t('notifications')}</h3>
           {data.friends.length === 0 ? (
-            <p className="text-stone-500 text-sm">{t('addFriendHint')}</p>
+            <p className="text-on-surface-variant text-sm">{t('addFriendHint')}</p>
           ) : (
             <div className="space-y-2">
               {data.friends.slice(0, 3).map(friend => (
                 <div key={friend.id} className="flex items-center gap-3 p-2 bg-surface-container rounded-xl">
-                  <div className="w-8 h-8 bg-secondary-container rounded-full flex items-center justify-center text-xs font-bold">
+                  <div className="w-8 h-8 bg-secondary-container rounded-full flex items-center justify-center text-xs font-bold text-on-secondary-container">
                     {friend.name[0]}
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium">{friend.name}</p>
-                    <p className="text-xs text-stone-500">{t('startRound')}...</p>
+                    <p className="text-sm font-medium text-on-surface">{friend.name}</p>
+                    <p className="text-xs text-on-surface-variant">{t('startRound')}...</p>
                   </div>
                 </div>
               ))}
@@ -117,15 +117,15 @@ export default function Home({ onStartGame }: HomeProps) {
       )}
 
       <main className="px-6 pt-6 space-y-8 max-w-5xl mx-auto">
-        <section className="relative overflow-hidden rounded-[2rem] bg-primary text-white p-8 min-h-[180px] flex flex-col justify-end group">
-          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-tertiary-fixed opacity-10 rounded-full blur-3xl"></div>
+        <section className="relative overflow-hidden rounded-[2rem] gradient-primary text-on-primary p-8 min-h-[180px] flex flex-col justify-end group">
+          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
           <div className="relative z-10 flex flex-col gap-1">
-            <span className="text-primary-fixed-dim text-sm font-semibold tracking-wider">{t('myPerformance')}</span>
+            <span className="text-white/80 text-sm font-semibold tracking-wider">{t('myPerformance')}</span>
             <h2 className="text-5xl font-extrabold font-headline leading-none tracking-tight">
               {avgScore > 0 ? avgScore : '-'}
-              <span className="text-2xl font-medium ml-2 text-primary-fixed opacity-80">{t('avgScore')}</span>
+              <span className="text-2xl font-medium ml-2 text-white/80">{t('avgScore')}</span>
             </h2>
-            <p className="text-primary-fixed-dim/80 text-sm mt-2 font-medium">
+            <p className="text-white/80 text-sm mt-2 font-medium">
               {totalRounds > 0 ? `${t('basedOn')}${totalRounds} ${t('lastRounds')}` : t('noRecords')}
             </p>
           </div>
@@ -136,7 +136,7 @@ export default function Home({ onStartGame }: HomeProps) {
             <h2 className="text-xl font-extrabold font-headline text-primary tracking-tight">{t('recentRounds')}</h2>
             <button 
               onClick={onStartGame}
-              className="bg-primary text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 active:scale-95 transition-transform"
+              className="gradient-primary text-on-primary px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 active:scale-95 transition-transform"
             >
               <span className="material-symbols-outlined text-lg">add</span>
               {t('newRound')}
@@ -148,8 +148,8 @@ export default function Home({ onStartGame }: HomeProps) {
               <div className="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="material-symbols-outlined text-3xl text-outline">golf_course</span>
               </div>
-              <div className="text-stone-500 mb-2 font-semibold">{t('noRecords')}</div>
-              <div className="text-stone-400 text-sm">{t('startFirst')}</div>
+              <div className="text-on-surface-variant mb-2 font-semibold">{t('noRecords')}</div>
+              <div className="text-outline text-sm">{t('startFirst')}</div>
             </div>
           ) : (
             <div className="space-y-4">
@@ -158,15 +158,15 @@ export default function Home({ onStartGame }: HomeProps) {
                 const dateStr = new Date(round.date).toLocaleDateString();
                 
               return (
-                <div key={round.id} className="bg-surface-container-lowest rounded-[1.5rem] p-5 shadow-sm">
+                <div key={round.id} className="bg-surface-container-lowest rounded-[1.5rem] p-5">
                   <div className="flex justify-between items-start mb-4">
                     <div className="space-y-1">
-                      <p className="text-xs font-bold text-stone-400 uppercase tracking-widest">{dateStr}</p>
+                      <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">{dateStr}</p>
                       <h3 className="text-lg font-bold text-primary font-headline">{round.courseName}</h3>
                     </div>
                     <div className="text-right">
                       <span className="text-2xl font-black font-headline text-primary">{round.totalScore}</span>
-                      <p className={`text-sm font-bold ${getScoreDisplay(round.relativeScore).color}`}>
+                      <p className={`text-sm font-bold score-lime`}>
                         {getScoreDisplay(round.relativeScore).text}
                       </p>
                     </div>
@@ -174,23 +174,23 @@ export default function Home({ onStartGame }: HomeProps) {
 
                     <div className="grid grid-cols-3 gap-3 mb-4">
                       <div className="bg-surface-container-low rounded-xl py-3 px-2 text-center">
-                        <p className="text-[10px] text-stone-500 font-bold mb-1">{t('putting')}</p>
-                        <p className="text-lg font-bold text-primary font-headline">-</p>
+                        <p className="text-[10px] text-on-surface-variant font-bold mb-1">{t('putting')}</p>
+                        <p className="text-lg font-bold text-on-surface font-headline">-</p>
                       </div>
                       <div className="bg-surface-container-low rounded-xl py-3 px-2 text-center">
-                        <p className="text-[10px] text-stone-500 font-bold mb-1">{t('par')}</p>
-                        <p className="text-lg font-bold text-primary font-headline">{round.holes.filter(h => h.score === h.par).length}</p>
+                        <p className="text-[10px] text-on-surface-variant font-bold mb-1">{t('par')}</p>
+                        <p className="text-lg font-bold text-on-surface font-headline">{round.holes.filter(h => h.score === h.par).length}</p>
                       </div>
                       <div className="bg-surface-container-low rounded-xl py-3 px-2 text-center">
-                        <p className="text-[10px] text-stone-500 font-bold mb-1">{t('birdiePlus')}</p>
-                        <p className="text-lg font-bold text-primary font-headline">{round.holes.filter(h => h.score !== null && h.score < h.par).length}</p>
+                        <p className="text-[10px] text-on-surface-variant font-bold mb-1">{t('birdiePlus')}</p>
+                        <p className="text-lg font-bold text-on-surface font-headline">{round.holes.filter(h => h.score !== null && h.score < h.par).length}</p>
                       </div>
                     </div>
 
                     <div className="flex gap-2 mb-4">
                       <button
                         onClick={() => shareScore(round)}
-                        className="flex-1 bg-primary text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                        className="flex-1 gradient-primary text-on-primary py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
                       >
                         <span className="material-symbols-outlined">share</span>
                         {t('share')}
@@ -206,7 +206,7 @@ export default function Home({ onStartGame }: HomeProps) {
                     {achievements.length > 0 && (
                       <div className="flex flex-wrap gap-2">
                         {achievements.slice(0, 5).map((achievement, i) => (
-                          <span key={i} className="bg-tertiary-fixed/20 text-tertiary px-3 py-1 rounded-full text-xs font-bold">
+                          <span key={i} className="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-xs font-bold">
                             {achievement}
                           </span>
                         ))}

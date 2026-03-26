@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .headline-font {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "inverse-surface": "#2e3132",
+                        "surface-container-highest": "#e1e3e4",
+                        "tertiary": "#1f2a00",
+                        "on-tertiary-fixed-variant": "#3c4d00",
+                        "primary-fixed-dim": "#a5d0b9",
+                        "tertiary-fixed-dim": "#abd600",
+                        "primary-fixed": "#c1ecd4",
+                        "surface": "#f8f9fa",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-container": "#316e52",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-container": "#8fb300",
+                        "on-background": "#191c1d",
+                        "background": "#f8f9fa",
+                        "tertiary-fixed": "#c3f400",
+                        "on-error": "#ffffff",
+                        "surface-variant": "#e1e3e4",
+                        "surface-container": "#edeeef",
+                        "outline": "#717973",
+                        "outline-variant": "#c1c8c2",
+                        "on-tertiary-fixed": "#161e00",
+                        "surface-tint": "#3f6653",
+                        "tertiary-container": "#324100",
+                        "secondary-fixed": "#b1f0ce",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#95d4b3",
+                        "on-primary-fixed-variant": "#274e3d",
+                        "on-surface-variant": "#414844",
+                        "on-primary-fixed": "#002114",
+                        "on-error-container": "#93000a",
+                        "inverse-on-surface": "#f0f1f2",
+                        "surface-container-low": "#f3f4f5",
+                        "on-primary-container": "#86af99",
+                        "surface-container-high": "#e7e8e9",
+                        "secondary-container": "#aeeecb",
+                        "secondary": "#2c694e",
+                        "on-primary": "#ffffff",
+                        "primary": "#012d1d",
+                        "on-secondary-fixed-variant": "#0e5138",
+                        "surface-bright": "#f8f9fa",
+                        "inverse-primary": "#a5d0b9",
+                        "primary-container": "#1b4332",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-dim": "#d9dadb",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed": "#002114",
+                        "on-surface": "#191c1d"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Manrope"],
+                        "label": ["Plus Jakarta Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="bg-white dark:bg-stone-950 flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-stone-200">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="close-up portrait of a professional golfer wearing a clean white polo shirt against a blurred green golf course background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLoFWYfqizUwH7J1Ggz0E-iD67EkajBLAeyQoqHtwDiqDr89Ne7OuWiF4N6C1LvSc6oYH48icWrdmn8wsk2P7As4beStsq2xxGjlCrSbqYDhunft-0TVU5_EUf_BMAMoBRrm2IjwdCRUBsMA_W3Vhvsk6TOd30CoQftl8xK0et0YExnWc87KKEDWPFt_Q6-p1tUx0fb6pvX2qkF0jiT_SU9Z_nuDrR97XrlxiY7GIFkFFrvZBsgATlj7MFozNXyiV3cOOVEP4MZw4"/>
+</div>
+<div class="flex flex-col">
+<span class="font-['Plus_Jakarta_Sans'] font-bold text-lg text-emerald-900 dark:text-emerald-500">김프로</span>
+<span class="text-[10px] uppercase tracking-widest text-stone-500 font-bold">핸디캡 인덱스 12.4</span>
+</div>
+</div>
+<div class="text-2xl font-extrabold tracking-tight text-emerald-900 dark:text-emerald-100 font-['Plus_Jakarta_Sans']">
+            GreenScore
+        </div>
+<button class="text-stone-400 dark:text-stone-600 hover:bg-stone-50 dark:hover:bg-stone-900 transition-colors p-2 rounded-full active:scale-95 duration-200">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</header>
+<div class="bg-stone-100 dark:bg-stone-900 h-px w-full"></div>
+<main class="px-6 pt-8 space-y-10">
+<!-- Hero Section: Handicap Card -->
+<section class="relative overflow-hidden rounded-[2rem] bg-primary text-white p-8 min-h-[180px] flex flex-col justify-end group">
+<div class="absolute inset-0 bg-gradient-to-br from-primary via-primary to-secondary opacity-90 z-0"></div>
+<div class="absolute -right-10 -top-10 w-48 h-48 bg-tertiary-fixed opacity-10 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700"></div>
+<div class="relative z-10 flex flex-col gap-1">
+<span class="text-primary-fixed-dim text-sm font-semibold tracking-wider">내 성적 요약</span>
+<h1 class="text-5xl font-extrabold headline-font leading-none tracking-tighter">78<span class="text-2xl font-medium ml-1 text-primary-fixed opacity-80">평균 타수</span></h1>
+<p class="text-primary-fixed-dim/80 text-sm mt-2 font-medium">지난 10번의 라운딩 기준</p>
+</div>
+</section>
+<!-- Recent Round Card -->
+<section class="space-y-4">
+<div class="flex justify-between items-end">
+<h2 class="text-2xl font-extrabold headline-font text-primary tracking-tight">최근 라운딩</h2>
+<span class="text-sm font-bold text-secondary">더보기</span>
+</div>
+<div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-[0_-4px_24px_rgba(25,28,29,0.04)] flex flex-col gap-6 relative overflow-hidden">
+<div class="flex justify-between items-start relative z-10">
+<div class="space-y-1">
+<p class="text-xs font-bold text-stone-400 uppercase tracking-widest">2023. 10. 24</p>
+<h3 class="text-xl font-bold text-primary">남여주 골프클럽</h3>
+</div>
+<div class="bg-secondary-container text-on-secondary-container px-4 py-2 rounded-2xl">
+<span class="text-3xl font-black headline-font">82</span>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-4 text-center">
+<div class="bg-surface-container-low rounded-xl py-3 px-2">
+<p class="text-[10px] text-stone-500 font-bold mb-1">퍼팅</p>
+<p class="text-lg font-bold text-primary">31</p>
+</div>
+<div class="bg-surface-container-low rounded-xl py-3 px-2">
+<p class="text-[10px] text-stone-500 font-bold mb-1">페어웨이</p>
+<p class="text-lg font-bold text-primary">64%</p>
+</div>
+<div class="bg-surface-container-low rounded-xl py-3 px-2">
+<p class="text-[10px] text-stone-500 font-bold mb-1">GIR</p>
+<p class="text-lg font-bold text-primary">52%</p>
+</div>
+</div>
+<button class="w-full bg-primary text-on-primary font-bold py-4 rounded-xl active:scale-95 transition-transform">
+                    라운딩 상세보기
+                </button>
+</div>
+</section>
+<!-- Performance Stats Horizontal Scroll -->
+<section class="space-y-4">
+<h2 class="text-2xl font-extrabold headline-font text-primary tracking-tight">성적 통계</h2>
+<div class="flex gap-4 overflow-x-auto hide-scrollbar -mx-6 px-6 pb-4">
+<!-- Card 1 -->
+<div class="min-w-[160px] bg-surface-container-low p-6 rounded-[2rem] flex flex-col gap-4">
+<div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">straighten</span>
+</div>
+<div>
+<p class="text-xs font-bold text-stone-500">페어웨이 안착률</p>
+<p class="text-2xl font-black headline-font text-primary">68.5%</p>
+</div>
+<div class="w-full bg-stone-200 h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary h-full w-[68%]"></div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="min-w-[160px] bg-tertiary-fixed p-6 rounded-[2rem] flex flex-col gap-4">
+<div class="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">flag</span>
+</div>
+<div>
+<p class="text-xs font-bold text-tertiary">GIR %</p>
+<p class="text-2xl font-black headline-font text-primary">45.2%</p>
+</div>
+<div class="w-full bg-primary/10 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[45%]"></div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="min-w-[160px] bg-surface-container-low p-6 rounded-[2rem] flex flex-col gap-4">
+<div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">sports_golf</span>
+</div>
+<div>
+<p class="text-xs font-bold text-stone-500">평균 퍼트수</p>
+<p class="text-2xl font-black headline-font text-primary">32.4</p>
+</div>
+<div class="w-full bg-stone-200 h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary h-full w-[72%]"></div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- FAB: Start New Round -->
+<div class="fixed bottom-28 left-1/2 -translate-x-1/2 z-40 w-full max-w-xs px-6">
+<button class="w-full bg-primary text-white rounded-full py-5 px-8 flex items-center justify-center gap-3 shadow-[0_24px_48px_rgba(1,45,29,0.3)] active:scale-90 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add_circle</span>
+<span class="text-lg font-bold headline-font">새 라운딩 시작</span>
+</button>
+</div>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/70 dark:bg-stone-950/70 backdrop-blur-md rounded-t-[1.5rem] shadow-[0_-4px_24px_rgba(25,28,29,0.06)]">
+<!-- Home (Active) -->
+<a class="flex flex-col items-center justify-center bg-lime-400/20 dark:bg-lime-900/30 text-emerald-900 dark:text-lime-300 rounded-2xl px-5 py-2 tap-highlight-transparent active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider">Home</span>
+</a>
+<!-- Rounds -->
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-emerald-700 dark:hover:text-lime-200 tap-highlight-transparent active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider">Rounds</span>
+</a>
+<!-- Stats -->
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-emerald-700 dark:hover:text-lime-200 tap-highlight-transparent active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider">Stats</span>
+</a>
+<!-- Settings -->
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-emerald-700 dark:hover:text-lime-200 tap-highlight-transparent active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider">Settings</span>
+</a>
+</nav>
+</body></html>

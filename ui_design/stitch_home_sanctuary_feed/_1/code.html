@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#aaead0",
+                        "on-primary": "#175845",
+                        "surface-container-lowest": "#000000",
+                        "inverse-on-surface": "#4e5566",
+                        "surface-dim": "#070e1d",
+                        "on-surface": "#dfe5fa",
+                        "surface-container-highest": "#1b263b",
+                        "primary-fixed": "#aaead0",
+                        "on-error-container": "#ffa8a3",
+                        "primary-fixed-dim": "#9ddcc2",
+                        "on-tertiary": "#006443",
+                        "primary-container": "#6fad95",
+                        "on-surface-variant": "#a4abbf",
+                        "tertiary-fixed": "#69f6b8",
+                        "on-tertiary-container": "#005a3c",
+                        "surface-container-low": "#0b1323",
+                        "on-secondary-fixed-variant": "#456500",
+                        "secondary-fixed": "#bff365",
+                        "on-secondary": "#3d5a00",
+                        "error-container": "#9f0519",
+                        "on-primary-container": "#00291d",
+                        "primary-dim": "#9ddcc2",
+                        "surface-container-high": "#161f33",
+                        "secondary-fixed-dim": "#b2e558",
+                        "inverse-surface": "#f9f9ff",
+                        "error": "#ff716c",
+                        "on-background": "#dfe5fa",
+                        "surface-bright": "#212c43",
+                        "tertiary-fixed-dim": "#58e7ab",
+                        "on-secondary-container": "#ecffc7",
+                        "on-tertiary-fixed-variant": "#006544",
+                        "on-primary-fixed-variant": "#23624e",
+                        "tertiary-dim": "#58e7ab",
+                        "on-tertiary-fixed": "#00452d",
+                        "surface-container": "#11192b",
+                        "surface": "#070e1d",
+                        "tertiary": "#9bffce",
+                        "secondary-container": "#476800",
+                        "secondary": "#bff365",
+                        "surface-variant": "#1b263b",
+                        "secondary-dim": "#b2e558",
+                        "background": "#070e1d",
+                        "on-secondary-fixed": "#2f4600",
+                        "inverse-primary": "#2c6a55",
+                        "tertiary-container": "#69f6b8",
+                        "on-error": "#490006",
+                        "outline-variant": "#414859",
+                        "on-primary-fixed": "#004533",
+                        "surface-tint": "#aaead0",
+                        "error-dim": "#d7383b",
+                        "outline": "#6e7588"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#070e1d]/60 backdrop-blur-md flex justify-between items-center px-6 h-16 w-full shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="User profile photo" data-alt="Close up portrait of a professional male golfer wearing a white visor and polo shirt, soft studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1metBPCAkuLrxgmIjO3WsWqQz_nsm3tfIp-JqoMPP7OyC7K4OLqSOErCWsqW71t8SzYVrGAASxqOJN9u3F6jV3jG-DC5S_ZCi2D6jgPCQmOqPsBXd81zGcyR4lSdI2R-d07chHCCJKdh8vxJnAzG-QfoCB4mYULLy6JD3ZA6CbLgIwiJUBKHRtOy-b2kuO3I3fUg8WIkfahRYUyuq0lOtF-OusLsCXRrlG8abdTjx8fbStAXb1Mwy1usvpnE8Ccf91-23Oso68MQ"/>
+</div>
+<h1 class="text-xl font-bold tracking-tighter text-[#aaead0] font-plus-jakarta-sans tracking-tight">GreenScore</h1>
+</div>
+<button class="text-[#a4abbf] hover:opacity-80 transition-opacity active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</header>
+<main class="pt-20 px-6 max-w-2xl mx-auto space-y-8">
+<!-- Search Section -->
+<section class="space-y-4">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full bg-surface-container-highest border-none rounded-xl py-4 pl-12 pr-4 text-on-surface placeholder:text-outline focus:ring-2 focus:ring-primary/30 transition-all outline-none" placeholder="Search Golf Course Name" type="text"/>
+</div>
+<!-- Filter Chips -->
+<div class="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+<button class="whitespace-nowrap px-5 py-2 rounded-full bg-secondary-container text-secondary text-sm font-bold tracking-wide border border-secondary/20 active:scale-95 transition-transform">Nearby Courses</button>
+<button class="whitespace-nowrap px-5 py-2 rounded-full bg-surface-container-high text-on-surface-variant text-sm font-bold tracking-wide border border-outline-variant/20 hover:text-on-surface transition-colors active:scale-95">Recently Visited</button>
+<button class="whitespace-nowrap px-5 py-2 rounded-full bg-surface-container-high text-on-surface-variant text-sm font-bold tracking-wide border border-outline-variant/20 hover:text-on-surface transition-colors active:scale-95">Tournament Courses</button>
+</div>
+</section>
+<!-- Featured Course: Trinity Club -->
+<section class="space-y-4">
+<div class="flex justify-between items-end">
+<h2 class="text-sm font-bold uppercase tracking-[0.2em] text-on-surface-variant">Featured Experience</h2>
+<span class="text-xs font-bold text-primary hover:underline cursor-pointer">View Map</span>
+</div>
+<div class="relative w-full aspect-[16/10] rounded-xl overflow-hidden group shadow-2xl">
+<div class="absolute inset-0 bg-gradient-to-t from-surface-dim via-transparent to-transparent z-10"></div>
+<img alt="Trinity Club Golf Course" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Dramatic wide angle of a luxury golf course fairway at twilight, deep greens and long shadows, moody professional photography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZd-e-s6jhalCS6EzGQxxUDOidaVmQ7xIHN3O-Z7hxlTlEnVZ1hsARtpO_4sPI6wky6VvUSOixzHrt-m3haVCkvwpdFsagYRRmq14rZrxYJc5ozaxGFVKzD3IbpcEI852w_wW9PmBuuQ9PDxR0IwUeTCEewS5Wo3p-VrpooHc5_Rlz4OtiXWSvS37Cv8jeNcpll_SuNpD8tJCAgU-5aV7UrCe8hBGMtETBVWwoq0xfU2zk0b2n9M6v0EbuKIg2ZR1dXrnY-WbJNBQ"/>
+<div class="absolute bottom-0 left-0 p-6 z-20 w-full">
+<div class="flex justify-between items-end">
+<div class="space-y-1">
+<h3 class="text-2xl font-extrabold text-on-surface tracking-tight">Trinity Club</h3>
+<div class="flex items-center gap-3">
+<span class="flex items-center gap-1 text-secondary text-sm font-bold">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+                                    4.8
+                                </span>
+<span class="text-on-surface-variant/60 text-sm">•</span>
+<span class="text-on-surface-variant text-sm font-medium">Par 72</span>
+</div>
+</div>
+<button class="bg-primary hover:bg-primary-container text-on-primary-container px-6 py-2.5 rounded-lg font-bold text-sm shadow-lg transition-all active:scale-95">Book Tee</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Search Results -->
+<section class="space-y-4 pb-12">
+<h2 class="text-sm font-bold uppercase tracking-[0.2em] text-on-surface-variant">Top Results</h2>
+<div class="space-y-4">
+<!-- Result 1: South Cape -->
+<div class="bg-surface-container rounded-xl p-4 flex gap-4 items-center group cursor-pointer hover:bg-surface-container-high transition-colors border border-transparent hover:border-outline-variant/10">
+<div class="w-24 h-24 rounded-lg overflow-hidden shrink-0">
+<img alt="South Cape Owners Club" class="w-full h-full object-cover" data-alt="Aerial view of a coastal golf green perched on a cliffside overlooking a blue ocean, sunset lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrKwb8y6AsvdxJDAGyN7zmyOEW1y_6ErfEocGKxcKN4EzhWJRj-J8PqMUBqLwCwbvk4AvsAXB06aRF_v5przX7TrUleWGHVxfQJo7kIflU5ojBVUERF_bCtDaH_uzFwnsJzGOtKdGcJs9bZPoDFl9sZMLMmtVEGaG1Ni8IiPY_AlVTG3QYMtnvOPVx_j6-VTuYxRHgBZJ0zZ7EKR7Eqzr-TxBJkJHgcZGVd32_dyZE7h8OLg-u7_63rQZpMO5MHuc6_nDF6MT-QJs"/>
+</div>
+<div class="flex-1 space-y-2">
+<div class="flex justify-between items-start">
+<h4 class="font-bold text-lg tracking-tight text-on-surface">South Cape Owners Club</h4>
+<span class="text-xs font-bold text-on-surface-variant">12.4 km</span>
+</div>
+<div class="flex items-center gap-2 text-xs font-medium text-on-surface-variant">
+<span>Par 72</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span>18 Holes</span>
+</div>
+<div class="flex gap-2">
+<span class="px-2 py-0.5 rounded bg-tertiary-container/20 text-tertiary text-[10px] font-bold uppercase tracking-wider">Seaside</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface-variant text-[10px] font-bold uppercase tracking-wider">Membership</span>
+</div>
+</div>
+</div>
+<!-- Result 2: Haesley Nine Bridges -->
+<div class="bg-surface-container rounded-xl p-4 flex gap-4 items-center group cursor-pointer hover:bg-surface-container-high transition-colors border border-transparent hover:border-outline-variant/10">
+<div class="w-24 h-24 rounded-lg overflow-hidden shrink-0">
+<img alt="Haesley Nine Bridges" class="w-full h-full object-cover" data-alt="Modern architectural golf clubhouse with glass walls and dark stone at night, illuminated by soft warm lights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCa4Xd6jcIur15NsdlVsJmYKCCRSV6_OyizyYYvh8SNYrubBJOyly09sRegIbaaL1ywAK-ZbioFKZq2KYoj5Ru9G-UxUa0V4MRl-8M2MVdKsjRD9l6Ky1gQgXMixNpR-KFP_jwA9616VnKaDKpLCKxo8sSe1cb8ETUUlYyySGW_Nxum-TEGWHoHnJpWKS5B_I-ZWSspvHYW6sJXaM875jhyvhzlSOixg0caTXAqnLUQw3IG1qwoOZDBGTaf0MvGkWhgCdI9yiuyvu8"/>
+</div>
+<div class="flex-1 space-y-2">
+<div class="flex justify-between items-start">
+<h4 class="font-bold text-lg tracking-tight text-on-surface">Haesley Nine Bridges</h4>
+<span class="text-xs font-bold text-on-surface-variant">45.8 km</span>
+</div>
+<div class="flex items-center gap-2 text-xs font-medium text-on-surface-variant">
+<span>Par 72</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span>Forest Course</span>
+</div>
+<div class="flex gap-2">
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface-variant text-[10px] font-bold uppercase tracking-wider">Private</span>
+<span class="px-2 py-0.5 rounded bg-tertiary-container/20 text-tertiary text-[10px] font-bold uppercase tracking-wider">Award Winning</span>
+</div>
+</div>
+</div>
+<!-- Result 3: Pine Beach -->
+<div class="bg-surface-container rounded-xl p-4 flex gap-4 items-center group cursor-pointer hover:bg-surface-container-high transition-colors border border-transparent hover:border-outline-variant/10">
+<div class="w-24 h-24 rounded-lg overflow-hidden shrink-0">
+<img alt="Pine Beach Golf Links" class="w-full h-full object-cover" data-alt="Lush green golf fairway surrounded by dense pine forest under a clear dark blue twilight sky" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJHgO-HZ8k6oQH-V_moL6QSEq6SkHiOypvS1t1-AbBf7pTihYPDY03RZVimeKWPxEqdkhC2BpUYDmR9NwhECWgKwXgaSgLNXgHdfFf97Ng4ec2hYGX2K21su8aKidAPkPxIbLZyJMMPg7Iqyfq1j-Zhcdy4_fXDvsNXuhKaVgNz8_-8iVkpvAopaKvlBAFcimlhK4AYGWHnzp79tJjrCt_I1cxBT9-8unrUapZLgqE_LdF8cmMKFsWmaDaBinmQO0WsqnIZowcERo"/>
+</div>
+<div class="flex-1 space-y-2">
+<div class="flex justify-between items-start">
+<h4 class="font-bold text-lg tracking-tight text-on-surface">Pine Beach Golf Links</h4>
+<span class="text-xs font-bold text-on-surface-variant">82.1 km</span>
+</div>
+<div class="flex items-center gap-2 text-xs font-medium text-on-surface-variant">
+<span>Par 71</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span>Ocean Front</span>
+</div>
+<div class="flex gap-2">
+<span class="px-2 py-0.5 rounded bg-tertiary-container/20 text-tertiary text-[10px] font-bold uppercase tracking-wider">Seaside</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface-variant text-[10px] font-bold uppercase tracking-wider">Public</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center h-20 pb-safe px-4 bg-[#11192b]/80 backdrop-blur-xl z-50 rounded-t-lg shadow-2xl border-t border-[#dfe5fa]/15">
+<div class="flex flex-col items-center justify-center text-[#a4abbf] hover:text-[#aaead0] transition-colors active:scale-90 duration-150">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="text-[10px] font-bold uppercase tracking-widest font-plus-jakarta-sans mt-1">Home</span>
+</div>
+<!-- Active Search/Rounds Tab -->
+<div class="flex flex-col items-center justify-center text-[#bff365] scale-110 transition-transform active:scale-90 duration-150">
+<span class="material-symbols-outlined" data-icon="golf_course">golf_course</span>
+<span class="text-[10px] font-bold uppercase tracking-widest font-plus-jakarta-sans mt-1">Rounds</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#a4abbf] hover:text-[#aaead0] transition-colors active:scale-90 duration-150">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="text-[10px] font-bold uppercase tracking-widest font-plus-jakarta-sans mt-1">Stats</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#a4abbf] hover:text-[#aaead0] transition-colors active:scale-90 duration-150">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-[10px] font-bold uppercase tracking-widest font-plus-jakarta-sans mt-1">Settings</span>
+</div>
+</nav>
+</body></html>

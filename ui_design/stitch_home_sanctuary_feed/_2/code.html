@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GreenScore - Round Report</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#aaead0",
+            "on-primary": "#175845",
+            "surface-container-lowest": "#000000",
+            "inverse-on-surface": "#4e5566",
+            "surface-dim": "#070e1d",
+            "on-surface": "#dfe5fa",
+            "surface-container-highest": "#1b263b",
+            "primary-fixed": "#aaead0",
+            "on-error-container": "#ffa8a3",
+            "primary-fixed-dim": "#9ddcc2",
+            "on-tertiary": "#006443",
+            "primary-container": "#6fad95",
+            "on-surface-variant": "#a4abbf",
+            "tertiary-fixed": "#69f6b8",
+            "on-tertiary-container": "#005a3c",
+            "surface-container-low": "#0b1323",
+            "on-secondary-fixed-variant": "#456500",
+            "secondary-fixed": "#bff365",
+            "on-secondary": "#3d5a00",
+            "error-container": "#9f0519",
+            "on-primary-container": "#00291d",
+            "primary-dim": "#9ddcc2",
+            "surface-container-high": "#161f33",
+            "secondary-fixed-dim": "#b2e558",
+            "inverse-surface": "#f9f9ff",
+            "error": "#ff716c",
+            "on-background": "#dfe5fa",
+            "surface-bright": "#212c43",
+            "tertiary-fixed-dim": "#58e7ab",
+            "on-secondary-container": "#ecffc7",
+            "on-tertiary-fixed-variant": "#006544",
+            "on-primary-fixed-variant": "#23624e",
+            "tertiary-dim": "#58e7ab",
+            "on-tertiary-fixed": "#00452d",
+            "surface-container": "#11192b",
+            "surface": "#070e1d",
+            "tertiary": "#9bffce",
+            "secondary-container": "#476800",
+            "secondary": "#bff365",
+            "surface-variant": "#1b263b",
+            "secondary-dim": "#b2e558",
+            "background": "#070e1d",
+            "on-secondary-fixed": "#2f4600",
+            "inverse-primary": "#2c6a55",
+            "tertiary-container": "#69f6b8",
+            "on-error": "#490006",
+            "outline-variant": "#414859",
+            "on-primary-fixed": "#004533",
+            "surface-tint": "#aaead0",
+            "error-dim": "#d7383b",
+            "outline": "#6e7588"
+          },
+          fontFamily: {
+            "headline": ["Plus Jakarta Sans"],
+            "body": ["Plus Jakarta Sans"],
+            "label": ["Plus Jakarta Sans"]
+          },
+          borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .glass-effect { backdrop-filter: blur(20px); }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-24">
+<!-- Top App Bar -->
+<header class="fixed top-0 w-full z-50 bg-[#070e1d]/60 backdrop-blur-md flex justify-between items-center px-6 h-16 w-full shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden ring-2 ring-primary/20">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="Close-up portrait of a professional man in a premium polo shirt against a blurred golf course background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkLC9YRH2410Ie9Rn3s3nFm-BlnIvrwzXR5ZFylfQk3fWv06R5aaWre1WoczJYq0DFnC8HgKxN_y17dM4b8hZrI5NmA8AGozRGZiSCUrbYBpvnakCaHokRWghkM1sMhOf7CvMCpwzyRRfX0LdIgiPcMwfQBObY9tFfLhXtYp54dxABeCIadO8qJ95-tO-_tTpFz7XzJAndKiwLzkHmlMT9tEMgNztkhMkU6d4O1QLGSJ_PmoL5IGV51L0k03spLLiiAgrMaKdOYw0"/>
+</div>
+<span class="text-xl font-bold tracking-tighter text-[#aaead0] font-plus-jakarta-sans">GreenScore</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-[#a4abbf] active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</div>
+</header>
+<main class="pt-20 px-4 max-w-5xl mx-auto space-y-6">
+<!-- Hero Round Card -->
+<section class="relative overflow-hidden rounded-xl bg-surface-container shadow-2xl group">
+<div class="absolute inset-0 opacity-40">
+<img alt="Nambu CC" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Wide cinematic shot of a misty emerald green golf fairway at dawn with long shadows and luxurious clubhouse in the distance" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMaN9Iaq2FmaTBZ7H-Lxanaht0y9Z8kS75_6Fm_FVbTJUVg1xcecotLfL6Hu34RJQx9gSmv_Yl_8ao8yHTL0cDdqBs4qUQX-c9yLTpUwj3E-93XfozAvCZzXZErh3Nr3hc6D3Om35iK3l0FwT9vOOCRVrZhfy_U3ayptRteAq1FHpJz8Goo8zrqKLjmEhZyJ4wNkoFNpGoqovszp7cBla9VSa3fDl6IB12-OVMaE4BZaFmUgIdE1SXBZRQ4vlqzai8EobouIpDP3c"/>
+</div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container via-surface-container/60 to-transparent"></div>
+<div class="relative p-6 pt-24 space-y-4">
+<div>
+<h1 class="text-3xl font-extrabold tracking-tight text-on-surface">Nambu CC</h1>
+<p class="text-on-surface-variant font-medium">Oct 24, 2023</p>
+</div>
+<div class="flex items-end justify-between">
+<div class="flex gap-8">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Final Score</span>
+<span class="text-5xl font-extrabold text-secondary tracking-tighter">-79</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Total Putts</span>
+<span class="text-5xl font-extrabold text-secondary tracking-tighter">31</span>
+</div>
+</div>
+<button class="bg-gradient-to-br from-primary to-primary-container text-on-primary-container px-6 py-3 rounded-lg font-bold text-sm shadow-lg active:scale-95 transition-transform flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="share">share</span>
+            Share Scorecard
+          </button>
+</div>
+</div>
+</section>
+<!-- Analysis Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Shot Analysis Donut -->
+<div class="bg-surface-container-low rounded-xl p-6 flex flex-col gap-6">
+<div class="flex justify-between items-center">
+<h2 class="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Shot Analysis</h2>
+<span class="text-secondary font-bold text-sm">+7 Over Par</span>
+</div>
+<div class="flex items-center justify-around">
+<!-- Custom SVG Donut -->
+<div class="relative w-32 h-32">
+<svg class="w-full h-full -rotate-90" viewbox="0 0 36 36">
+<circle class="stroke-surface-container-highest" cx="18" cy="18" fill="none" r="16" stroke-width="3"></circle>
+<!-- Pars (10/18 = 55%) -->
+<circle class="stroke-primary" cx="18" cy="18" fill="none" r="16" stroke-dasharray="55 100" stroke-dashoffset="0" stroke-width="3"></circle>
+<!-- Bogeys (4/18 = 22%) -->
+<circle class="stroke-error" cx="18" cy="18" fill="none" r="16" stroke-dasharray="22 100" stroke-dashoffset="-55" stroke-width="3"></circle>
+<!-- Birdies (2/18 = 11%) -->
+<circle class="stroke-secondary" cx="18" cy="18" fill="none" r="16" stroke-dasharray="11 100" stroke-dashoffset="-77" stroke-width="3"></circle>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center flex-col">
+<span class="text-2xl font-bold leading-none">18</span>
+<span class="text-[8px] font-bold text-on-surface-variant uppercase">Holes</span>
+</div>
+</div>
+<div class="space-y-3">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="text-xs font-medium text-on-surface-variant">Birdie</span>
+<span class="text-xs font-bold ml-auto">2</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<span class="text-xs font-medium text-on-surface-variant">Par</span>
+<span class="text-xs font-bold ml-auto">10</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-error"></div>
+<span class="text-xs font-medium text-on-surface-variant">Bogey</span>
+<span class="text-xs font-bold ml-auto">4</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Handicap Card -->
+<div class="bg-surface-container-low rounded-xl p-6 flex flex-col justify-between">
+<h2 class="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Handicap Index</h2>
+<div class="flex items-center justify-between mt-4">
+<div class="flex items-baseline gap-2">
+<span class="text-6xl font-extrabold tracking-tighter text-on-surface">9.4</span>
+<div class="flex items-center text-secondary-fixed bg-secondary-container/30 px-2 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-sm" data-icon="trending_down">trending_down</span>
+<span class="text-xs font-bold ml-1">-0.2</span>
+</div>
+</div>
+<div class="w-16 h-16 bg-surface-container-highest rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="sports_golf">sports_golf</span>
+</div>
+</div>
+<p class="text-[10px] text-on-surface-variant mt-4 font-medium italic opacity-70">Calculated based on your last 20 recorded rounds.</p>
+</div>
+</div>
+<!-- Scorecard Table -->
+<section class="bg-surface-container rounded-xl overflow-hidden shadow-xl">
+<div class="px-6 py-4 flex justify-between items-center">
+<h2 class="text-sm font-bold uppercase tracking-widest text-primary">Detailed Scorecard</h2>
+<span class="text-[10px] text-on-surface-variant font-bold">PAR 72</span>
+</div>
+<div class="overflow-x-auto hide-scrollbar">
+<table class="w-full text-center border-collapse">
+<thead>
+<tr class="bg-surface-container-high text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+<th class="py-3 px-4 text-left sticky left-0 bg-surface-container-high z-10">Hole</th>
+<th class="py-3 px-2">1</th><th class="py-3 px-2">2</th><th class="py-3 px-2">3</th><th class="py-3 px-2">4</th><th class="py-3 px-2">5</th><th class="py-3 px-2">6</th><th class="py-3 px-2">7</th><th class="py-3 px-2">8</th><th class="py-3 px-2">9</th>
+<th class="py-3 px-4 bg-surface-container-highest">Out</th>
+</tr>
+</thead>
+<tbody class="text-sm">
+<tr class="bg-surface-container border-b border-outline-variant/10">
+<td class="py-4 px-4 text-left font-bold text-on-surface-variant sticky left-0 bg-surface-container z-10">Par</td>
+<td class="py-4 px-2">4</td><td class="py-4 px-2">5</td><td class="py-4 px-2">3</td><td class="py-4 px-2">4</td><td class="py-4 px-2">4</td><td class="py-4 px-2">3</td><td class="py-4 px-2">5</td><td class="py-4 px-2">4</td><td class="py-4 px-2">4</td>
+<td class="py-4 px-4 font-bold bg-surface-container-highest">36</td>
+</tr>
+<tr class="bg-surface-container-low border-b border-outline-variant/10">
+<td class="py-4 px-4 text-left font-bold text-primary sticky left-0 bg-surface-container-low z-10">Score</td>
+<td class="py-4 px-2">4</td>
+<td class="py-4 px-2 text-secondary font-bold">4</td>
+<td class="py-4 px-2">3</td>
+<td class="py-4 px-2 text-error font-bold">5</td>
+<td class="py-4 px-2">4</td>
+<td class="py-4 px-2">3</td>
+<td class="py-4 px-2">5</td>
+<td class="py-4 px-2">4</td>
+<td class="py-4 px-2 text-error font-bold">5</td>
+<td class="py-4 px-4 font-extrabold bg-surface-container-highest text-secondary">37</td>
+</tr>
+<tr class="bg-surface-container border-b border-outline-variant/10">
+<td class="py-4 px-4 text-left font-bold text-on-surface-variant sticky left-0 bg-surface-container z-10">Putts</td>
+<td class="py-4 px-2">2</td><td class="py-4 px-2">1</td><td class="py-4 px-2">2</td><td class="py-4 px-2">2</td><td class="py-4 px-2">2</td><td class="py-4 px-2">1</td><td class="py-4 px-2">2</td><td class="py-4 px-2">2</td><td class="py-4 px-2">2</td>
+<td class="py-4 px-4 font-bold bg-surface-container-highest">16</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Second 9 holes indicator -->
+<div class="p-4 bg-surface-container-highest/20 text-center">
+<span class="text-[10px] font-bold text-outline uppercase tracking-widest">Scroll for back nine (In 42 • Total 79)</span>
+</div>
+</section>
+<!-- Additional Action -->
+<div class="pt-4">
+<button class="w-full bg-surface-container-high border border-outline-variant/20 text-primary py-4 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+        View Course Map &amp; Highlights
+      </button>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center h-20 pb-safe px-4 bg-[#11192b]/80 backdrop-blur-xl z-50 rounded-t-lg shadow-2xl border-t border-[#dfe5fa]/15">
+<a class="flex flex-col items-center justify-center text-[#a4abbf] hover:text-[#aaead0] transition-colors active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="text-[10px] font-bold uppercase tracking-widest font-plus-jakarta-sans mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#bff365] scale-110 transition-transform active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="golf_course">golf_course</span>
+<span class="text-[10px] font-bold uppercase tracking-widest font-plus-jakarta-sans mt-1">Rounds</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#a4abbf] hover:text-[#aaead0] transition-colors active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="text-[10px] font-bold uppercase tracking-widest font-plus-jakarta-sans mt-1">Stats</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#a4abbf] hover:text-[#aaead0] transition-colors active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-[10px] font-bold uppercase tracking-widest font-plus-jakarta-sans mt-1">Settings</span>
+</a>
+</nav>
+</body></html>

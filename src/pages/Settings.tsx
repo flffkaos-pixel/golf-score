@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useAppSettings, type Language } from '../hooks/useAppSettings';
 import { useAuth } from '../hooks/useAuth';
 import { useGolf } from '../hooks/useGolf';
@@ -26,35 +25,12 @@ export default function Settings({ onBack }: SettingsProps) {
     clearLocalData();
     window.location.reload();
   };
-  const [playerName, setPlayerName] = useState(() => {
-    const data = localStorage.getItem('golf_score_data');
-    if (data) {
-      const parsed = JSON.parse(data);
-      return parsed.player?.name || 'golfer';
-    }
-    return 'golfer';
-  });
-  const [newName, setNewName] = useState(playerName);
-  const [showNameEdit, setShowNameEdit] = useState(false);
-  const [showCompetitions, setShowCompetitions] = useState(false);
-
-  const saveName = () => {
-    const data = localStorage.getItem('golf_score_data');
-    if (data) {
-      const parsed = JSON.parse(data);
-      parsed.player.name = newName;
-      localStorage.setItem('golf_score_data', JSON.stringify(parsed));
-      setPlayerName(newName);
-    }
-    setShowNameEdit(false);
-    alert(t('nameUpdated'));
-  };
 
   return (
     <div className="min-h-screen pb-32 bg-surface">
-      <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+      <header className="bg-surface-container-lowest flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
         <button onClick={onBack} className="p-2 -ml-2">
-          <span className="material-symbols-outlined text-stone-500">arrow_back</span>
+          <span className="material-symbols-outlined text-on-surface-variant">arrow_back</span>
         </button>
         <h1 className="text-xl font-extrabold text-primary font-headline">{t('settings')}</h1>
         <div className="w-10"></div>
@@ -62,7 +38,7 @@ export default function Settings({ onBack }: SettingsProps) {
 
       <main className="px-6 pt-6 max-w-5xl mx-auto">
         <section className="mb-8">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-stone-500 mb-4 px-2">{t('profile')}</h2>
+          <h2 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4 px-2">{t('profile')}</h2>
           <div className="bg-surface-container-lowest rounded-2xl overflow-hidden">
             {user ? (
               <div className="p-5 flex items-center justify-between">
@@ -76,14 +52,12 @@ export default function Settings({ onBack }: SettingsProps) {
                   )}
                   <div className="text-left">
                     <p className="font-bold text-primary">{user.user_metadata?.full_name || user.user_metadata?.name || user.email}</p>
-                    <p className="text-xs text-green-600">
-                      ✓ Google 로그인됨
-                    </p>
+                    <p className="text-xs score-lime">✓ Google 로그인됨</p>
                   </div>
                 </div>
                 <button
                   onClick={handleSignOut}
-                  className="px-4 py-2 bg-red-100 text-red-600 rounded-xl font-bold text-sm"
+                  className="px-4 py-2 bg-error-container text-error rounded-xl font-bold text-sm"
                 >
                   로그아웃
                 </button>
@@ -107,7 +81,7 @@ export default function Settings({ onBack }: SettingsProps) {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-stone-500 mb-4 px-2">{t('appearance')}</h2>
+          <h2 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4 px-2">{t('appearance')}</h2>
           <div className="bg-surface-container-lowest rounded-2xl overflow-hidden">
             <div className="flex items-center justify-between p-5">
               <div className="flex items-center gap-4">
@@ -116,7 +90,7 @@ export default function Settings({ onBack }: SettingsProps) {
               </div>
               <button
                 onClick={() => setDarkMode(!darkMode)}
-                className={`w-14 h-8 rounded-full p-1 transition-colors ${darkMode ? 'bg-primary' : 'bg-stone-300'}`}
+                className={`w-14 h-8 rounded-full p-1 transition-colors ${darkMode ? 'gradient-primary' : 'bg-surface-container-high'}`}
               >
                 <div className={`w-6 h-6 bg-white rounded-full transition-transform flex items-center justify-center ${darkMode ? 'translate-x-6' : ''}`}>
                   {darkMode ? (
@@ -127,7 +101,7 @@ export default function Settings({ onBack }: SettingsProps) {
                 </div>
               </button>
             </div>
-            <div className="h-px bg-stone-200" />
+            <div className="h-px bg-surface-container" />
             <div className="p-5">
               <div className="flex items-center gap-4 mb-4">
                 <span className="material-symbols-outlined text-secondary">language</span>
@@ -140,8 +114,8 @@ export default function Settings({ onBack }: SettingsProps) {
                     onClick={() => setLanguage(lang)}
                     className={`py-3 px-4 rounded-xl font-bold text-sm transition-colors ${
                       language === lang
-                        ? 'bg-primary text-white'
-                        : 'bg-surface-container text-stone-600'
+                        ? 'gradient-primary text-on-primary'
+                        : 'bg-surface-container text-on-surface-variant'
                     }`}
                   >
                     {languageNames[lang]}
@@ -153,80 +127,28 @@ export default function Settings({ onBack }: SettingsProps) {
         </section>
 
         <section className="mb-8">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-stone-500 mb-4 px-2">{t('competitionsInfo')}</h2>
+          <h2 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4 px-2">{t('competitionsInfo')}</h2>
           <button
-            onClick={() => setShowCompetitions(!showCompetitions)}
             className="w-full bg-surface-container-lowest rounded-2xl p-5 flex items-center justify-between active:bg-surface-container transition-colors"
           >
             <div className="flex items-center gap-4">
               <span className="material-symbols-outlined text-secondary">emoji_events</span>
               <span className="font-bold text-primary">{t('competitionsTitle')}</span>
             </div>
-            <span className="material-symbols-outlined text-stone-400">{showCompetitions ? 'expand_less' : 'expand_more'}</span>
+            <span className="material-symbols-outlined text-on-surface-variant">expand_more</span>
           </button>
-          {showCompetitions && (
-            <div className="bg-surface-container-lowest rounded-2xl p-5 mt-2">
-              <p className="text-stone-600 mb-4">{t('competitionsDesc')}</p>
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">1</div>
-                  <p className="text-sm text-stone-600">{t('compStep1')}</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">2</div>
-                  <p className="text-sm text-stone-600">{t('compStep2')}</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">3</div>
-                  <p className="text-sm text-stone-600">{t('compStep3')}</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">4</div>
-                  <p className="text-sm text-stone-600">{t('compStep4')}</p>
-                </div>
-              </div>
-            </div>
-          )}
         </section>
 
         <section>
-          <h2 className="text-xs font-bold uppercase tracking-widest text-stone-500 mb-4 px-2">{t('about')}</h2>
+          <h2 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4 px-2">{t('about')}</h2>
           <div className="bg-surface-container-lowest rounded-2xl p-5">
             <div className="flex items-center justify-between">
               <span className="font-bold text-primary">GreenScore</span>
-              <span className="text-stone-500 text-sm">{t('version')} 1.0.0</span>
+              <span className="text-on-surface-variant text-sm">{t('version')} 1.0.0</span>
             </div>
           </div>
         </section>
       </main>
-
-      {showNameEdit && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
-            <h3 className="text-xl font-bold text-primary font-headline mb-4">{t('editName')}</h3>
-            <input
-              type="text"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              className="w-full bg-surface-container rounded-xl py-4 px-4 text-lg outline-none focus:ring-2 focus:ring-primary text-primary"
-            />
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => setShowNameEdit(false)}
-                className="flex-1 bg-surface-container text-stone-600 py-3 rounded-xl font-bold"
-              >
-                {t('cancel')}
-              </button>
-              <button
-                onClick={saveName}
-                className="flex-1 bg-primary text-white py-3 rounded-xl font-bold"
-              >
-                {t('save')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

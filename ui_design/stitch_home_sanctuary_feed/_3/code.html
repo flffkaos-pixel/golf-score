@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#aaead0",
+            "on-primary": "#175845",
+            "surface-container-lowest": "#000000",
+            "inverse-on-surface": "#4e5566",
+            "surface-dim": "#070e1d",
+            "on-surface": "#dfe5fa",
+            "surface-container-highest": "#1b263b",
+            "primary-fixed": "#aaead0",
+            "on-error-container": "#ffa8a3",
+            "primary-fixed-dim": "#9ddcc2",
+            "on-tertiary": "#006443",
+            "primary-container": "#6fad95",
+            "on-surface-variant": "#a4abbf",
+            "tertiary-fixed": "#69f6b8",
+            "on-tertiary-container": "#005a3c",
+            "surface-container-low": "#0b1323",
+            "on-secondary-fixed-variant": "#456500",
+            "secondary-fixed": "#bff365",
+            "on-secondary": "#3d5a00",
+            "error-container": "#9f0519",
+            "on-primary-container": "#00291d",
+            "primary-dim": "#9ddcc2",
+            "surface-container-high": "#161f33",
+            "secondary-fixed-dim": "#b2e558",
+            "inverse-surface": "#f9f9ff",
+            "error": "#ff716c",
+            "on-background": "#dfe5fa",
+            "surface-bright": "#212c43",
+            "tertiary-fixed-dim": "#58e7ab",
+            "on-secondary-container": "#ecffc7",
+            "on-tertiary-fixed-variant": "#006544",
+            "on-primary-fixed-variant": "#23624e",
+            "tertiary-dim": "#58e7ab",
+            "on-tertiary-fixed": "#00452d",
+            "surface-container": "#11192b",
+            "surface": "#070e1d",
+            "tertiary": "#9bffce",
+            "secondary-container": "#476800",
+            "secondary": "#bff365",
+            "surface-variant": "#1b263b",
+            "secondary-dim": "#b2e558",
+            "background": "#070e1d",
+            "on-secondary-fixed": "#2f4600",
+            "inverse-primary": "#2c6a55",
+            "tertiary-container": "#69f6b8",
+            "on-error": "#490006",
+            "outline-variant": "#414859",
+            "on-primary-fixed": "#004533",
+            "surface-tint": "#aaead0",
+            "error-dim": "#d7383b",
+            "outline": "#6e7588"
+          },
+          fontFamily: {
+            "headline": ["Plus Jakarta Sans"],
+            "body": ["Plus Jakarta Sans"],
+            "label": ["Plus Jakarta Sans"]
+          },
+          borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .glass-effect { backdrop-filter: blur(20px); }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<!-- Top Navigation Shell -->
+<header class="fixed top-0 w-full z-50 bg-[#070e1d]/60 backdrop-blur-md text-[#aaead0] shadow-[0_20px_40px_rgba(0,0,0,0.4)] px-6 h-16 flex justify-between items-center">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest overflow-hidden">
+<img alt="User" data-alt="professional male golfer portrait with green grass background and soft focus lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzoQBKgIcuFUD6SV3TQapTjrIsaxV0QvyLiW4pRfODg8GIkdCOfGbYHhpCTnnfw89T6GxC8Qi5Vyz8Npfy3P5zNIeDOri0pW9ffIxBn5p1sY1YX1TODGUdkr9xcr8amycIwTaic1Qhpf-kP1pfzLX6QuEuctUda8LUUce-1qfbFv6r0BGu7-kEnzm0WDX2svE52HDWXTvpBoNRAOPq9yXcDUPBHPg--HLXuhBbiNHR8bo_84pNr-tTUwTrHn_cxvYgPFFHuHkjOWw"/>
+</div>
+<span class="text-xl font-bold tracking-tighter text-[#aaead0]">GreenScore</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-[#a4abbf] hover:opacity-80 transition-opacity active:scale-95 duration-200">notifications</button>
+</div>
+</header>
+<main class="pt-24 px-6 space-y-6 max-w-2xl mx-auto">
+<!-- Hole Header: Editorial Authority -->
+<section class="space-y-1">
+<div class="flex justify-between items-end">
+<div>
+<h2 class="text-on-surface-variant text-sm font-bold uppercase tracking-widest">Currently Playing</h2>
+<h1 class="text-4xl font-extrabold tracking-tighter">Hole 1</h1>
+</div>
+<div class="text-right">
+<p class="text-secondary font-bold text-2xl tracking-tight">Par 4</p>
+<p class="text-on-surface-variant text-sm font-medium">412 Yards</p>
+</div>
+</div>
+<div class="h-1 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full w-1/18 bg-primary rounded-full"></div>
+</div>
+</section>
+<!-- Score & Putts Counter Cards -->
+<div class="grid grid-cols-2 gap-4">
+<!-- Score Card -->
+<div class="bg-surface-container rounded-xl p-5 flex flex-col items-center justify-between aspect-square">
+<span class="text-on-surface-variant text-xs font-bold uppercase tracking-widest">Score</span>
+<div class="flex items-center justify-between w-full">
+<button class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined">remove</span>
+</button>
+<span class="text-6xl font-black text-secondary tracking-tighter">4</span>
+<button class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+<span class="text-primary-container text-[10px] font-bold">PAR</span>
+</div>
+<!-- Putts Card -->
+<div class="bg-surface-container rounded-xl p-5 flex flex-col items-center justify-between aspect-square">
+<span class="text-on-surface-variant text-xs font-bold uppercase tracking-widest">Putts</span>
+<div class="flex items-center justify-between w-full">
+<button class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined">remove</span>
+</button>
+<span class="text-6xl font-black text-on-surface tracking-tighter">2</span>
+<button class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+<span class="text-on-surface-variant text-[10px] font-bold">AVG</span>
+</div>
+</div>
+<!-- Fairway Hit Section -->
+<section class="bg-surface-container rounded-xl p-6 space-y-4">
+<div class="flex justify-between items-center">
+<h3 class="text-on-surface-variant text-xs font-bold uppercase tracking-widest">Fairway Hit</h3>
+<span class="text-tertiary text-[10px] font-bold px-2 py-1 bg-tertiary-container/10 rounded">DRIVE: 285Y</span>
+</div>
+<div class="grid grid-cols-4 gap-2">
+<button class="flex flex-col items-center justify-center p-3 rounded-lg bg-surface-container-low text-on-surface-variant border border-outline-variant/15 hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined mb-1">west</span>
+<span class="text-[10px] font-bold">LEFT</span>
+</button>
+<button class="flex flex-col items-center justify-center p-3 rounded-lg bg-secondary-container text-secondary border border-secondary/20 scale-105 shadow-lg shadow-secondary/10">
+<span class="material-symbols-outlined mb-1">vertical_align_top</span>
+<span class="text-[10px] font-bold">CENTER</span>
+</button>
+<button class="flex flex-col items-center justify-center p-3 rounded-lg bg-surface-container-low text-on-surface-variant border border-outline-variant/15 hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined mb-1">east</span>
+<span class="text-[10px] font-bold">RIGHT</span>
+</button>
+<button class="flex flex-col items-center justify-center p-3 rounded-lg bg-surface-container-low text-on-surface-variant border border-outline-variant/15 hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined mb-1">close</span>
+<span class="text-[10px] font-bold">MISS</span>
+</button>
+</div>
+</section>
+<!-- GIR & Penalties Grid -->
+<div class="grid grid-cols-2 gap-4">
+<!-- GIR Success/Fail Toggle -->
+<div class="bg-surface-container rounded-xl p-5 space-y-4">
+<h3 class="text-on-surface-variant text-xs font-bold uppercase tracking-widest text-center">G.I.R.</h3>
+<div class="flex p-1 bg-surface-container-low rounded-lg">
+<button class="flex-1 py-2 rounded-md bg-secondary-container text-secondary text-xs font-bold transition-all">YES</button>
+<button class="flex-1 py-2 rounded-md text-on-surface-variant text-xs font-bold">NO</button>
+</div>
+</div>
+<!-- Penalty Counter -->
+<div class="bg-surface-container rounded-xl p-5 space-y-4">
+<h3 class="text-on-surface-variant text-xs font-bold uppercase tracking-widest text-center">Penalties</h3>
+<div class="flex items-center justify-around">
+<button class="text-on-surface-variant active:scale-75 transition-transform">
+<span class="material-symbols-outlined">remove_circle_outline</span>
+</button>
+<span class="text-2xl font-black text-on-surface">0</span>
+<button class="text-primary active:scale-75 transition-transform">
+<span class="material-symbols-outlined">add_circle</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Navigation Buttons -->
+<div class="flex gap-4 pt-4">
+<button class="flex-1 bg-surface-container-high text-primary font-bold py-4 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-sm">arrow_back_ios</span>
+        Previous Hole
+      </button>
+<button class="flex-[1.5] bg-gradient-to-br from-primary to-primary-container text-on-primary-container font-extrabold py-4 rounded-xl flex items-center justify-center gap-2 shadow-xl shadow-primary/10 active:scale-95 transition-all">
+        Next Hole
+        <span class="material-symbols-outlined text-sm">arrow_forward_ios</span>
+</button>
+</div>
+</main>
+<!-- Bottom Navigation Shell -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center h-20 pb-safe px-4 bg-[#11192b]/80 backdrop-blur-xl text-[#bff365] rounded-t-lg z-50 border-t border-[#dfe5fa]/15 shadow-2xl">
+<a class="flex flex-col items-center justify-center text-[#a4abbf] hover:text-[#aaead0] transition-colors active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-bold uppercase tracking-widest font-plus-jakarta-sans mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#bff365] scale-110 transition-transform active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">golf_course</span>
+<span class="text-[10px] font-bold uppercase tracking-widest font-plus-jakarta-sans mt-1">Rounds</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#a4abbf] hover:text-[#aaead0] transition-colors active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-[10px] font-bold uppercase tracking-widest font-plus-jakarta-sans mt-1">Stats</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#a4abbf] hover:text-[#aaead0] transition-colors active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold uppercase tracking-widest font-plus-jakarta-sans mt-1">Settings</span>
+</a>
+</nav>
+</body></html>

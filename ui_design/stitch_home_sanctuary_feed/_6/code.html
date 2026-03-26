@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "inverse-surface": "#2e3132",
+              "surface-container-highest": "#e1e3e4",
+              "tertiary": "#1f2a00",
+              "on-tertiary-fixed-variant": "#3c4d00",
+              "primary-fixed-dim": "#a5d0b9",
+              "tertiary-fixed-dim": "#abd600",
+              "primary-fixed": "#c1ecd4",
+              "surface": "#f8f9fa",
+              "on-secondary": "#ffffff",
+              "on-secondary-container": "#316e52",
+              "on-tertiary": "#ffffff",
+              "on-tertiary-container": "#8fb300",
+              "on-background": "#191c1d",
+              "background": "#f8f9fa",
+              "tertiary-fixed": "#c3f400",
+              "on-error": "#ffffff",
+              "surface-variant": "#e1e3e4",
+              "surface-container": "#edeeef",
+              "outline": "#717973",
+              "outline-variant": "#c1c8c2",
+              "on-tertiary-fixed": "#161e00",
+              "surface-tint": "#3f6653",
+              "tertiary-container": "#324100",
+              "secondary-fixed": "#b1f0ce",
+              "error-container": "#ffdad6",
+              "secondary-fixed-dim": "#95d4b3",
+              "on-primary-fixed-variant": "#274e3d",
+              "on-surface-variant": "#414844",
+              "on-primary-fixed": "#002114",
+              "on-error-container": "#93000a",
+              "inverse-on-surface": "#f0f1f2",
+              "surface-container-low": "#f3f4f5",
+              "on-primary-container": "#86af99",
+              "surface-container-high": "#e7e8e9",
+              "secondary-container": "#aeeecb",
+              "secondary": "#2c694e",
+              "on-primary": "#ffffff",
+              "primary": "#012d1d",
+              "on-secondary-fixed-variant": "#0e5138",
+              "surface-bright": "#f8f9fa",
+              "inverse-primary": "#a5d0b9",
+              "primary-container": "#1b4332",
+              "surface-container-lowest": "#ffffff",
+              "surface-dim": "#d9dadb",
+              "error": "#ba1a1a",
+              "on-secondary-fixed": "#002114",
+              "on-surface": "#191c1d"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Manrope"],
+              "label": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Top Navigation Anchor -->
+<header class="bg-white dark:bg-stone-950 flex justify-between items-center w-full px-6 py-4 sticky top-0 z-50">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-stone-200 overflow-hidden">
+<img alt="User" data-alt="professional portrait of a golfer in stylish attire against a blurred golf course background with soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyK0tlrKPfjKrWjsgvjtQLHhq3InmOTn0rw2pfDukmrJxOqwCQ-yklZlUSoBvTKUFIivtws2tqCg8bE2CaJCp4ck2Sh9Mg5BAhZ76fJZFckf9Amba-X6HF_n7IakRDpB0ZDTihA6DrvTS_yuTFOT-HNdvBnYI1xoWtyCtTUfmeIeLBxu7KEI9vMxSySv38hFNa4zimg-lTueqdc2gdqfbXmgQXEIOKGQgMDECcmrQNPdFTXcotXp7yXPuVMVc70Zj4Cdnl5o9uHNg"/>
+</div>
+<h1 class="font-['Plus_Jakarta_Sans'] font-extrabold tracking-tight text-emerald-900 dark:text-emerald-100 text-2xl">GreenScore</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-stone-400 dark:text-stone-600 hover:bg-stone-50 dark:hover:bg-stone-900 transition-colors p-2 rounded-full active:scale-95 duration-200">notifications</button>
+</div>
+</header>
+<main class="max-w-5xl mx-auto px-4 pt-6 pb-32">
+<!-- Hero Section: Round Summary -->
+<section class="mb-8 relative overflow-hidden rounded-2xl bg-primary-container p-8 text-on-primary">
+<div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-lime-400/10 rounded-full blur-3xl"></div>
+<div class="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<span class="inline-block px-3 py-1 bg-lime-400/20 text-lime-300 rounded-full font-label text-xs font-bold uppercase tracking-widest mb-4">라운드 리포트</span>
+<h2 class="font-headline text-4xl md:text-5xl font-extrabold tracking-tight mb-2">남부 컨트리클럽</h2>
+<p class="text-on-primary-container font-medium text-lg">2023년 10월 24일 • 오전 07:15 티오프</p>
+</div>
+<div class="flex gap-8 items-end">
+<div class="text-center">
+<p class="text-on-primary-container text-xs font-bold uppercase tracking-wider mb-1">최종 스코어</p>
+<p class="font-headline text-6xl font-black text-white">79</p>
+</div>
+<div class="text-center">
+<p class="text-on-primary-container text-xs font-bold uppercase tracking-wider mb-1">총 퍼트 수</p>
+<p class="font-headline text-6xl font-black text-lime-400">31</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Bento Grid Analysis -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<!-- Shot Mix Chart (Asymmetric Card) -->
+<div class="md:col-span-2 bg-surface-container-lowest rounded-2xl p-6 relative overflow-hidden">
+<h3 class="font-headline text-xl font-bold mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">analytics</span>
+                    샷 분석 (Shot Analysis)
+                </h3>
+<div class="flex flex-col md:flex-row items-center gap-8">
+<div class="relative w-48 h-48 flex items-center justify-center">
+<!-- Simulated Pie Chart via CSS Gradients -->
+<div class="w-full h-full rounded-full" style="background: conic-gradient(#2c694e 0% 15%, #b1f0ce 15% 70%, #ba1a1a 70% 85%, #f3f4f5 85% 100%);"></div>
+<div class="absolute inset-4 bg-surface-container-lowest rounded-full flex flex-col items-center justify-center">
+<span class="text-xs font-bold text-outline uppercase">오버 파</span>
+<span class="text-2xl font-headline font-black">+7</span>
+</div>
+</div>
+<div class="flex-1 grid grid-cols-2 gap-4 w-full">
+<div class="p-4 bg-surface-container-low rounded-xl">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-3 h-3 rounded-full bg-secondary"></div>
+<span class="text-sm font-semibold">버디 (Birdie)</span>
+</div>
+<p class="text-2xl font-headline font-bold text-secondary">2</p>
+</div>
+<div class="p-4 bg-surface-container-low rounded-xl">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-3 h-3 rounded-full bg-secondary-fixed"></div>
+<span class="text-sm font-semibold">파 (Par)</span>
+</div>
+<p class="text-2xl font-headline font-bold text-on-surface">10</p>
+</div>
+<div class="p-4 bg-surface-container-low rounded-xl">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-3 h-3 rounded-full bg-error"></div>
+<span class="text-sm font-semibold">보기 (Bogey)</span>
+</div>
+<p class="text-2xl font-headline font-bold text-error">4</p>
+</div>
+<div class="p-4 bg-surface-container-low rounded-xl">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-3 h-3 rounded-full bg-stone-300"></div>
+<span class="text-sm font-semibold">기타 (Others)</span>
+</div>
+<p class="text-2xl font-headline font-bold text-outline">2</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Hand-drawn style highlight card -->
+<div class="bg-primary text-on-primary rounded-2xl p-6 flex flex-col justify-between">
+<div>
+<h3 class="font-headline text-xl font-bold mb-2">핸디캡 업데이트</h3>
+<p class="text-on-primary-container text-sm leading-relaxed">이번 라운드 결과로 핸디캡 지수가 <span class="text-lime-400 font-bold">1.2</span> 감소했습니다. 꾸준한 상승세입니다!</p>
+</div>
+<div class="mt-6">
+<div class="flex items-baseline gap-2">
+<span class="text-5xl font-headline font-black">9.4</span>
+<span class="material-symbols-outlined text-lime-400">trending_down</span>
+</div>
+<p class="text-xs uppercase tracking-widest opacity-60 mt-1">Current Handicap</p>
+</div>
+</div>
+</div>
+<!-- Horizontal Scorecard Section -->
+<section class="bg-surface-container-lowest rounded-2xl p-6 mb-8">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-headline text-xl font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">scoreboard</span>
+                    홀별 상세 스코어
+                </h3>
+<div class="flex gap-4">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-secondary"></span>
+<span class="text-xs font-bold text-outline">버디 이하</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-error"></span>
+<span class="text-xs font-bold text-outline">보기 이상</span>
+</div>
+</div>
+</div>
+<!-- Out Course -->
+<div class="mb-6">
+<h4 class="text-xs font-bold uppercase tracking-widest text-outline mb-3 px-2">OUT COURSE (1-9)</h4>
+<div class="overflow-x-auto hide-scrollbar -mx-2 px-2">
+<div class="flex gap-2 min-w-max">
+<!-- Scorecard Columns -->
+<div class="flex flex-col gap-2 w-14">
+<div class="h-8 flex items-center justify-center bg-surface-container font-bold text-xs rounded-lg">HOLE</div>
+<div class="h-12 flex items-center justify-center bg-surface-container-low font-bold text-xs rounded-lg">PAR</div>
+<div class="h-14 flex items-center justify-center bg-primary text-white font-headline font-bold text-lg rounded-lg shadow-sm">SCORE</div>
+</div>
+<!-- Individual Holes -->
+<div class="flex flex-col gap-2 w-12 text-center">
+<div class="h-8 flex items-center justify-center font-bold text-sm">1</div>
+<div class="h-12 flex items-center justify-center text-outline text-sm">4</div>
+<div class="h-14 flex items-center justify-center bg-surface-container rounded-xl font-headline font-bold text-lg">4</div>
+</div>
+<div class="flex flex-col gap-2 w-12 text-center">
+<div class="h-8 flex items-center justify-center font-bold text-sm">2</div>
+<div class="h-12 flex items-center justify-center text-outline text-sm">5</div>
+<div class="h-14 flex items-center justify-center bg-secondary-container text-secondary rounded-xl font-headline font-bold text-lg border-2 border-secondary">4</div>
+</div>
+<div class="flex flex-col gap-2 w-12 text-center">
+<div class="h-8 flex items-center justify-center font-bold text-sm">3</div>
+<div class="h-12 flex items-center justify-center text-outline text-sm">3</div>
+<div class="h-14 flex items-center justify-center bg-surface-container rounded-xl font-headline font-bold text-lg">3</div>
+</div>
+<div class="flex flex-col gap-2 w-12 text-center">
+<div class="h-8 flex items-center justify-center font-bold text-sm">4</div>
+<div class="h-12 flex items-center justify-center text-outline text-sm">4</div>
+<div class="h-14 flex items-center justify-center bg-error-container text-error rounded-xl font-headline font-bold text-lg border-2 border-error">5</div>
+</div>
+<div class="flex flex-col gap-2 w-12 text-center">
+<div class="h-8 flex items-center justify-center font-bold text-sm">5</div>
+<div class="h-12 flex items-center justify-center text-outline text-sm">4</div>
+<div class="h-14 flex items-center justify-center bg-surface-container rounded-xl font-headline font-bold text-lg">4</div>
+</div>
+<div class="flex flex-col gap-2 w-12 text-center">
+<div class="h-8 flex items-center justify-center font-bold text-sm">6</div>
+<div class="h-12 flex items-center justify-center text-outline text-sm">4</div>
+<div class="h-14 flex items-center justify-center bg-surface-container rounded-xl font-headline font-bold text-lg">4</div>
+</div>
+<div class="flex flex-col gap-2 w-12 text-center">
+<div class="h-8 flex items-center justify-center font-bold text-sm">7</div>
+<div class="h-12 flex items-center justify-center text-outline text-sm">3</div>
+<div class="h-14 flex items-center justify-center bg-surface-container rounded-xl font-headline font-bold text-lg">3</div>
+</div>
+<div class="flex flex-col gap-2 w-12 text-center">
+<div class="h-8 flex items-center justify-center font-bold text-sm">8</div>
+<div class="h-12 flex items-center justify-center text-outline text-sm">5</div>
+<div class="h-14 flex items-center justify-center bg-surface-container rounded-xl font-headline font-bold text-lg">5</div>
+</div>
+<div class="flex flex-col gap-2 w-12 text-center">
+<div class="h-8 flex items-center justify-center font-bold text-sm">9</div>
+<div class="h-12 flex items-center justify-center text-outline text-sm">4</div>
+<div class="h-14 flex items-center justify-center bg-surface-container rounded-xl font-headline font-bold text-lg">4</div>
+</div>
+<div class="flex flex-col gap-2 w-14 text-center">
+<div class="h-8 flex items-center justify-center font-bold text-xs uppercase bg-stone-100 rounded-lg">OUT</div>
+<div class="h-12 flex items-center justify-center text-outline text-sm font-bold">36</div>
+<div class="h-14 flex items-center justify-center bg-stone-200 rounded-xl font-headline font-bold text-lg">36</div>
+</div>
+</div>
+</div>
+</div>
+<!-- In Course (Minimalist approach) -->
+<div>
+<h4 class="text-xs font-bold uppercase tracking-widest text-outline mb-3 px-2">IN COURSE (10-18)</h4>
+<div class="overflow-x-auto hide-scrollbar -mx-2 px-2">
+<div class="flex gap-2 min-w-max">
+<div class="flex flex-col gap-2 w-14 opacity-50">
+<div class="h-8 flex items-center justify-center bg-surface-container font-bold text-xs rounded-lg">HOLE</div>
+<div class="h-12 flex items-center justify-center bg-surface-container-low font-bold text-xs rounded-lg">PAR</div>
+<div class="h-14 flex items-center justify-center bg-primary text-white font-headline font-bold text-lg rounded-lg">SCORE</div>
+</div>
+<!-- Just showing first few holes of back nine for mobile brevity demo -->
+<div class="flex flex-col gap-2 w-12 text-center">
+<div class="h-8 flex items-center justify-center font-bold text-sm">10</div>
+<div class="h-12 flex items-center justify-center text-outline text-sm">4</div>
+<div class="h-14 flex items-center justify-center bg-surface-container rounded-xl font-headline font-bold text-lg">4</div>
+</div>
+<div class="flex flex-col gap-2 w-12 text-center">
+<div class="h-8 flex items-center justify-center font-bold text-sm">11</div>
+<div class="h-12 flex items-center justify-center text-outline text-sm">4</div>
+<div class="h-14 flex items-center justify-center bg-error-container text-error rounded-xl font-headline font-bold text-lg border-2 border-error">6</div>
+</div>
+<div class="flex flex-col gap-2 w-12 text-center">
+<div class="h-8 flex items-center justify-center font-bold text-sm">12</div>
+<div class="h-12 flex items-center justify-center text-outline text-sm">3</div>
+<div class="h-14 flex items-center justify-center bg-surface-container rounded-xl font-headline font-bold text-lg">3</div>
+</div>
+<!-- ... other holes ... -->
+<div class="flex-grow flex items-center justify-center px-4 text-stone-300">
+<span class="material-symbols-outlined">more_horiz</span>
+</div>
+<div class="flex flex-col gap-2 w-14 text-center">
+<div class="h-8 flex items-center justify-center font-bold text-xs uppercase bg-stone-100 rounded-lg">TOTAL</div>
+<div class="h-12 flex items-center justify-center text-outline text-sm font-bold">72</div>
+<div class="h-14 flex items-center justify-center bg-lime-400 text-primary rounded-xl font-headline font-black text-2xl shadow-lg">79</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Social Action Section -->
+<div class="flex flex-col items-center gap-6 mt-12 mb-8">
+<p class="text-sm font-bold text-outline uppercase tracking-[0.2em]">친구들에게 라운드 기록을 자랑해보세요</p>
+<button class="group flex items-center gap-3 bg-primary text-on-primary px-10 py-5 rounded-full font-headline font-extrabold text-lg shadow-xl active:scale-95 transition-all duration-200">
+<span class="material-symbols-outlined group-hover:rotate-12 transition-transform">share</span>
+                스코어카드 공유하기
+            </button>
+<button class="text-secondary font-bold text-sm hover:underline underline-offset-4">상세 통계 더보기</button>
+</div>
+</main>
+<!-- Bottom Navigation Shell -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/70 dark:bg-stone-950/70 backdrop-blur-md shadow-[0_-4px_24px_rgba(25,28,29,0.06)] rounded-t-[1.5rem]">
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-emerald-700 dark:hover:text-lime-200 tap-highlight-transparent active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-lime-400/20 dark:bg-lime-900/30 text-emerald-900 dark:text-lime-300 rounded-2xl px-5 py-2 tap-highlight-transparent active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">history</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider mt-1">Rounds</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-emerald-700 dark:hover:text-lime-200 tap-highlight-transparent active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider mt-1">Stats</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-emerald-700 dark:hover:text-lime-200 tap-highlight-transparent active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider mt-1">Settings</span>
+</a>
+</nav>
+<!-- Floating Action Button: Suppressed on Report Screen as per UX instructions, 
+         but we keep the space clean for the report content. -->
+</body></html>

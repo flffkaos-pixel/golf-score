@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "inverse-surface": "#2e3132",
+              "surface-container-highest": "#e1e3e4",
+              "tertiary": "#1f2a00",
+              "on-tertiary-fixed-variant": "#3c4d00",
+              "primary-fixed-dim": "#a5d0b9",
+              "tertiary-fixed-dim": "#abd600",
+              "primary-fixed": "#c1ecd4",
+              "surface": "#f8f9fa",
+              "on-secondary": "#ffffff",
+              "on-secondary-container": "#316e52",
+              "on-tertiary": "#ffffff",
+              "on-tertiary-container": "#8fb300",
+              "on-background": "#191c1d",
+              "background": "#f8f9fa",
+              "tertiary-fixed": "#c3f400",
+              "on-error": "#ffffff",
+              "surface-variant": "#e1e3e4",
+              "surface-container": "#edeeef",
+              "outline": "#717973",
+              "outline-variant": "#c1c8c2",
+              "on-tertiary-fixed": "#161e00",
+              "surface-tint": "#3f6653",
+              "tertiary-container": "#324100",
+              "secondary-fixed": "#b1f0ce",
+              "error-container": "#ffdad6",
+              "secondary-fixed-dim": "#95d4b3",
+              "on-primary-fixed-variant": "#274e3d",
+              "on-surface-variant": "#414844",
+              "on-primary-fixed": "#002114",
+              "on-error-container": "#93000a",
+              "inverse-on-surface": "#f0f1f2",
+              "surface-container-low": "#f3f4f5",
+              "on-primary-container": "#86af99",
+              "surface-container-high": "#e7e8e9",
+              "secondary-container": "#aeeecb",
+              "secondary": "#2c694e",
+              "on-primary": "#ffffff",
+              "primary": "#012d1d",
+              "on-secondary-fixed-variant": "#0e5138",
+              "surface-bright": "#f8f9fa",
+              "inverse-primary": "#a5d0b9",
+              "primary-container": "#1b4332",
+              "surface-container-lowest": "#ffffff",
+              "surface-dim": "#d9dadb",
+              "error": "#ba1a1a",
+              "on-secondary-fixed": "#002114",
+              "on-surface": "#191c1d"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Manrope"],
+              "label": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+        h1, h2, h3, .font-headline { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<header class="bg-white dark:bg-stone-950 flex justify-between items-center w-full px-6 py-4 fixed top-0 z-50">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center overflow-hidden">
+<img alt="User" data-alt="professional male golfer portrait with a clean minimalist background wearing a white polo shirt" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRK-fxrOtR9RIQJjrlU99atGuyx38mmVUeSbyiwZvXJUh7x_890ocatMKYPuDX7ghlC-MV4CRYcXGPMonN4xV0IAlEQDVFJHPdQn5tU21Zm6JOjF9Woxm-6hFkbKLiPfrgDyFvfKAeydlUidMQf4OsPvMK9JiwApXEPJuGPD7zlvMzoVdjHED9f1hxjGwF4fZ8ofydruLTOmj7XBx2DpPD2qHiwrVIjbN_WgwCjAjPwIMylf2cgIzfVVn4_Gm4wAUXo5K5Tulvl3w"/>
+</div>
+<span class="text-2xl font-extrabold tracking-tight text-emerald-900 dark:text-emerald-100 font-headline">GreenScore</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-emerald-900 dark:text-emerald-500 hover:bg-stone-50 dark:hover:bg-stone-900 transition-colors p-2 rounded-full active:scale-95 duration-200">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+</header>
+<main class="pt-24 px-4 max-w-md mx-auto">
+<section class="mb-8 relative overflow-hidden rounded-xl bg-primary text-white p-6 shadow-xl">
+<div class="absolute top-0 right-0 w-32 h-32 bg-lime-400/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+<div class="relative z-10">
+<div class="flex justify-between items-end mb-2">
+<h2 class="text-4xl font-extrabold font-headline">1번 홀</h2>
+<span class="text-lime-400 font-bold text-lg">Par 4</span>
+</div>
+<div class="flex items-center gap-2 text-primary-fixed-dim/80 font-medium">
+<span class="material-symbols-outlined text-sm">distance</span>
+<span>342m / 374yds</span>
+</div>
+</div>
+</section>
+<div class="space-y-6">
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm">
+<label class="block text-sm font-bold text-on-surface-variant mb-4 font-headline">타수 (Score)</label>
+<div class="flex items-center justify-between">
+<button class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-primary">remove</span>
+</button>
+<span class="text-5xl font-extrabold font-headline text-primary">4</span>
+<button class="w-12 h-12 rounded-full bg-primary flex items-center justify-center active:scale-90 transition-transform text-white">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm">
+<label class="block text-sm font-bold text-on-surface-variant mb-4 font-headline">퍼트 수 (Putts)</label>
+<div class="flex items-center justify-between">
+<button class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-primary">remove</span>
+</button>
+<span class="text-5xl font-extrabold font-headline text-primary">2</span>
+<button class="w-12 h-12 rounded-full bg-primary flex items-center justify-center active:scale-90 transition-transform text-white">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl space-y-6">
+<div>
+<label class="block text-sm font-bold text-on-surface-variant mb-3 font-headline">페어웨이 안착 (Fairway Hit)</label>
+<div class="grid grid-cols-4 gap-2 bg-surface-container-highest/30 p-1 rounded-xl">
+<button class="py-3 px-1 rounded-lg text-xs font-bold text-on-surface-variant hover:bg-white transition-colors flex flex-col items-center gap-1">
+<span class="material-symbols-outlined">west</span>
+<span>왼쪽</span>
+</button>
+<button class="py-3 px-1 rounded-lg text-xs font-bold bg-primary text-white shadow-md flex flex-col items-center gap-1">
+<span class="material-symbols-outlined">expand_less</span>
+<span>중앙</span>
+</button>
+<button class="py-3 px-1 rounded-lg text-xs font-bold text-on-surface-variant hover:bg-white transition-colors flex flex-col items-center gap-1">
+<span class="material-symbols-outlined">east</span>
+<span>오른쪽</span>
+</button>
+<button class="py-3 px-1 rounded-lg text-xs font-bold text-on-surface-variant hover:bg-white transition-colors flex flex-col items-center gap-1">
+<span class="material-symbols-outlined">close</span>
+<span>미스</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-6">
+<div>
+<label class="block text-sm font-bold text-on-surface-variant mb-3 font-headline">GIR</label>
+<div class="flex gap-2 p-1 bg-surface-container-highest/30 rounded-xl">
+<button class="flex-1 py-3 rounded-lg font-bold text-sm bg-white text-primary shadow-sm">성공</button>
+<button class="flex-1 py-3 rounded-lg font-bold text-sm text-on-surface-variant">실패</button>
+</div>
+</div>
+<div>
+<label class="block text-sm font-bold text-on-surface-variant mb-3 font-headline">벌타 (Penalty)</label>
+<div class="flex items-center justify-between bg-surface-container-lowest rounded-xl px-4 py-2 border border-outline-variant/10">
+<button class="material-symbols-outlined text-primary active:scale-75 transition-transform">remove</button>
+<span class="font-bold font-headline text-lg">0</span>
+<button class="material-symbols-outlined text-primary active:scale-75 transition-transform">add</button>
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between gap-4 pt-4">
+<button class="flex-1 bg-surface-container-low text-on-surface-variant font-bold py-4 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-transform">
+<span class="material-symbols-outlined">arrow_back</span>
+                    이전 홀
+                </button>
+<button class="flex-[2] bg-primary text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition-transform">
+                    다음 홀
+                    <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+</main>
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/70 dark:bg-stone-950/70 backdrop-blur-md shadow-[0_-4px_24px_rgba(25,28,29,0.06)] rounded-t-[1.5rem]">
+<button class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-emerald-700 dark:hover:text-lime-200 transition-transform active:scale-90">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider mt-1">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-lime-400/20 dark:bg-lime-900/30 text-emerald-900 dark:text-lime-300 rounded-2xl px-5 py-2 transition-transform active:scale-90">
+<span class="material-symbols-outlined" data-icon="history" style="font-variation-settings: 'FILL' 1;">history</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider mt-1">Rounds</span>
+</button>
+<button class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-emerald-700 dark:hover:text-lime-200 transition-transform active:scale-90">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider mt-1">Stats</span>
+</button>
+<button class="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-5 py-2 hover:text-emerald-700 dark:hover:text-lime-200 transition-transform active:scale-90">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[11px] font-semibold uppercase tracking-wider mt-1">Settings</span>
+</button>
+</nav>
+</body></html>
