@@ -7,7 +7,6 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
-  signInWithKakao: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -50,20 +49,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signInWithKakao = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'kakao',
-        options: {
-          redirectTo: 'https://golfmyscore.pages.dev',
-        },
-      });
-      if (error) throw error;
-    } catch (error) {
-      console.error('Kakao sign-in error:', error);
-    }
-  };
-
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
@@ -73,7 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signInWithGoogle, signInWithKakao, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   );
