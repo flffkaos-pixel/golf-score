@@ -8,7 +8,7 @@ interface CompetitionsProps {
 }
 
 export default function Competitions({ onBack }: CompetitionsProps) {
-  const { data, createCompetition, joinCompetition } = useGolf();
+  const { data, createCompetition, joinCompetition, deleteCompetition } = useGolf();
   const { t } = useAppSettings();
   const [showCreate, setShowCreate] = useState(false);
   const [newCompName, setNewCompName] = useState('');
@@ -107,9 +107,24 @@ export default function Competitions({ onBack }: CompetitionsProps) {
                       <h3 className="text-lg font-bold text-primary font-headline">{comp.name}</h3>
                       <p className="text-xs text-stone-500">{new Date(comp.startDate).toLocaleDateString()}</p>
                     </div>
-                    <span className={`${getStatusColor(comp.status)} text-xs px-3 py-1 rounded-full font-bold`}>
-                      {getStatusText(comp.status)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {comp.hostId === data.player.id && (
+                        <button
+                          onClick={() => {
+                            if (confirm(t('deleteConfirm'))) {
+                              deleteCompetition(comp.id);
+                            }
+                          }}
+                          className="p-2 text-error hover:bg-error-container rounded-full transition-colors"
+                          title={t('delete')}
+                        >
+                          <span className="material-symbols-outlined text-lg">delete</span>
+                        </button>
+                      )}
+                      <span className={`${getStatusColor(comp.status)} text-xs px-3 py-1 rounded-full font-bold`}>
+                        {getStatusText(comp.status)}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-3 mb-4">

@@ -14,6 +14,7 @@ interface GolfContextType {
   removeFriend: (friendId: string) => void;
   createCompetition: (name: string) => Competition;
   joinCompetition: (compId: string) => void;
+  deleteCompetition: (compId: string) => void;
   addRoundToCompetition: (compId: string, round: Round) => void;
   addSampleData: () => void;
   clearAllData: () => void;
@@ -187,6 +188,13 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
+  const deleteCompetition = (compId: string) => {
+    setData(prev => ({
+      ...prev,
+      competitions: prev.competitions.filter(c => c.id !== compId),
+    }));
+  };
+
   const addRoundToCompetition = (compId: string, round: Round) => {
     setData(prev => ({
       ...prev,
@@ -242,6 +250,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       removeFriend,
       createCompetition,
       joinCompetition,
+      deleteCompetition,
       addRoundToCompetition,
       addSampleData,
       clearAllData,

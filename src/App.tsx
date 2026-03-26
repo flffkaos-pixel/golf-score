@@ -136,6 +136,22 @@ function NavigationBar() {
             <span className="font-headline text-[11px] font-semibold uppercase tracking-wider mt-1 text-stone-600 dark:text-stone-300">Stats</span>
           </button>
           <button
+            onClick={() => navigate('friends')}
+            className={`flex flex-col items-center justify-center px-4 py-2 transition-transform active:scale-90 relative ${
+              isActive('friends') ? 'bg-lime-400/20 text-primary dark:bg-lime-900/30 dark:text-lime-300 rounded-2xl' : 'text-stone-500 dark:text-stone-400'
+            }`}
+          >
+            <span className="material-symbols-outlined relative" style={isActive('friends') ? {fontVariationSettings: "'FILL' 1"} : {}}>
+              group
+            </span>
+            {data.friends.length > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-secondary rounded-full flex items-center justify-center text-[10px] text-white font-bold">
+                {data.friends.length}
+              </span>
+            )}
+            <span className="font-headline text-[11px] font-semibold uppercase tracking-wider mt-1 text-stone-600 dark:text-stone-300">친구</span>
+          </button>
+          <button
             onClick={() => navigate('settings')}
             className={`flex flex-col items-center justify-center px-4 py-2 transition-transform active:scale-90 ${
               isActive('settings') ? 'bg-lime-400/20 text-primary dark:bg-lime-900/30 dark:text-lime-300 rounded-2xl' : 'text-stone-500 dark:text-stone-400'
