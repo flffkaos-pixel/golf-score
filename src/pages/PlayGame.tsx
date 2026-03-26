@@ -1,166 +1,106 @@
 import { useState } from 'react';
 import { useGolf } from '../hooks/useGolf';
 import { useAppSettings } from '../hooks/useAppSettings';
+import { calculateScore } from '../utils/storage';
 
 interface PlayGameProps {
   onBack: () => void;
   onComplete: () => void;
 }
 
-const parOptions = [3, 4, 4, 5];
-
 export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
   const { addRound, updateRound } = useGolf();
   const { t } = useAppSettings();
   const [courseName, setCourseName] = useState('');
-  const [showCourseInput, setShowCourseInput] = useState(true);
-  const [round, setRound] = useState<{
-    id: string;
-    courseName: string;
-    holes: { number: number; par: number; score: number | null }[];
-  } | null>(null);
-  const [showScorePopup, setShowScorePopup] = useState(false);
-  const [currentInputHole, setCurrentInputHole] = useState(0);
-  const [achievement, setAchievement] = useState<{type: string; icon: string} | null>(null);
+  const [step, setStep] = useState<'name' | 'score'>('name');
+  const [currentHole, setCurrentHole] = useState(0);
+  const [round, setRound] = useState<ReturnType<typeof addRound> | null>(null);
+  const [achievement, setAchievement] = useState<string | null>(null);
 
-  const getScoreColor = (score: number | null, par: number) => {
-    if (score === null) return 'bg-surface-container text-on-surface-variant';
-    const diff = score - par;
-    if (diff <= -3) return 'bg-purple-500 text-white';
-    if (diff === -2) return 'bg-secondary text-on-secondary';
-    if (diff === -1) return 'bg-secondary text-on-secondary';
-    if (diff === 0) return 'bg-surface-container-low text-on-surface';
-    if (diff === 1) return 'bg-secondary-container text-on-secondary-container';
-    if (diff === 2) return 'bg-secondary-container text-on-secondary-container';
-    return 'bg-error-container text-error';
+  const handleStart = () => {
+    if (!courseName.trim()) return;
+    const newRound = addRound(courseName.trim());
+    setRound(newRound);
+    setStep('score');
   };
 
-  const showAchievement = (type: string, icon: string) => {
-    setAchievement({ type, icon });
-    setTimeout(() => setAchievement(null), 2000);
-  };
-
-  const handleStartRound = () => {
-    if (!courseName.trim()) {
-      alert('코스 이름을 입력해주세요');
-      return;
-    }
-    const holes = Array.from({ length: 18 }, (_, i) => ({
-      number: i + 1,
-      par: parOptions[Math.floor(Math.random() * parOptions.length)],
-      score: null,
-    }));
-    setRound({
-      id: Date.now().toString(),
-      courseName: courseName.trim(),
-      holes,
-    });
-    setShowCourseInput(false);
-  };
-
-  const handleScoreSelect = (score: number) => {
+  const updateScore = (holeIndex: number, score: number) => {
     if (!round) return;
-    const hole = round.holes[currentInputHole];
-    const diff = score - hole.par;
-    
-    if (diff <= -3) showAchievement('holeInOne', '🎯');
-    else if (diff === -2) showAchievement('eagle', '🦅');
-    else if (diff === -1) showAchievement('birdie', '🐦');
-    else if (diff === 0) showAchievement('par', '⛳');
-    else if (diff === 1) showAchievement('bogey', '😅');
-    else if (diff === 2) showAchievement('double', '😅+');
-
     const newHoles = [...round.holes];
-    newHoles[currentInputHole] = { ...newHoles[currentInputHole], score };
-    setRound({ ...round, holes: newHoles });
-    setShowScorePopup(false);
-  };
+    const prevScore = newHoles[holeIndex].score;
+    newHoles[holeIndex] = { ...newHoles[holeIndex], score };
+    const calculated = calculateScore(newHoles);
+    const updated = {
+      ...round,
+      holes: newHoles,
+      ...calculated,
+    };
+    setRound(updated);
+    updateRound(updated);
 
-  const handleScoreInput = (holeIndex: number) => {
-    setCurrentInputHole(holeIndex);
-    setShowScorePopup(true);
-  };
-
-  const getCurrentHoleIndex = () => {
-    if (!round) return 0;
-    const firstUnscored = round.holes.findIndex(h => h.score === null);
-    return firstUnscored === -1 ? 17 : firstUnscored;
-  };
-
-  const getTotalScore = () => {
-    if (!round) return 0;
-    return round.holes.reduce((sum, h) => sum + (h.score || 0), 0);
-  };
-
-  const getRelativeScore = () => {
-    if (!round) return 0;
-    const totalPar = round.holes.reduce((sum, h) => sum + h.par, 0);
-    const totalScore = round.holes.reduce((sum, h) => sum + (h.score || 0), 0);
-    return totalScore - totalPar;
+    if (prevScore === null && score !== null) {
+      const diff = score - newHoles[holeIndex].par;
+      if (diff <= -3) {
+        setAchievement(t('holeInOne'));
+        setTimeout(() => setAchievement(null), 3000);
+      } else if (diff === -2) {
+        setAchievement(t('eagle'));
+        setTimeout(() => setAchievement(null), 2000);
+      } else if (diff === -1) {
+        setAchievement(t('birdie'));
+        setTimeout(() => setAchievement(null), 2000);
+      } else if (diff === 0) {
+        setAchievement(t('par'));
+        setTimeout(() => setAchievement(null), 1500);
+      }
+    }
   };
 
   const handleFinish = () => {
-    if (!round) return;
-    if (!confirm('라운드를 종료하시겠습니까?')) return;
-
-    const completedRound = {
-      ...round,
-      date: new Date().toISOString(),
-      totalScore: getTotalScore(),
-      totalPar: round.holes.reduce((sum, h) => sum + h.par, 0),
-      relativeScore: getRelativeScore(),
-    };
-
-    const savedRound = addRound(round.courseName);
-    updateRound({ ...completedRound, id: savedRound.id });
     onComplete();
   };
 
-  const getAchievementLabel = (type: string) => {
-    switch (type) {
-      case 'holeInOne': return t('holeInOne');
-      case 'eagle': return t('eagle');
-      case 'birdie': return t('birdie');
-      case 'par': return t('par');
-      case 'bogey': return '보기';
-      case 'double': return '더블보기';
-      default: return '';
-    }
+  const getScoreColor = (score: number | null, par: number) => {
+    if (score === null) return 'bg-surface-container text-stone-400';
+    const diff = score - par;
+    if (diff <= -2) return 'bg-blue-500 text-white';
+    if (diff === -1) return 'bg-secondary text-white';
+    if (diff === 0) return 'bg-surface text-stone-800';
+    if (diff === 1) return 'bg-yellow-400 text-stone-800';
+    if (diff === 2) return 'bg-orange-400 text-white';
+    return 'bg-red-500 text-white';
   };
 
-  if (showCourseInput) {
+  if (step === 'name') {
     return (
       <div className="min-h-screen bg-surface pb-32">
-        <header className="bg-surface-container-lowest flex justify-between items-center w-full px-6 py-4 sticky top-0 z-50">
+        <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-50">
           <button onClick={onBack} className="p-2 -ml-2">
-            <span className="material-symbols-outlined text-on-surface-variant">close</span>
+            <span className="material-symbols-outlined text-stone-500">arrow_back</span>
           </button>
-          <p className="text-xs text-on-surface-variant font-bold uppercase tracking-wider">{t('newRound')}</p>
+          <h1 className="text-xl font-extrabold text-primary font-headline">{t('newRound')}</h1>
           <div className="w-10"></div>
         </header>
 
-        <main className="px-6 pt-12 max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <div className="w-20 h-20 bg-secondary-container rounded-full flex items-center justify-center mx-auto mb-6">
-              <span className="text-4xl">⛳</span>
+        <main className="px-6 pt-8 max-w-md mx-auto">
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-bold text-on-surface-variant mb-3 font-headline">
+                {t('courseName')}
+              </label>
+              <input
+                type="text"
+                value={courseName}
+                onChange={(e) => setCourseName(e.target.value)}
+                placeholder={t('coursePlaceholder')}
+                className="w-full bg-surface-container-low border-none rounded-2xl py-5 px-6 text-lg outline-none focus:ring-2 focus:ring-secondary-container transition-all placeholder:text-outline/60 font-body text-primary"
+              />
             </div>
-            <h2 className="text-2xl font-extrabold text-primary font-headline mb-2">{t('startNewRound')}</h2>
-            <p className="text-on-surface-variant">{t('enterCourseName')}</p>
-          </div>
-
-          <div className="space-y-4">
-            <input
-              type="text"
-              value={courseName}
-              onChange={(e) => setCourseName(e.target.value)}
-              placeholder={t('courseName')}
-              className="w-full bg-surface-container-lowest rounded-2xl py-5 px-6 text-lg text-on-surface outline-none text-center"
-              onKeyDown={(e) => e.key === 'Enter' && handleStartRound()}
-            />
 
             <button
-              onClick={handleStartRound}
-              className="w-full gradient-primary text-on-primary py-5 rounded-2xl font-bold text-lg active:scale-98 transition-transform"
+              onClick={handleStart}
+              disabled={!courseName.trim()}
+              className="w-full bg-primary text-white py-5 rounded-2xl font-headline font-extrabold text-lg shadow-lg active:scale-98 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {t('startRound')}
             </button>
@@ -172,140 +112,161 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
 
   if (!round) return null;
 
-  const currentHoleIndex = getCurrentHoleIndex();
-  const currentHole = round.holes[currentHoleIndex];
+  const currentHoleData = round.holes[currentHole];
   const completedHoles = round.holes.filter(h => h.score !== null).length;
-  const totalScore = getTotalScore();
-
-  const scoreOptions = [];
-  for (let i = -2; i <= 4; i++) {
-    const score = currentHole.par + i;
-    if (score >= 1) {
-      scoreOptions.push({ score, label: i === -2 ? 'E-2' : i === -1 ? 'E-1' : i === 0 ? 'Par' : `+${i}` });
-    }
-  }
 
   return (
     <div className="min-h-screen bg-surface pb-32">
       {achievement && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none">
-          <div className="bg-gradient-to-br from-secondary to-secondary-container rounded-[2rem] p-8 text-center animate-bounce shadow-2xl">
-            <div className="text-6xl mb-2">{achievement.icon}</div>
-            <p className="text-xl font-bold text-on-secondary font-headline">{getAchievementLabel(achievement.type)}</p>
+        <div className="fixed inset-0 bg-primary/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-[2rem] p-12 text-center animate-bounce">
+            <div className="w-20 h-20 bg-tertiary-fixed rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-4xl">⛳</span>
+            </div>
+            <div className="text-4xl font-extrabold text-primary font-headline mb-2">{achievement}!</div>
+            <div className="text-stone-500">Great shot!</div>
           </div>
         </div>
       )}
 
-      <header className="bg-surface-container-lowest flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+      <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
         <button onClick={onBack} className="p-2 -ml-2">
-          <span className="material-symbols-outlined text-on-surface-variant">close</span>
+          <span className="material-symbols-outlined text-stone-500">close</span>
         </button>
         <div className="text-center">
-          <p className="text-xs text-on-surface-variant font-bold uppercase tracking-wider">{courseName}</p>
-          <p className="text-xs text-on-surface-variant font-bold uppercase tracking-wider">{t('totalScore')}</p>
+          <p className="text-xs text-stone-500 font-bold uppercase tracking-wider">{courseName}</p>
+          <p className="text-lg font-bold text-primary font-headline">{completedHoles}/18 {t('hole')}</p>
         </div>
         <div className="text-right">
-          <span className={`text-2xl font-black font-headline ${getRelativeScore() < 0 ? 'score-lime' : getRelativeScore() > 0 ? 'text-error' : 'text-on-surface'}`}>
-            {getRelativeScore() >= 0 ? '+' : ''}{getRelativeScore()}
-          </span>
+          <p className="text-xs text-stone-500 font-bold uppercase tracking-wider">{t('totalScore')}</p>
+          <p className={`text-lg font-bold font-headline ${
+            round.relativeScore > 0 ? 'text-error' : 
+            round.relativeScore < 0 ? 'text-secondary' : 'text-stone-600'
+          }`}>
+            {round.totalScore}
+          </p>
         </div>
       </header>
 
-      {showScorePopup && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6">
-          <div className="bg-surface-container-lowest rounded-[2rem] p-8 w-full max-w-sm">
-            <p className="text-sm text-on-surface-variant mb-2 text-center">HOLE {currentInputHole + 1}</p>
-            <p className="text-5xl font-black font-headline text-primary mb-2 text-center">{currentInputHole + 1}</p>
-            <p className="text-on-surface-variant mb-6 text-center">Par {round.holes[currentInputHole].par}</p>
-            
-            <div className="grid grid-cols-3 gap-3 mb-4">
-              {scoreOptions.slice(0, 6).map((opt, i) => {
-                const actualScore = opt.score;
-                const diff = actualScore - round.holes[currentInputHole].par;
-                let bgColor = 'bg-surface-container';
-                let textColor = 'text-on-surface';
-                if (diff <= -2) { bgColor = 'bg-secondary'; textColor = 'text-on-secondary'; }
-                else if (diff === -1) { bgColor = 'bg-secondary'; textColor = 'text-on-secondary'; }
-                else if (diff === 0) { bgColor = 'bg-surface-container-high'; textColor = 'text-on-surface'; }
-                else if (diff === 1) { bgColor = 'bg-secondary-container'; textColor = 'text-on-secondary-container'; }
-                else if (diff >= 2) { bgColor = 'bg-error-container'; textColor = 'text-error'; }
-                
-                return (
-                  <button
-                    key={i}
-                    onClick={() => handleScoreSelect(actualScore)}
-                    className={`${bgColor} ${textColor} py-4 rounded-xl font-bold text-lg active:scale-95 transition-transform`}
-                  >
-                    {actualScore}
-                  </button>
-                );
-              })}
+      <main className="pt-6 px-4 max-w-md mx-auto">
+        <section className="relative overflow-hidden rounded-[1.5rem] bg-primary text-white p-6 mb-8 shadow-lg">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-tertiary-fixed/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+          <div className="relative z-10">
+            <div className="flex justify-between items-end mb-2">
+              <h2 className="text-4xl font-extrabold font-headline">
+                {currentHole + 1} {t('hole')}
+              </h2>
+              <div className="bg-tertiary-fixed text-tertiary px-4 py-1 rounded-full font-bold text-lg">
+                {t('par')} {currentHoleData.par}
+              </div>
             </div>
-            
-            <div className="grid grid-cols-3 gap-3 mb-6">
-              {scoreOptions.slice(6).map((opt, i) => {
-                const actualScore = opt.score;
-                return (
-                  <button
-                    key={i + 6}
-                    onClick={() => handleScoreSelect(actualScore)}
-                    className="bg-surface-container text-on-surface py-4 rounded-xl font-bold text-lg active:scale-95 transition-transform"
-                  >
-                    {actualScore}
-                  </button>
-                );
-              })}
-              {scoreOptions.length < 7 && [...Array(6 - scoreOptions.length)].map((_, i) => (
-                <div key={`empty-${i}`} className="py-4"></div>
-              ))}
-            </div>
+          </div>
+        </section>
 
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          {[3, 4, 5].map(par => (
             <button
-              onClick={() => setShowScorePopup(false)}
-              className="w-full py-3 text-on-surface-variant font-bold"
+              key={par}
+              onClick={() => {
+                const newHoles = [...round.holes];
+                newHoles[currentHole] = { ...newHoles[currentHole], par };
+                const updated = { ...round, holes: newHoles };
+                setRound(updated);
+                updateRound(updated);
+              }}
+              className={`py-3 rounded-2xl font-bold font-headline transition-all active:scale-95 ${
+                currentHoleData.par === par 
+                  ? 'bg-secondary text-white shadow-lg' 
+                  : 'bg-surface-container text-stone-600'
+              }`}
             >
-              취소
-            </button>
-          </div>
-        </div>
-      )}
-
-      <main className="px-6 pt-6 max-w-5xl mx-auto">
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="bg-surface-container-lowest rounded-2xl p-4 text-center">
-            <p className="text-xs text-on-surface-variant font-bold">{t('holeCount')}</p>
-            <p className="text-2xl font-black font-headline text-primary">{completedHoles}/18</p>
-          </div>
-          <div className="bg-surface-container-lowest rounded-2xl p-4 text-center">
-            <p className="text-xs text-on-surface-variant font-bold">{t('totalScore')}</p>
-            <p className="text-2xl font-black font-headline text-primary">{totalScore}</p>
-          </div>
-          <div className="bg-surface-container-lowest rounded-2xl p-4 text-center">
-            <p className="text-xs text-on-surface-variant font-bold">{t('par')}</p>
-            <p className={`text-2xl font-black font-headline ${getRelativeScore() < 0 ? 'score-lime' : getRelativeScore() > 0 ? 'text-error' : 'text-on-surface'}`}>
-              {getRelativeScore() >= 0 ? '+' : ''}{getRelativeScore()}
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-6 gap-2">
-          {round.holes.map((hole, i) => (
-            <button
-              key={i}
-              onClick={() => handleScoreInput(i)}
-              className={`aspect-square rounded-xl font-bold text-sm flex items-center justify-center transition-all active:scale-95 ${getScoreColor(hole.score, hole.par)}`}
-            >
-              {hole.score ?? i + 1}
+              {t('par')} {par}
             </button>
           ))}
         </div>
 
-        <button
-          onClick={handleFinish}
-          className="w-full gradient-primary text-on-primary py-5 rounded-2xl font-bold text-lg mt-8 active:scale-98 transition-transform"
-        >
-          {t('finishRound')}
-        </button>
+        <div className="grid grid-cols-5 gap-2 mb-8">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(score => (
+            <button
+              key={score}
+              onClick={() => updateScore(currentHole, score)}
+              className={`aspect-square rounded-2xl font-extrabold font-headline text-xl flex items-center justify-center transition-all active:scale-95 ${getScoreColor(currentHoleData.score === score ? score : null, currentHoleData.par)} ${currentHoleData.score === score ? 'ring-4 ring-tertiary-fixed shadow-lg' : ''}`}
+            >
+              {score}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-5 gap-2">
+          {[13, 14, 15, 16, 17].map(score => (
+            <button
+              key={score}
+              onClick={() => updateScore(currentHole, score)}
+              className={`aspect-square rounded-2xl font-extrabold font-headline text-xl flex items-center justify-center transition-all active:scale-95 ${getScoreColor(currentHoleData.score === score ? score : null, currentHoleData.par)}`}
+            >
+              {score}
+            </button>
+          ))}
+          <button
+            onClick={() => updateScore(currentHole, 0)}
+            className="aspect-square rounded-2xl bg-surface-container text-stone-500 font-bold text-xs flex items-center justify-center transition-all active:scale-95"
+          >
+            DEL
+          </button>
+        </div>
+
+        <div className="flex gap-3 mt-8">
+          <button
+            onClick={() => setCurrentHole(Math.max(0, currentHole - 1))}
+            disabled={currentHole === 0}
+            className="flex-1 bg-surface-container text-on-surface-variant font-bold py-4 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-30"
+          >
+            <span className="material-symbols-outlined">arrow_back</span>
+            {t('previous')}
+          </button>
+          <button
+            onClick={() => {
+              if (currentHole < 17) {
+                setCurrentHole(currentHole + 1);
+              } else {
+                handleFinish();
+              }
+            }}
+            className="flex-2 bg-primary text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition-transform flex-[2]"
+          >
+            {currentHole < 17 ? (
+              <>
+                {t('next')}
+                <span className="material-symbols-outlined">arrow_forward</span>
+              </>
+            ) : (
+              <>
+                {t('finish')}
+                <span className="material-symbols-outlined">check_circle</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        <div className="p-4 mt-6">
+          <div className="flex gap-1 justify-center overflow-x-auto hide-scrollbar">
+            {round.holes.map((hole, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentHole(i)}
+                className={`min-w-[2rem] h-10 rounded-xl text-sm font-bold transition-all ${
+                  i === currentHole 
+                    ? 'bg-primary text-white shadow-md' 
+                    : hole.score !== null 
+                      ? getScoreColor(hole.score, hole.par)
+                      : 'bg-surface-container text-stone-400'
+                }`}
+              >
+                {hole.score !== null ? hole.score : i + 1}
+              </button>
+            ))}
+          </div>
+        </div>
       </main>
     </div>
   );

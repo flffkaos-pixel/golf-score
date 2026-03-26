@@ -9,79 +9,100 @@ interface FriendsProps {
 export default function Friends({ onBack }: FriendsProps) {
   const { data, addFriend, removeFriend } = useGolf();
   const { t } = useAppSettings();
+  const [newFriend, setNewFriend] = useState('');
   const [showAdd, setShowAdd] = useState(false);
-  const [newName, setNewName] = useState('');
 
   const handleAdd = () => {
-    if (newName.trim()) {
-      addFriend(newName.trim());
-      setNewName('');
-      setShowAdd(false);
-    }
+    if (!newFriend.trim()) return;
+    addFriend(newFriend.trim());
+    setNewFriend('');
+    setShowAdd(false);
+  };
+
+  const generateInviteCode = () => {
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    navigator.clipboard.writeText(code);
+    alert(`초대 코드: ${code}\n클립보드에 복사되었습니다!`);
   };
 
   return (
-    <div className="min-h-screen pb-32 bg-surface">
-      <header className="bg-surface-container-lowest flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+    <div className="min-h-screen bg-surface pb-32">
+      <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
         <button onClick={onBack} className="p-2 -ml-2">
-          <span className="material-symbols-outlined text-on-surface-variant">arrow_back</span>
+          <span className="material-symbols-outlined text-stone-500">arrow_back</span>
         </button>
         <h1 className="text-xl font-extrabold text-primary font-headline">{t('friends')}</h1>
-        <button onClick={() => setShowAdd(!showAdd)} className="p-2">
-          <span className="material-symbols-outlined text-secondary">person_add</span>
+        <button onClick={() => setShowAdd(!showAdd)} className="text-secondary font-bold">
+          {showAdd ? t('cancel') : '+ 추가'}
         </button>
       </header>
 
       <main className="px-6 pt-6 max-w-5xl mx-auto">
+        <button
+          onClick={generateInviteCode}
+          className="w-full bg-secondary text-white py-5 rounded-2xl font-headline font-bold text-lg flex items-center justify-center gap-3 active:scale-98 transition-transform shadow-lg"
+        >
+          <span className="material-symbols-outlined">share</span>
+          {t('invite')}
+        </button>
+        <p className="text-stone-500 text-sm text-center mt-3">
+          {t('inviteDesc')}
+        </p>
+
         {showAdd && (
-          <div className="mb-6 bg-surface-container-lowest rounded-2xl p-4">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder={t('friendName')}
-                className="flex-1 bg-surface-container rounded-xl py-3 px-4 text-on-surface outline-none"
-                onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-              />
-              <button
-                onClick={handleAdd}
-                className="gradient-primary text-on-primary px-6 rounded-xl font-bold"
-              >
-                추가
-              </button>
-            </div>
+          <div className="bg-surface-container-lowest rounded-2xl p-6 mt-6">
+            <input
+              type="text"
+              value={newFriend}
+              onChange={(e) => setNewFriend(e.target.value)}
+              placeholder="친구 이름"
+              className="w-full bg-surface-container border-none rounded-xl px-4 py-4 outline-none mb-4 text-lg text-primary"
+              onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+            />
+            <button
+              onClick={handleAdd}
+              disabled={!newFriend.trim()}
+              className="w-full bg-primary text-white py-4 rounded-xl font-bold disabled:opacity-50 active:scale-98 transition-transform"
+            >
+              {t('addFriend')}
+            </button>
           </div>
         )}
 
-        {data.friends.length === 0 ? (
-          <div className="bg-surface-container-lowest rounded-2xl p-8 text-center">
-            <div className="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="material-symbols-outlined text-3xl text-outline">group</span>
-            </div>
-            <div className="text-on-surface-variant mb-2 font-semibold">{t('noFriends')}</div>
-            <div className="text-outline text-sm">{t('addFriendHint')}</div>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {data.friends.map(friend => (
-              <div key={friend.id} className="bg-surface-container-lowest rounded-2xl p-4 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-secondary-container rounded-full flex items-center justify-center">
-                    <span className="text-lg font-bold text-on-secondary-container">{friend.name[0]}</span>
-                  </div>
-                  <span className="font-bold text-primary">{friend.name}</span>
-                </div>
-                <button
-                  onClick={() => removeFriend(friend.id)}
-                  className="p-2 text-error"
-                >
-                  <span className="material-symbols-outlined">person_remove</span>
-                </button>
+        <div className="mt-8">
+          <h2 className="font-headline font-bold text-lg mb-4">
+            {t('myFriends')} ({data.friends.length})
+          </h2>
+
+          {data.friends.length === 0 ? (
+            <div className="bg-surface-container-lowest rounded-2xl p-8 text-center">
+              <div className="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="material-symbols-outlined text-3xl text-outline">group_add</span>
               </div>
-            ))}
-          </div>
-        )}
+              <div className="text-stone-500 mb-2 font-semibold">{t('noFriends')}</div>
+              <div className="text-stone-400 text-sm">{t('addFriendHint')}</div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {data.friends.map(friend => (
+                <div key={friend.id} className="bg-surface-container-lowest rounded-2xl p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-secondary-container rounded-full flex items-center justify-center text-secondary font-bold text-lg font-headline">
+                      {friend.name[0].toUpperCase()}
+                    </div>
+                    <span className="font-bold text-primary font-headline text-lg">{friend.name}</span>
+                  </div>
+                  <button
+                    onClick={() => removeFriend(friend.id)}
+                    className="text-error p-3 bg-error-container rounded-xl active:scale-95 transition-transform"
+                  >
+                    <span className="material-symbols-outlined">person_remove</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );

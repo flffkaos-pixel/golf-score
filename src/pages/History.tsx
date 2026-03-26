@@ -13,14 +13,14 @@ export default function History({ onBack }: HistoryProps) {
   const [selectedRound, setSelectedRound] = useState<typeof data.rounds[0] | null>(null);
 
   const getScoreColor = (score: number | null, par: number) => {
-    if (score === null) return 'bg-surface-container text-on-surface-variant';
+    if (score === null) return 'bg-surface-container text-stone-400';
     const diff = score - par;
-    if (diff <= -2) return 'bg-secondary text-on-secondary';
-    if (diff === -1) return 'bg-secondary text-on-secondary';
-    if (diff === 0) return 'bg-surface-container-low text-on-surface';
-    if (diff === 1) return 'bg-secondary-container text-on-secondary-container';
-    if (diff === 2) return 'bg-secondary-container text-on-secondary-container';
-    return 'bg-error-container text-error';
+    if (diff <= -2) return 'bg-blue-500 text-white';
+    if (diff === -1) return 'bg-secondary text-white';
+    if (diff === 0) return 'bg-surface text-stone-800';
+    if (diff === 1) return 'bg-yellow-400 text-stone-800';
+    if (diff === 2) return 'bg-orange-400 text-white';
+    return 'bg-red-500 text-white';
   };
 
   if (selectedRound) {
@@ -31,19 +31,19 @@ export default function History({ onBack }: HistoryProps) {
 
     return (
       <div className="min-h-screen bg-surface pb-32">
-        <header className="bg-surface-container-lowest flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+        <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
           <button onClick={() => setSelectedRound(null)} className="p-2 -ml-2">
-            <span className="material-symbols-outlined text-on-surface-variant">arrow_back</span>
+            <span className="material-symbols-outlined text-stone-500">arrow_back</span>
           </button>
           <h1 className="text-xl font-extrabold text-primary font-headline">{t('roundDetail')}</h1>
           <div className="w-10"></div>
         </header>
 
         <main className="px-6 pt-6 max-w-5xl mx-auto">
-          <section className="relative overflow-hidden rounded-[2rem] gradient-primary text-on-primary p-8 mb-8">
-            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
+          <section className="relative overflow-hidden rounded-[2rem] bg-primary-container text-white p-8 mb-8">
+            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-tertiary-fixed/10 rounded-full blur-3xl"></div>
             <div className="relative z-10">
-              <span className="inline-block px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-widest mb-4">
+              <span className="inline-block px-3 py-1 bg-tertiary-fixed/20 text-tertiary-fixed rounded-full font-label text-xs font-bold uppercase tracking-widest mb-4">
                 {t('roundDetail')}
               </span>
               <h2 className="font-headline text-3xl font-extrabold tracking-tight mb-2">{selectedRound.courseName}</h2>
@@ -59,16 +59,16 @@ export default function History({ onBack }: HistoryProps) {
 
           <div className="grid grid-cols-3 gap-4 mb-8">
             <div className="bg-surface-container-lowest rounded-2xl p-4 text-center">
-              <p className="text-2xl font-black font-headline score-lime">{birdies}</p>
-              <p className="text-xs text-on-surface-variant font-bold">{t('birdiePlus')}</p>
+              <p className="text-2xl font-black font-headline text-secondary">{birdies}</p>
+              <p className="text-xs text-stone-500 font-bold">{t('birdiePlus')}</p>
             </div>
             <div className="bg-surface-container-lowest rounded-2xl p-4 text-center">
-              <p className="text-2xl font-black font-headline text-on-surface">{pars}</p>
-              <p className="text-xs text-on-surface-variant font-bold">{t('par')}</p>
+              <p className="text-2xl font-black font-headline">{pars}</p>
+              <p className="text-xs text-stone-500 font-bold">{t('par')}</p>
             </div>
             <div className="bg-surface-container-lowest rounded-2xl p-4 text-center">
-              <p className="text-2xl font-black font-headline text-secondary">{bogeys}</p>
-              <p className="text-xs text-on-surface-variant font-bold">{t('bogey')}+</p>
+              <p className="text-2xl font-black font-headline text-yellow-600">{bogeys}</p>
+              <p className="text-xs text-stone-500 font-bold">{t('bogey')}+</p>
             </div>
           </div>
 
@@ -79,16 +79,16 @@ export default function History({ onBack }: HistoryProps) {
             </h3>
 
             <div className="mb-6">
-              <h4 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-3 px-2">{t('outCourse')}</h4>
+              <h4 className="text-xs font-bold uppercase tracking-widest text-stone-500 mb-3 px-2">{t('outCourse')}</h4>
               <div className="flex gap-2 overflow-x-auto hide-scrollbar">
                 <div className="flex flex-col gap-2 w-12 text-center flex-none">
                   <div className="h-8 flex items-center justify-center bg-surface-container font-bold text-xs rounded-lg">H</div>
-                  <div className="h-10 flex items-center justify-center bg-surface-container-low font-bold text-xs rounded-lg text-on-surface-variant">{t('par')}</div>
+                  <div className="h-10 flex items-center justify-center bg-surface-low font-bold text-xs rounded-lg text-stone-500">{t('par')}</div>
                 </div>
                 {selectedRound.holes.slice(0, 9).map((hole, i) => (
                   <div key={i} className="flex flex-col gap-2 w-10 text-center flex-none">
                     <div className="h-8 flex items-center justify-center font-bold text-xs">{i + 1}</div>
-                    <div className="h-10 flex items-center justify-center text-xs text-on-surface-variant">{hole.par}</div>
+                    <div className="h-10 flex items-center justify-center text-xs text-stone-500">{hole.par}</div>
                     <div className={`h-12 flex items-center justify-center rounded-xl font-headline font-bold text-sm ${getScoreColor(hole.score, hole.par)}`}>
                       {hole.score ?? '-'}
                     </div>
@@ -98,16 +98,16 @@ export default function History({ onBack }: HistoryProps) {
             </div>
 
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-3 px-2">{t('inCourse')}</h4>
+              <h4 className="text-xs font-bold uppercase tracking-widest text-stone-500 mb-3 px-2">{t('inCourse')}</h4>
               <div className="flex gap-2 overflow-x-auto hide-scrollbar">
                 <div className="flex flex-col gap-2 w-12 text-center flex-none">
                   <div className="h-8 flex items-center justify-center bg-surface-container font-bold text-xs rounded-lg">H</div>
-                  <div className="h-10 flex items-center justify-center bg-surface-container-low font-bold text-xs rounded-lg text-on-surface-variant">{t('par')}</div>
+                  <div className="h-10 flex items-center justify-center bg-surface-low font-bold text-xs rounded-lg text-stone-500">{t('par')}</div>
                 </div>
                 {selectedRound.holes.slice(9, 18).map((hole, i) => (
                   <div key={i} className="flex flex-col gap-2 w-10 text-center flex-none">
                     <div className="h-8 flex items-center justify-center font-bold text-xs">{i + 10}</div>
-                    <div className="h-10 flex items-center justify-center text-xs text-on-surface-variant">{hole.par}</div>
+                    <div className="h-10 flex items-center justify-center text-xs text-stone-500">{hole.par}</div>
                     <div className={`h-12 flex items-center justify-center rounded-xl font-headline font-bold text-sm ${getScoreColor(hole.score, hole.par)}`}>
                       {hole.score ?? '-'}
                     </div>
@@ -135,9 +135,9 @@ export default function History({ onBack }: HistoryProps) {
 
   return (
     <div className="min-h-screen bg-surface pb-32">
-      <header className="bg-surface-container-lowest flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+      <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
         <button onClick={onBack} className="p-2 -ml-2">
-          <span className="material-symbols-outlined text-on-surface-variant">arrow_back</span>
+          <span className="material-symbols-outlined text-stone-500">arrow_back</span>
         </button>
         <h1 className="text-xl font-extrabold text-primary font-headline">{t('history')}</h1>
         <div className="w-10"></div>
@@ -149,8 +149,8 @@ export default function History({ onBack }: HistoryProps) {
             <div className="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="material-symbols-outlined text-3xl text-outline">history</span>
             </div>
-            <div className="text-on-surface-variant mb-2 font-semibold">{t('noRecords')}</div>
-            <div className="text-outline text-sm">{t('startFirst')}</div>
+            <div className="text-stone-500 mb-2 font-semibold">{t('noRecords')}</div>
+            <div className="text-stone-400 text-sm">{t('startFirst')}</div>
           </div>
         ) : (
           <div className="space-y-4">
@@ -166,7 +166,7 @@ export default function History({ onBack }: HistoryProps) {
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">{dateStr}</p>
+                      <p className="text-xs font-bold text-stone-400 uppercase tracking-widest">{dateStr}</p>
                       <h3 className="text-lg font-bold text-primary font-headline">{round.courseName}</h3>
                     </div>
                     <div className="bg-secondary-container text-on-secondary-container px-4 py-2 rounded-2xl">
@@ -174,11 +174,11 @@ export default function History({ onBack }: HistoryProps) {
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 text-sm text-on-surface-variant">
+                    <div className="flex items-center gap-4 text-sm text-stone-500">
                       <span>{t('par')} {round.holes.filter(h => h.score === h.par).length}</span>
                       <span>{t('birdiePlus')} {round.holes.filter(h => h.score !== null && h.score < h.par).length}</span>
                     </div>
-                    <span className={`font-bold score-lime`}>{scoreDisplay.text}</span>
+                    <span className={`font-bold ${scoreDisplay.color}`}>{scoreDisplay.text}</span>
                   </div>
                 </button>
               );
