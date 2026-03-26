@@ -14,7 +14,7 @@ function AppContent() {
   const navigate = (newPage: Page) => setPage(newPage);
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="min-h-screen">
       {page === 'home' && <Home onStartGame={() => navigate('play')} />}
       {page === 'play' && <PlayGame onBack={() => navigate('home')} onComplete={() => navigate('home')} />}
       {page === 'friends' && <Friends onBack={() => navigate('home')} />}
@@ -22,45 +22,59 @@ function AppContent() {
       {page === 'stats' && <Stats onBack={() => navigate('home')} />}
 
       {page !== 'play' && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-green-900/95 backdrop-blur border-t border-white/10">
-          <div className="flex justify-around py-2">
-            <button
-              onClick={() => navigate('home')}
-              className={`flex flex-col items-center p-2 ${page === 'home' ? 'text-green-400' : 'text-white/60'}`}
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
-              <span className="text-xs mt-1">홈</span>
-            </button>
-            <button
-              onClick={() => navigate('competitions')}
-              className={`flex flex-col items-center p-2 ${page === 'competitions' ? 'text-green-400' : 'text-white/60'}`}
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-              </svg>
-              <span className="text-xs mt-1">대회</span>
-            </button>
-            <button
-              onClick={() => navigate('friends')}
-              className={`flex flex-col items-center p-2 ${page === 'friends' ? 'text-green-400' : 'text-white/60'}`}
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              <span className="text-xs mt-1">친구</span>
-            </button>
-            <button
-              onClick={() => navigate('stats')}
-              className={`flex flex-col items-center p-2 ${page === 'stats' ? 'text-green-400' : 'text-white/60'}`}
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              <span className="text-xs mt-1">통계</span>
-            </button>
-          </div>
+        <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/70 dark:bg-stone-950/70 backdrop-blur-md shadow-[0_-4px_24px_rgba(25,28,29,0.06)] rounded-t-[1.5rem]">
+          <button
+            onClick={() => navigate('home')}
+            className={`flex flex-col items-center justify-center px-5 py-2 transition-transform active:scale-90 ${
+              page === 'home' 
+                ? 'bg-lime-400/20 text-primary rounded-2xl' 
+                : 'text-stone-500'
+            }`}
+          >
+            <span className="material-symbols-outlined" style={page === 'home' ? {fontVariationSettings: "'FILL' 1"} : {}}>
+              dashboard
+            </span>
+            <span className="font-headline text-[11px] font-semibold uppercase tracking-wider mt-1">Home</span>
+          </button>
+          <button
+            onClick={() => navigate('competitions')}
+            className={`flex flex-col items-center justify-center px-5 py-2 transition-transform active:scale-90 ${
+              page === 'competitions' 
+                ? 'bg-lime-400/20 text-primary rounded-2xl' 
+                : 'text-stone-500'
+            }`}
+          >
+            <span className="material-symbols-outlined" style={page === 'competitions' ? {fontVariationSettings: "'FILL' 1"} : {}}>
+              emoji_events
+            </span>
+            <span className="font-headline text-[11px] font-semibold uppercase tracking-wider mt-1">대회</span>
+          </button>
+          <button
+            onClick={() => navigate('friends')}
+            className={`flex flex-col items-center justify-center px-5 py-2 transition-transform active:scale-90 ${
+              page === 'friends' 
+                ? 'bg-lime-400/20 text-primary rounded-2xl' 
+                : 'text-stone-500'
+            }`}
+          >
+            <span className="material-symbols-outlined" style={page === 'friends' ? {fontVariationSettings: "'FILL' 1"} : {}}>
+              group
+            </span>
+            <span className="font-headline text-[11px] font-semibold uppercase tracking-wider mt-1">친구</span>
+          </button>
+          <button
+            onClick={() => navigate('stats')}
+            className={`flex flex-col items-center justify-center px-5 py-2 transition-transform active:scale-90 ${
+              page === 'stats' 
+                ? 'bg-lime-400/20 text-primary rounded-2xl' 
+                : 'text-stone-500'
+            }`}
+          >
+            <span className="material-symbols-outlined" style={page === 'stats' ? {fontVariationSettings: "'FILL' 1"} : {}}>
+              insights
+            </span>
+            <span className="font-headline text-[11px] font-semibold uppercase tracking-wider mt-1">Stats</span>
+          </button>
         </nav>
       )}
     </div>

@@ -9,23 +9,12 @@ interface HomeProps {
 export default function Home({ onStartGame }: HomeProps) {
   const { data, deleteRound, addSampleData, clearAllData } = useGolf();
   const [devMode, setDevMode] = useState(false);
-  const [tapCount, setTapCount] = useState(0);
   
   const recentRounds = data.rounds.slice(0, 10);
   const totalRounds = data.rounds.length;
   const avgScore = totalRounds > 0 
     ? Math.round(data.rounds.reduce((sum, r) => sum + r.totalScore, 0) / totalRounds)
-    : '-';
-
-  const handleTitleTap = () => {
-    const newCount = tapCount + 1;
-    setTapCount(newCount);
-    if (newCount >= 5) {
-      setDevMode(true);
-      setTapCount(0);
-    }
-    setTimeout(() => setTapCount(0), 1000);
-  };
+    : 0;
 
   const handleDelete = (id: string) => {
     if (confirm('이 기록을 삭제할까요?')) {
@@ -38,9 +27,9 @@ export default function Home({ onStartGame }: HomeProps) {
     round.holes.forEach(hole => {
       if (hole.score !== null) {
         const diff = hole.score - hole.par;
-        if (diff <= -3) achievements.push('🦅 홀인원!');
-        else if (diff === -2) achievements.push('🦅 이글!');
-        else if (diff === -1) achievements.push('🐦 버디!');
+        if (diff <= -3) achievements.push('홀인원');
+        else if (diff === -2) achievements.push('이글');
+        else if (diff === -1) achievements.push('버디');
       }
     });
     return achievements;
@@ -48,7 +37,7 @@ export default function Home({ onStartGame }: HomeProps) {
 
   const shareScore = async (round: typeof data.rounds[0]) => {
     const scoreDisplay = getScoreDisplay(round.relativeScore);
-    const text = `⛳ Golfie에서 라운드 완료!\n\n📍 ${round.courseName}\n🏌️ ${round.totalScore}타 (${scoreDisplay.text})\n📅 ${formatDate(round.date)}`;
+    const text = `⛳ GreenScore에서 라운드 완료!\n\n📍 ${round.courseName}\n🏌️ ${round.totalScore}타 (${scoreDisplay.text})\n📅 ${formatDate(round.date)}`;
     
     if (navigator.share) {
       try {
@@ -61,14 +50,14 @@ export default function Home({ onStartGame }: HomeProps) {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-32 bg-surface">
       {devMode && (
         <div className="bg-red-600 text-white px-4 py-2 text-sm">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between max-w-5xl mx-auto">
             <span>🔧 개발자 모드</span>
             <button onClick={() => setDevMode(false)}>✕</button>
           </div>
-          <div className="flex gap-2 mt-2">
+          <div className="flex gap-2 mt-2 max-w-5xl mx-auto">
             <button 
               onClick={addSampleData}
               className="bg-white/20 px-3 py-1 rounded text-xs"
@@ -85,109 +74,136 @@ export default function Home({ onStartGame }: HomeProps) {
         </div>
       )}
 
-      <header className="p-6 text-white">
-        <button onClick={handleTitleTap} className="text-left">
-          <h1 className="text-3xl font-bold mb-2">⛳ Golfie</h1>
+      <header className="bg-white dark:bg-stone-950 flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center">
+            <span className="text-primary text-lg">⛳</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="font-headline font-bold text-lg text-primary">{data.player.name}</span>
+            <span className="text-[10px] uppercase tracking-widest text-stone-500 font-bold">
+              핸디캡 {avgScore > 0 ? (avgScore - 72).toFixed(1) : '-'}
+            </span>
+          </div>
+        </div>
+        <h1 className="text-2xl font-extrabold tracking-tight text-primary font-headline">
+          GreenScore
+        </h1>
+        <button className="text-stone-400 p-2 rounded-full active:scale-95 transition-transform">
+          <span className="material-symbols-outlined">notifications</span>
         </button>
-        <p className="text-white/70">친구들과 경쟁해보세요!</p>
       </header>
 
-      <div className="px-4 mb-6">
-        <button
-          onClick={onStartGame}
-          className="w-full bg-green-500 text-white py-5 rounded-2xl font-bold text-xl shadow-lg active:scale-98 transition-transform flex items-center justify-center gap-3"
-        >
-          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          새 라운드 시작
-        </button>
-      </div>
-
-      <div className="px-4 grid grid-cols-2 gap-3 mb-6">
-        <div className="bg-white/10 backdrop-blur rounded-xl p-4 text-white">
-          <div className="text-white/60 text-sm">총 라운드</div>
-          <div className="text-3xl font-bold">{totalRounds}</div>
-        </div>
-        <div className="bg-white/10 backdrop-blur rounded-xl p-4 text-white">
-          <div className="text-white/60 text-sm">평균 스코어</div>
-          <div className="text-3xl font-bold">{avgScore}</div>
-        </div>
-      </div>
-
-      <div className="px-4">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-white text-lg font-bold">최근 기록</h2>
-          {totalRounds > 0 && (
-            <span className="text-white/50 text-sm">{totalRounds}개 전체</span>
-          )}
-        </div>
-
-        {recentRounds.length === 0 ? (
-          <div className="bg-white/10 backdrop-blur rounded-xl p-8 text-center">
-            <div className="text-white/50 mb-2">아직 기록이 없어요</div>
-            <div className="text-white/30 text-sm">첫 라운드를 시작해보세요!</div>
-            {!devMode && (
-              <div className="mt-4 text-white/30 text-xs">💡 테스트: 타이틀 5회 탭</div>
-            )}
+      <main className="px-6 pt-6 space-y-8 max-w-5xl mx-auto">
+        <section className="relative overflow-hidden rounded-[2rem] bg-primary text-white p-8 min-h-[180px] flex flex-col justify-end group">
+          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-tertiary-fixed opacity-10 rounded-full blur-3xl"></div>
+          <div className="relative z-10 flex flex-col gap-1">
+            <span className="text-primary-fixed-dim text-sm font-semibold tracking-wider">내 성적 요약</span>
+            <h2 className="text-5xl font-extrabold font-headline leading-none tracking-tight">
+              {avgScore > 0 ? avgScore : '-'}
+              <span className="text-2xl font-medium ml-2 text-primary-fixed opacity-80">평균 타수</span>
+            </h2>
+            <p className="text-primary-fixed-dim/80 text-sm mt-2 font-medium">
+              {totalRounds > 0 ? `지난 ${totalRounds}번의 라운딩 기준` : '아직 기록이 없습니다'}
+            </p>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {recentRounds.map(round => {
-              const scoreDisplay = getScoreDisplay(round.relativeScore);
-              const achievements = getAchievements(round);
+        </section>
+
+        <section className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-extrabold font-headline text-primary tracking-tight">최근 라운딩</h2>
+            <button 
+              onClick={onStartGame}
+              className="bg-primary text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 active:scale-95 transition-transform"
+            >
+              <span className="material-symbols-outlined text-lg">add</span>
+              새 라운딩
+            </button>
+          </div>
+
+          {recentRounds.length === 0 ? (
+            <div className="bg-surface-container-lowest rounded-[2rem] p-8 text-center">
+              <div className="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="material-symbols-outlined text-3xl text-outline">golf_course</span>
+              </div>
+              <div className="text-stone-500 mb-2 font-semibold">아직 기록이 없어요</div>
+              <div className="text-stone-400 text-sm">첫 라운드를 시작해보세요!</div>
+              {!devMode && (
+                <div className="mt-4 text-stone-400 text-xs">💡 테스트: 타이틀 5회 탭</div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {recentRounds.map(round => {
+                const achievements = getAchievements(round);
+                const dateStr = new Date(round.date).toLocaleDateString('ko-KR', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric'
+                }).replace('년 ', '.').replace('월 ', '.').replace('일', '');
+                
               return (
-                <div key={round.id} className="bg-white/10 backdrop-blur rounded-xl p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <div className="text-white font-bold">{round.courseName}</div>
-                      <div className="text-white/50 text-sm">{formatDate(round.date)}</div>
+                <div key={round.id} className="bg-surface-container-lowest rounded-[1.5rem] p-5 shadow-sm">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="space-y-1">
+                      <p className="text-xs font-bold text-stone-400 uppercase tracking-widest">{dateStr}</p>
+                      <h3 className="text-lg font-bold text-primary font-headline">{round.courseName}</h3>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="text-right">
+                      <span className="text-2xl font-black font-headline text-primary">{round.totalScore}</span>
+                      <p className={`text-sm font-bold ${getScoreDisplay(round.relativeScore).color}`}>
+                        {getScoreDisplay(round.relativeScore).text}
+                      </p>
+                    </div>
+                  </div>
+
+                    <div className="grid grid-cols-3 gap-3 mb-4">
+                      <div className="bg-surface-container-low rounded-xl py-3 px-2 text-center">
+                        <p className="text-[10px] text-stone-500 font-bold mb-1">퍼팅</p>
+                        <p className="text-lg font-bold text-primary font-headline">-</p>
+                      </div>
+                      <div className="bg-surface-container-low rounded-xl py-3 px-2 text-center">
+                        <p className="text-[10px] text-stone-500 font-bold mb-1">파</p>
+                        <p className="text-lg font-bold text-primary font-headline">{round.holes.filter(h => h.score === h.par).length}</p>
+                      </div>
+                      <div className="bg-surface-container-low rounded-xl py-3 px-2 text-center">
+                        <p className="text-[10px] text-stone-500 font-bold mb-1">버디+</p>
+                        <p className="text-lg font-bold text-primary font-headline">{round.holes.filter(h => h.score !== null && h.score < h.par).length}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 mb-4">
                       <button
                         onClick={() => shareScore(round)}
-                        className="text-blue-400 p-2 hover:bg-white/10 rounded-lg transition-colors"
-                        title="공유하기"
+                        className="flex-1 bg-primary text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                        </svg>
+                        <span className="material-symbols-outlined">share</span>
+                        공유하기
                       </button>
                       <button
                         onClick={() => handleDelete(round.id)}
-                        className="text-red-400 p-2 hover:bg-white/10 rounded-lg transition-colors"
-                        title="삭제"
+                        className="bg-error-container text-error px-4 rounded-xl flex items-center justify-center active:scale-95 transition-transform"
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
+                        <span className="material-symbols-outlined">delete</span>
                       </button>
                     </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="text-white font-bold text-2xl">{round.totalScore}타</div>
-                    <div className={`text-xl font-bold ${scoreDisplay.color}`}>
-                      {scoreDisplay.text}
-                    </div>
-                  </div>
 
-                  {achievements.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {achievements.slice(0, 5).map((achievement, i) => (
-                        <span key={i} className="bg-yellow-500/20 text-yellow-300 text-xs px-2 py-1 rounded-full">
-                          {achievement}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                    {achievements.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {achievements.slice(0, 5).map((achievement, i) => (
+                          <span key={i} className="bg-tertiary-fixed/20 text-tertiary px-3 py-1 rounded-full text-xs font-bold">
+                            {achievement}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      </main>
     </div>
   );
 }
