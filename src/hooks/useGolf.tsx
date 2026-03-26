@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { GolfData, Player, Round, Competition } from '../types';
-import { loadData, saveData, generateId, createNewRound } from '../utils/storage';
+import { loadData, saveData, generateId, createNewRound, calculateScore } from '../utils/storage';
 
 interface GolfContextType {
   data: GolfData;
@@ -13,9 +13,38 @@ interface GolfContextType {
   createCompetition: (name: string) => Competition;
   joinCompetition: (compId: string) => void;
   addRoundToCompetition: (compId: string, round: Round) => void;
+  addSampleData: () => void;
+  clearAllData: () => void;
 }
 
 const GolfContext = createContext<GolfContextType | null>(null);
+
+const courseNames = ['하늘CC', 'ocean 파크', '숲속高尔夫', 'lakeサイド', 'sunsetCC', '마운틴View', '바다RESORT', '골든밸리'];
+
+const generateSampleRound = () => {
+  const holes = Array.from({ length: 18 }, (_, i) => {
+    const parOptions = [3, 4, 4, 5];
+    const par = parOptions[Math.floor(Math.random() * parOptions.length)];
+    const baseScore = par + Math.floor(Math.random() * 5) - 2;
+    const score = Math.max(1, Math.min(baseScore, 15));
+    return { number: i + 1, par, score };
+  });
+  
+  const { totalScore, totalPar, relativeScore } = calculateScore(holes);
+  const daysAgo = Math.floor(Math.random() * 60);
+  const date = new Date();
+  date.setDate(date.getDate() - daysAgo);
+  
+  return {
+    id: generateId(),
+    date: date.toISOString(),
+    courseName: courseNames[Math.floor(Math.random() * courseNames.length)],
+    holes,
+    totalScore,
+    totalPar,
+    relativeScore,
+  };
+};
 
 export const GolfProvider = ({ children }: { children: ReactNode }) => {
   const [data, setData] = useState<GolfData>(loadData);
@@ -113,6 +142,28 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
+  const addSampleData = () => {
+    const sampleRounds = Array.from({ length: 8 }, generateSampleRound);
+    const sampleFriends = ['김철수', '이영희', '박민수', '정수진'].map(name => ({
+      id: generateId(),
+      name,
+    }));
+    
+    setData(prev => ({
+      ...prev,
+      rounds: [...sampleRounds, ...prev.rounds],
+      friends: [...prev.friends, ...sampleFriends],
+    }));
+  };
+
+  const clearAllData = () => {
+    if (confirm('모든 데이터가 삭제됩니다. 계속할까요?')) {
+      localStorage.removeItem('golf_score_data');
+      setData(loadData());
+      window.location.reload();
+    }
+  };
+
   return (
     <GolfContext.Provider value={{
       data,
@@ -125,6 +176,8 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       createCompetition,
       joinCompetition,
       addRoundToCompetition,
+      addSampleData,
+      clearAllData,
     }}>
       {children}
     </GolfContext.Provider>

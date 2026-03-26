@@ -13,6 +13,7 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
   const [step, setStep] = useState<'name' | 'score'>('name');
   const [currentHole, setCurrentHole] = useState(0);
   const [round, setRound] = useState<ReturnType<typeof addRound> | null>(null);
+  const [achievement, setAchievement] = useState<string | null>(null);
 
   const handleStart = () => {
     if (!courseName.trim()) return;
@@ -24,6 +25,7 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
   const updateScore = (holeIndex: number, score: number) => {
     if (!round) return;
     const newHoles = [...round.holes];
+    const prevScore = newHoles[holeIndex].score;
     newHoles[holeIndex] = { ...newHoles[holeIndex], score };
     const calculated = calculateScore(newHoles);
     const updated = {
@@ -33,6 +35,23 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
     };
     setRound(updated);
     updateRound(updated);
+
+    if (prevScore === null && score !== null) {
+      const diff = score - newHoles[holeIndex].par;
+      if (diff <= -3) {
+        setAchievement('🦅 홀인원!');
+        setTimeout(() => setAchievement(null), 3000);
+      } else if (diff === -2) {
+        setAchievement('🦅 이글!');
+        setTimeout(() => setAchievement(null), 2000);
+      } else if (diff === -1) {
+        setAchievement('🐦 버디!');
+        setTimeout(() => setAchievement(null), 2000);
+      } else if (diff === 0) {
+        setAchievement('✅ 파!');
+        setTimeout(() => setAchievement(null), 1500);
+      }
+    }
   };
 
   const handleFinish = () => {
@@ -91,6 +110,16 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-green-900 to-green-950">
+      {achievement && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-3xl p-8 text-center animate-bounce">
+            <div className="text-6xl mb-4">{achievement.split(' ')[0]}</div>
+            <div className="text-2xl font-bold text-white">{achievement.split(' ')[1]}</div>
+            <div className="text-white/80 text-sm mt-2">훌륭해요!</div>
+          </div>
+        </div>
+      )}
+
       <header className="flex items-center justify-between p-4 text-white">
         <button onClick={onBack} className="p-2">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
