@@ -94,6 +94,9 @@ const translations: Record<Language, Record<string, string>> = {
     save: '저장',
     nameUpdated: '이름이 변경되었습니다',
     holeCount: '홀',
+    loginWithGoogle: 'Google로 로그인',
+    loggedIn: 'Google 로그인됨',
+    logout: '로그아웃',
   },
   en: {
     home: 'Home',
@@ -178,6 +181,9 @@ const translations: Record<Language, Record<string, string>> = {
     save: 'Save',
     nameUpdated: 'Name updated',
     holeCount: 'holes',
+    loginWithGoogle: 'Login with Google',
+    loggedIn: 'Logged in with Google',
+    logout: 'Logout',
   },
   zh: {
     home: '首页',
@@ -262,6 +268,9 @@ const translations: Record<Language, Record<string, string>> = {
     save: '保存',
     nameUpdated: '姓名已更新',
     holeCount: '洞',
+    loginWithGoogle: '使用Google登录',
+    loggedIn: '已登录Google',
+    logout: '退出',
   },
   ja: {
     home: 'ホーム',
@@ -346,6 +355,9 @@ const translations: Record<Language, Record<string, string>> = {
     save: '保存',
     nameUpdated: '名前が更新されました',
     holeCount: 'ホール',
+    loginWithGoogle: 'Googleでログイン',
+    loggedIn: 'Googleでログイン中',
+    logout: 'ログアウト',
   },
 };
 

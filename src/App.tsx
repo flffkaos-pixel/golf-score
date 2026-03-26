@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { GolfProvider } from './hooks/useGolf';
 import { AppSettingsProvider } from './hooks/useAppSettings';
+import { AuthProvider } from './hooks/useAuth';
 import Home from './pages/Home';
 import PlayGame from './pages/PlayGame';
 import Friends from './pages/Friends';
@@ -19,7 +20,7 @@ function AppContent() {
   const isActive = (p: Page) => page === p;
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-surface dark:bg-stone-900">
       {page === 'home' && <Home onStartGame={() => navigate('play')} />}
       {page === 'play' && <PlayGame onBack={() => navigate('home')} onComplete={() => navigate('history')} />}
       {page === 'friends' && <Friends onBack={() => navigate('home')} />}
@@ -94,9 +95,11 @@ function AppContent() {
 function App() {
   return (
     <AppSettingsProvider>
-      <GolfProvider>
-        <AppContent />
-      </GolfProvider>
+      <AuthProvider>
+        <GolfProvider>
+          <AppContent />
+        </GolfProvider>
+      </AuthProvider>
     </AppSettingsProvider>
   );
 }
