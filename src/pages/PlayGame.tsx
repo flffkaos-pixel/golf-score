@@ -9,7 +9,7 @@ interface PlayGameProps {
 }
 
 export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
-  const { addRound, updateRound } = useGolf();
+  const { data, addRound, updateRound } = useGolf();
   const { t } = useAppSettings();
   const [courseName, setCourseName] = useState('');
   const [step, setStep] = useState<'name' | 'score'>('name');
@@ -17,11 +17,30 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
   const [round, setRound] = useState<ReturnType<typeof addRound> | null>(null);
   const [achievement, setAchievement] = useState<string | null>(null);
 
+  const inProgressRounds = data.rounds.filter(r => r.holes.some(h => h.score !== null) && r.holes.some(h => h.score === null));
+
   const handleStart = () => {
     if (!courseName.trim()) return;
     const newRound = addRound(courseName.trim());
     setRound(newRound);
     setStep('score');
+  };
+
+  const handleContinue = (roundId: string) => {
+    const r = data.rounds.find(r => r.id === roundId);
+    if (r) {
+      setRound(r);
+      setCourseName(r.courseName);
+      setStep('score');
+      const lastHole = r.holes.findIndex(h => h.score === null);
+      setCurrentHole(lastHole > 0 ? lastHole : 0);
+    }
+  };
+
+  const handleExit = () => {
+    setStep('name');
+    setRound(null);
+    setCurrentHole(0);
   };
 
   const updateScore = (holeIndex: number, score: number) => {
@@ -104,6 +123,37 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
             >
               {t('startRound')}
             </button>
+
+            {inProgressRounds.length > 0 && (
+              <div className="mt-8">
+                <h3 className="font-headline font-bold text-lg mb-4 text-primary">진행 중인 라운드</h3>
+                <div className="space-y-3">
+                  {inProgressRounds.map(r => {
+                    const completed = r.holes.filter(h => h.score !== null).length;
+                    return (
+                      <button
+                        key={r.id}
+                        onClick={() => handleContinue(r.id)}
+                        className="w-full bg-surface-container p-4 rounded-2xl flex justify-between items-center active:scale-98 transition-transform"
+                      >
+                        <div className="text-left">
+                          <div className="font-bold text-primary">{r.courseName}</div>
+                          <div className="text-sm text-stone-500">{completed}/18홀 진행중</div>
+                        </div>
+                        <div className="text-right">
+                          <div className={`font-bold font-headline ${r.relativeScore > 0 ? 'text-error' : r.relativeScore < 0 ? 'text-secondary' : 'text-stone-600'}`}>
+                            {r.totalScore}
+                          </div>
+                          <div className="text-xs text-stone-500">
+                            {r.relativeScore > 0 ? `+${r.relativeScore}` : r.relativeScore === 0 ? 'E' : r.relativeScore}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </main>
       </div>
@@ -130,7 +180,7 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
       )}
 
       <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
-        <button onClick={onBack} className="p-2 -ml-2">
+        <button onClick={handleExit} className="p-2 -ml-2">
           <span className="material-symbols-outlined text-stone-500">close</span>
         </button>
         <div className="text-center">
@@ -163,30 +213,8 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
           </div>
         </section>
 
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          {[3, 4, 5].map(par => (
-            <button
-              key={par}
-              onClick={() => {
-                const newHoles = [...round.holes];
-                newHoles[currentHole] = { ...newHoles[currentHole], par };
-                const updated = { ...round, holes: newHoles };
-                setRound(updated);
-                updateRound(updated);
-              }}
-              className={`py-3 rounded-2xl font-bold font-headline transition-all active:scale-95 ${
-                currentHoleData.par === par 
-                  ? 'bg-secondary text-white shadow-lg' 
-                  : 'bg-surface-container text-stone-600'
-              }`}
-            >
-              {t('par')} {par}
-            </button>
-          ))}
-        </div>
-
         <div className="grid grid-cols-5 gap-2 mb-8">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(score => (
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(score => (
             <button
               key={score}
               onClick={() => updateScore(currentHole, score)}
@@ -198,7 +226,7 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
         </div>
 
         <div className="grid grid-cols-5 gap-2">
-          {[13, 14, 15, 16, 17].map(score => (
+          {[16, 17, 18, 19, 20].map(score => (
             <button
               key={score}
               onClick={() => updateScore(currentHole, score)}
