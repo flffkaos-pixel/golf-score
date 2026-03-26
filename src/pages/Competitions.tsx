@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useGolf } from '../hooks/useGolf';
-import { formatDate, getScoreDisplay } from '../utils/storage';
+import { useAppSettings } from '../hooks/useAppSettings';
+import { getScoreDisplay } from '../utils/storage';
 
 interface CompetitionsProps {
   onBack: () => void;
@@ -8,6 +9,7 @@ interface CompetitionsProps {
 
 export default function Competitions({ onBack }: CompetitionsProps) {
   const { data, createCompetition, joinCompetition } = useGolf();
+  const { t } = useAppSettings();
   const [showCreate, setShowCreate] = useState(false);
   const [newCompName, setNewCompName] = useState('');
 
@@ -28,26 +30,23 @@ export default function Competitions({ onBack }: CompetitionsProps) {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'active': return '진행중';
-      case 'finished': return '종료';
-      default: return '대기중';
+      case 'active': return t('active');
+      case 'finished': return t('finished');
+      default: return t('pending');
     }
   };
 
   const activeComps = data.competitions.filter(c => c.status !== 'finished');
 
   return (
-    <div className="min-h-screen bg-surface pb-32">
-      <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+    <div className="min-h-screen bg-surface dark:bg-stone-900 pb-32">
+      <header className="bg-white dark:bg-stone-950 flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
         <button onClick={onBack} className="p-2 -ml-2">
           <span className="material-symbols-outlined text-stone-500">arrow_back</span>
         </button>
-        <h1 className="text-xl font-extrabold text-primary font-headline">대회</h1>
-        <button 
-          onClick={() => setShowCreate(!showCreate)}
-          className="text-secondary font-bold"
-        >
-          {showCreate ? '취소' : '+ 만들기'}
+        <h1 className="text-xl font-extrabold text-primary dark:text-white font-headline">{t('competitions')}</h1>
+        <button onClick={() => setShowCreate(!showCreate)} className="text-secondary font-bold">
+          {showCreate ? t('cancel') : '+ 만들기'}
         </button>
       </header>
 
@@ -57,56 +56,56 @@ export default function Competitions({ onBack }: CompetitionsProps) {
           className="w-full bg-gradient-to-r from-secondary to-tertiary text-white py-5 rounded-2xl font-headline font-bold text-lg flex items-center justify-center gap-3 active:scale-98 transition-transform shadow-lg"
         >
           <span className="material-symbols-outlined">add_circle</span>
-          새 대회 만들기
+          {t('createComp')}
         </button>
 
         {showCreate && (
-          <div className="bg-surface-container-lowest rounded-2xl p-6 mt-4">
+          <div className="bg-surface-container-lowest dark:bg-stone-800 rounded-2xl p-6 mt-4">
             <input
               type="text"
               value={newCompName}
               onChange={(e) => setNewCompName(e.target.value)}
-              placeholder="대회 이름 (예: 3월 Monthly)"
-              className="w-full bg-surface-container border-none rounded-xl px-4 py-4 outline-none mb-4 text-lg"
+              placeholder={t('compNamePlaceholder')}
+              className="w-full bg-surface-container dark:bg-stone-700 border-none rounded-xl px-4 py-4 outline-none mb-4 text-lg text-primary dark:text-white"
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
             />
             <div className="flex gap-3">
               <button
                 onClick={() => setShowCreate(false)}
-                className="flex-1 bg-surface-container text-stone-600 py-4 rounded-xl font-bold active:scale-98 transition-transform"
+                className="flex-1 bg-surface-container dark:bg-stone-600 text-stone-600 dark:text-stone-300 py-4 rounded-xl font-bold active:scale-98 transition-transform"
               >
-                취소
+                {t('cancel')}
               </button>
               <button
                 onClick={handleCreate}
                 disabled={!newCompName.trim()}
                 className="flex-1 bg-primary text-white py-4 rounded-xl font-bold disabled:opacity-50 active:scale-98 transition-transform"
               >
-                만들기
+                {t('create')}
               </button>
             </div>
           </div>
         )}
 
         <section className="mt-8">
-          <h2 className="font-headline font-bold text-lg mb-4">진행중인 대회</h2>
+          <h2 className="font-headline font-bold text-lg mb-4">{t('activeCompetitions')}</h2>
 
           {activeComps.length === 0 ? (
-            <div className="bg-surface-container-lowest rounded-2xl p-8 text-center">
+            <div className="bg-surface-container-lowest dark:bg-stone-800 rounded-2xl p-8 text-center">
               <div className="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="material-symbols-outlined text-3xl text-outline">emoji_events</span>
               </div>
-              <div className="text-stone-500 mb-2 font-semibold">진행중인 대회가 없어요</div>
-              <div className="text-stone-400 text-sm">새 대회를 만들어 친구들을 초대하세요!</div>
+              <div className="text-stone-500 mb-2 font-semibold">{t('noCompetitions')}</div>
+              <div className="text-stone-400 text-sm">{t('competitionsDesc')}</div>
             </div>
           ) : (
             <div className="space-y-4">
               {activeComps.map(comp => (
-                <div key={comp.id} className="bg-surface-container-lowest rounded-2xl p-5">
+                <div key={comp.id} className="bg-surface-container-lowest dark:bg-stone-800 rounded-2xl p-5">
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h3 className="text-lg font-bold text-primary font-headline">{comp.name}</h3>
-                      <p className="text-xs text-stone-500">{formatDate(comp.startDate)}</p>
+                      <h3 className="text-lg font-bold text-primary dark:text-white font-headline">{comp.name}</h3>
+                      <p className="text-xs text-stone-500">{new Date(comp.startDate).toLocaleDateString()}</p>
                     </div>
                     <span className={`${getStatusColor(comp.status)} text-xs px-3 py-1 rounded-full font-bold`}>
                       {getStatusText(comp.status)}
@@ -114,12 +113,12 @@ export default function Competitions({ onBack }: CompetitionsProps) {
                   </div>
 
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="text-sm text-stone-500 font-bold">참가자</span>
+                    <span className="text-sm text-stone-500 font-bold">{t('participants')}</span>
                     <div className="flex -space-x-2">
                       {comp.players.slice(0, 5).map((player) => (
                         <div
                           key={player.id}
-                          className="w-8 h-8 bg-secondary-container rounded-full flex items-center justify-center text-xs font-bold text-secondary border-2 border-surface-container-lowest"
+                          className="w-8 h-8 bg-secondary-container rounded-full flex items-center justify-center text-xs font-bold text-secondary border-2 border-surface-container-lowest dark:border-stone-800"
                         >
                           {player.name[0].toUpperCase()}
                         </div>
@@ -129,8 +128,8 @@ export default function Competitions({ onBack }: CompetitionsProps) {
                   </div>
 
                   {comp.rounds.length > 0 && (
-                    <div className="bg-surface-container rounded-xl p-4 mb-4">
-                      <p className="text-xs text-stone-500 font-bold mb-2">현재 순위</p>
+                    <div className="bg-surface-container dark:bg-stone-700 rounded-xl p-4 mb-4">
+                      <p className="text-xs text-stone-500 font-bold mb-2">{t('ranking')}</p>
                       {comp.rounds
                         .sort((a, b) => a.relativeScore - b.relativeScore)
                         .slice(0, 3)
@@ -147,7 +146,7 @@ export default function Competitions({ onBack }: CompetitionsProps) {
                                 }`}>
                                   {i + 1}
                                 </span>
-                                <span className="text-primary font-semibold">{player.name}</span>
+                                <span className="text-primary dark:text-white font-semibold">{player.name}</span>
                               </div>
                               <span className={`font-bold ${scoreDisplay.color}`}>
                                 {round.totalScore} ({scoreDisplay.text})
@@ -163,7 +162,7 @@ export default function Competitions({ onBack }: CompetitionsProps) {
                       onClick={() => joinCompetition(comp.id)}
                       className="w-full bg-primary text-white py-3 rounded-xl font-bold active:scale-98 transition-transform"
                     >
-                      참가하기
+                      {t('join')}
                     </button>
                   )}
                 </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useGolf } from '../hooks/useGolf';
+import { useAppSettings } from '../hooks/useAppSettings';
 import { calculateScore } from '../utils/storage';
 
 interface PlayGameProps {
@@ -9,6 +10,7 @@ interface PlayGameProps {
 
 export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
   const { addRound, updateRound } = useGolf();
+  const { t } = useAppSettings();
   const [courseName, setCourseName] = useState('');
   const [step, setStep] = useState<'name' | 'score'>('name');
   const [currentHole, setCurrentHole] = useState(0);
@@ -39,16 +41,16 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
     if (prevScore === null && score !== null) {
       const diff = score - newHoles[holeIndex].par;
       if (diff <= -3) {
-        setAchievement('홀인원!');
+        setAchievement(t('holeInOne'));
         setTimeout(() => setAchievement(null), 3000);
       } else if (diff === -2) {
-        setAchievement('이글!');
+        setAchievement(t('eagle'));
         setTimeout(() => setAchievement(null), 2000);
       } else if (diff === -1) {
-        setAchievement('버디!');
+        setAchievement(t('birdie'));
         setTimeout(() => setAchievement(null), 2000);
       } else if (diff === 0) {
-        setAchievement('파!');
+        setAchievement(t('par'));
         setTimeout(() => setAchievement(null), 1500);
       }
     }
@@ -71,12 +73,12 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
 
   if (step === 'name') {
     return (
-      <div className="min-h-screen bg-surface pb-32">
-        <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-50">
+      <div className="min-h-screen bg-surface dark:bg-stone-900 pb-32">
+        <header className="bg-white dark:bg-stone-950 flex justify-between items-center w-full px-6 py-4 sticky top-0 z-50">
           <button onClick={onBack} className="p-2 -ml-2">
             <span className="material-symbols-outlined text-stone-500">arrow_back</span>
           </button>
-          <h1 className="text-xl font-extrabold text-primary font-headline">새 라운딩</h1>
+          <h1 className="text-xl font-extrabold text-primary dark:text-white font-headline">{t('newRound')}</h1>
           <div className="w-10"></div>
         </header>
 
@@ -84,14 +86,14 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-bold text-on-surface-variant mb-3 font-headline">
-                골프장 이름
+                {t('courseName')}
               </label>
               <input
                 type="text"
                 value={courseName}
                 onChange={(e) => setCourseName(e.target.value)}
-                placeholder="예: 남부 컨트리클럽"
-                className="w-full bg-surface-container-low border-none rounded-2xl py-5 px-6 text-lg outline-none focus:ring-2 focus:ring-secondary-container transition-all placeholder:text-outline/60 font-body"
+                placeholder={t('coursePlaceholder')}
+                className="w-full bg-surface-container-low dark:bg-stone-800 border-none rounded-2xl py-5 px-6 text-lg outline-none focus:ring-2 focus:ring-secondary-container transition-all placeholder:text-outline/60 font-body text-primary dark:text-white"
               />
             </div>
 
@@ -100,7 +102,7 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
               disabled={!courseName.trim()}
               className="w-full bg-primary text-white py-5 rounded-2xl font-headline font-extrabold text-lg shadow-lg active:scale-98 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              라운딩 시작
+              {t('startRound')}
             </button>
           </div>
         </main>
@@ -114,29 +116,29 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
   const completedHoles = round.holes.filter(h => h.score !== null).length;
 
   return (
-    <div className="min-h-screen bg-surface pb-32">
+    <div className="min-h-screen bg-surface dark:bg-stone-900 pb-32">
       {achievement && (
         <div className="fixed inset-0 bg-primary/80 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-[2rem] p-12 text-center animate-bounce">
+          <div className="bg-white dark:bg-stone-800 rounded-[2rem] p-12 text-center animate-bounce">
             <div className="w-20 h-20 bg-tertiary-fixed rounded-full flex items-center justify-center mx-auto mb-6">
               <span className="text-4xl">⛳</span>
             </div>
-            <div className="text-4xl font-extrabold text-primary font-headline mb-2">{achievement}</div>
-            <div className="text-stone-500">훌륭해요!</div>
+            <div className="text-4xl font-extrabold text-primary dark:text-white font-headline mb-2">{achievement}!</div>
+            <div className="text-stone-500">Great shot!</div>
           </div>
         </div>
       )}
 
-      <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+      <header className="bg-white dark:bg-stone-950 flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
         <button onClick={onBack} className="p-2 -ml-2">
           <span className="material-symbols-outlined text-stone-500">close</span>
         </button>
         <div className="text-center">
           <p className="text-xs text-stone-500 font-bold uppercase tracking-wider">{courseName}</p>
-          <p className="text-lg font-bold text-primary font-headline">{completedHoles}/18 홀</p>
+          <p className="text-lg font-bold text-primary dark:text-white font-headline">{completedHoles}/18 {t('holeCount')}</p>
         </div>
         <div className="text-right">
-          <p className="text-xs text-stone-500 font-bold uppercase tracking-wider">총점</p>
+          <p className="text-xs text-stone-500 font-bold uppercase tracking-wider">{t('totalScore')}</p>
           <p className={`text-lg font-bold font-headline ${
             round.relativeScore > 0 ? 'text-error' : 
             round.relativeScore < 0 ? 'text-secondary' : 'text-stone-600'
@@ -147,20 +149,16 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
       </header>
 
       <main className="pt-6 px-4 max-w-md mx-auto">
-        <section className="relative overflow-hidden rounded-[1.5rem] bg-primary text-white p-6 mb-8 shadow-lg">
+        <section className="relative overflow-hidden rounded-[1.5rem] bg-primary dark:bg-primary-container text-white p-6 mb-8 shadow-lg">
           <div className="absolute top-0 right-0 w-24 h-24 bg-tertiary-fixed/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
           <div className="relative z-10">
             <div className="flex justify-between items-end mb-2">
               <h2 className="text-4xl font-extrabold font-headline">
-                {currentHole + 1}번 홀
+                {currentHole + 1}번 {t('hole')}
               </h2>
               <div className="bg-tertiary-fixed text-tertiary px-4 py-1 rounded-full font-bold text-lg">
-                Par {currentHoleData.par}
+                {t('par')} {currentHoleData.par}
               </div>
-            </div>
-            <div className="flex items-center gap-2 text-primary-fixed/80 font-medium">
-              <span className="material-symbols-outlined text-sm">flag</span>
-              <span>홀 선택</span>
             </div>
           </div>
         </section>
@@ -179,10 +177,10 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
               className={`py-3 rounded-2xl font-bold font-headline transition-all active:scale-95 ${
                 currentHoleData.par === par 
                   ? 'bg-secondary text-white shadow-lg' 
-                  : 'bg-surface-container text-stone-600'
+                  : 'bg-surface-container dark:bg-stone-700 text-stone-600 dark:text-stone-300'
               }`}
             >
-              Par {par}
+              {t('par')} {par}
             </button>
           ))}
         </div>
@@ -211,7 +209,7 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
           ))}
           <button
             onClick={() => updateScore(currentHole, 0)}
-            className="aspect-square rounded-2xl bg-surface-container text-stone-500 font-bold text-xs flex items-center justify-center transition-all active:scale-95"
+            className="aspect-square rounded-2xl bg-surface-container dark:bg-stone-700 text-stone-500 font-bold text-xs flex items-center justify-center transition-all active:scale-95"
           >
             DEL
           </button>
@@ -221,10 +219,10 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
           <button
             onClick={() => setCurrentHole(Math.max(0, currentHole - 1))}
             disabled={currentHole === 0}
-            className="flex-1 bg-surface-container text-on-surface-variant font-bold py-4 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-30"
+            className="flex-1 bg-surface-container dark:bg-stone-700 text-on-surface-variant font-bold py-4 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-30"
           >
             <span className="material-symbols-outlined">arrow_back</span>
-            이전
+            {t('previous')}
           </button>
           <button
             onClick={() => {
@@ -238,12 +236,12 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
           >
             {currentHole < 17 ? (
               <>
-                다음
+                {t('next')}
                 <span className="material-symbols-outlined">arrow_forward</span>
               </>
             ) : (
               <>
-                끝내기
+                {t('finish')}
                 <span className="material-symbols-outlined">check_circle</span>
               </>
             )}
@@ -261,7 +259,7 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
                     ? 'bg-primary text-white shadow-md' 
                     : hole.score !== null 
                       ? getScoreColor(hole.score, hole.par)
-                      : 'bg-surface-container text-stone-400'
+                      : 'bg-surface-container dark:bg-stone-700 text-stone-400'
                 }`}
               >
                 {hole.score !== null ? hole.score : i + 1}

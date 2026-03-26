@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { GolfProvider } from './hooks/useGolf';
+import { AppSettingsProvider } from './hooks/useAppSettings';
 import Home from './pages/Home';
 import PlayGame from './pages/PlayGame';
 import Friends from './pages/Friends';
@@ -92,9 +93,11 @@ function AppContent() {
 
 function App() {
   return (
-    <GolfProvider>
-      <AppContent />
-    </GolfProvider>
+    <AppSettingsProvider>
+      <GolfProvider>
+        <AppContent />
+      </GolfProvider>
+    </AppSettingsProvider>
   );
 }
 

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useGolf } from '../hooks/useGolf';
+import { useAppSettings } from '../hooks/useAppSettings';
 
 interface FriendsProps {
   onBack: () => void;
@@ -7,6 +8,7 @@ interface FriendsProps {
 
 export default function Friends({ onBack }: FriendsProps) {
   const { data, addFriend, removeFriend } = useGolf();
+  const { t } = useAppSettings();
   const [newFriend, setNewFriend] = useState('');
   const [showAdd, setShowAdd] = useState(false);
 
@@ -24,17 +26,14 @@ export default function Friends({ onBack }: FriendsProps) {
   };
 
   return (
-    <div className="min-h-screen bg-surface pb-32">
-      <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+    <div className="min-h-screen bg-surface dark:bg-stone-900 pb-32">
+      <header className="bg-white dark:bg-stone-950 flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
         <button onClick={onBack} className="p-2 -ml-2">
           <span className="material-symbols-outlined text-stone-500">arrow_back</span>
         </button>
-        <h1 className="text-xl font-extrabold text-primary font-headline">친구</h1>
-        <button 
-          onClick={() => setShowAdd(!showAdd)}
-          className="text-secondary font-bold"
-        >
-          {showAdd ? '취소' : '+ 추가'}
+        <h1 className="text-xl font-extrabold text-primary dark:text-white font-headline">{t('friends')}</h1>
+        <button onClick={() => setShowAdd(!showAdd)} className="text-secondary font-bold">
+          {showAdd ? t('cancel') : '+ 추가'}
         </button>
       </header>
 
@@ -44,20 +43,20 @@ export default function Friends({ onBack }: FriendsProps) {
           className="w-full bg-secondary text-white py-5 rounded-2xl font-headline font-bold text-lg flex items-center justify-center gap-3 active:scale-98 transition-transform shadow-lg"
         >
           <span className="material-symbols-outlined">share</span>
-          친구 초대하기
+          {t('invite')}
         </button>
         <p className="text-stone-500 text-sm text-center mt-3">
-          초대 코드를 보내서 친구와 연결하세요
+          {t('inviteDesc')}
         </p>
 
         {showAdd && (
-          <div className="bg-surface-container-lowest rounded-2xl p-6 mt-6">
+          <div className="bg-surface-container-lowest dark:bg-stone-800 rounded-2xl p-6 mt-6">
             <input
               type="text"
               value={newFriend}
               onChange={(e) => setNewFriend(e.target.value)}
               placeholder="친구 이름"
-              className="w-full bg-surface-container border-none rounded-xl px-4 py-4 outline-none mb-4 text-lg"
+              className="w-full bg-surface-container dark:bg-stone-700 border-none rounded-xl px-4 py-4 outline-none mb-4 text-lg text-primary dark:text-white"
               onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
             />
             <button
@@ -65,33 +64,33 @@ export default function Friends({ onBack }: FriendsProps) {
               disabled={!newFriend.trim()}
               className="w-full bg-primary text-white py-4 rounded-xl font-bold disabled:opacity-50 active:scale-98 transition-transform"
             >
-              추가
+              {t('addFriend')}
             </button>
           </div>
         )}
 
         <div className="mt-8">
           <h2 className="font-headline font-bold text-lg mb-4">
-            내 친구 ({data.friends.length})
+            {t('myFriends')} ({data.friends.length})
           </h2>
 
           {data.friends.length === 0 ? (
-            <div className="bg-surface-container-lowest rounded-2xl p-8 text-center">
+            <div className="bg-surface-container-lowest dark:bg-stone-800 rounded-2xl p-8 text-center">
               <div className="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="material-symbols-outlined text-3xl text-outline">group_add</span>
               </div>
-              <div className="text-stone-500 mb-2 font-semibold">아직 친구가 없어요</div>
-              <div className="text-stone-400 text-sm">초대 코드를 공유하거나 친구를 추가하세요!</div>
+              <div className="text-stone-500 mb-2 font-semibold">{t('noFriends')}</div>
+              <div className="text-stone-400 text-sm">{t('addFriendHint')}</div>
             </div>
           ) : (
             <div className="space-y-3">
               {data.friends.map(friend => (
-                <div key={friend.id} className="bg-surface-container-lowest rounded-2xl p-4 flex items-center justify-between">
+                <div key={friend.id} className="bg-surface-container-lowest dark:bg-stone-800 rounded-2xl p-4 flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-secondary-container rounded-full flex items-center justify-center text-secondary font-bold text-lg font-headline">
                       {friend.name[0].toUpperCase()}
                     </div>
-                    <span className="font-bold text-primary font-headline text-lg">{friend.name}</span>
+                    <span className="font-bold text-primary dark:text-white font-headline text-lg">{friend.name}</span>
                   </div>
                   <button
                     onClick={() => removeFriend(friend.id)}

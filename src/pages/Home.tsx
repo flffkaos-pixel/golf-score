@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useGolf } from '../hooks/useGolf';
-import { formatDate, getScoreDisplay } from '../utils/storage';
+import { useAppSettings } from '../hooks/useAppSettings';
+import { getScoreDisplay } from '../utils/storage';
 
 interface HomeProps {
   onStartGame: () => void;
@@ -8,6 +9,7 @@ interface HomeProps {
 
 export default function Home({ onStartGame }: HomeProps) {
   const { data, deleteRound, addSampleData, clearAllData } = useGolf();
+  const { t } = useAppSettings();
   const [devMode, setDevMode] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   
@@ -18,7 +20,7 @@ export default function Home({ onStartGame }: HomeProps) {
     : 0;
 
   const handleDelete = (id: string) => {
-    if (confirm('이 기록을 삭제할까요?')) {
+    if (confirm(t('deleteConfirm'))) {
       deleteRound(id);
     }
   };
@@ -28,9 +30,9 @@ export default function Home({ onStartGame }: HomeProps) {
     round.holes.forEach(hole => {
       if (hole.score !== null) {
         const diff = hole.score - hole.par;
-        if (diff <= -3) achievements.push('홀인원');
-        else if (diff === -2) achievements.push('이글');
-        else if (diff === -1) achievements.push('버디');
+        if (diff <= -3) achievements.push(t('holeInOne'));
+        else if (diff === -2) achievements.push(t('eagle'));
+        else if (diff === -1) achievements.push(t('birdie'));
       }
     });
     return achievements;
@@ -38,7 +40,7 @@ export default function Home({ onStartGame }: HomeProps) {
 
   const shareScore = async (round: typeof data.rounds[0]) => {
     const scoreDisplay = getScoreDisplay(round.relativeScore);
-    const text = `⛳ GreenScore에서 라운드 완료!\n\n📍 ${round.courseName}\n🏌️ ${round.totalScore}타 (${scoreDisplay.text})\n📅 ${formatDate(round.date)}`;
+    const text = `⛳ GreenScore ${t('recentRounds')}!\n\n📍 ${round.courseName}\n🏌️ ${round.totalScore} ${t('score')} (${scoreDisplay.text})\n📅 ${new Date(round.date).toLocaleDateString()}`;
     
     if (navigator.share) {
       try {
@@ -46,7 +48,7 @@ export default function Home({ onStartGame }: HomeProps) {
       } catch (e) {}
     } else {
       await navigator.clipboard.writeText(text);
-      alert('클립보드에 복사되었어요!');
+      alert(t('copied'));
     }
   };
 
@@ -55,22 +57,12 @@ export default function Home({ onStartGame }: HomeProps) {
       {devMode && (
         <div className="bg-red-600 text-white px-4 py-2 text-sm">
           <div className="flex items-center justify-between max-w-5xl mx-auto">
-            <span>🔧 개발자 모드</span>
+            <span>🔧 Dev Mode</span>
             <button onClick={() => setDevMode(false)}>✕</button>
           </div>
           <div className="flex gap-2 mt-2 max-w-5xl mx-auto">
-            <button 
-              onClick={addSampleData}
-              className="bg-white/20 px-3 py-1 rounded text-xs"
-            >
-              📊 샘플 데이터 추가
-            </button>
-            <button 
-              onClick={clearAllData}
-              className="bg-red-800 px-3 py-1 rounded text-xs"
-            >
-              🗑️ 전체 삭제
-            </button>
+            <button onClick={addSampleData} className="bg-white/20 px-3 py-1 rounded text-xs">📊 Add Sample</button>
+            <button onClick={clearAllData} className="bg-red-800 px-3 py-1 rounded text-xs">🗑️ Clear All</button>
           </div>
         </div>
       )}
@@ -83,7 +75,7 @@ export default function Home({ onStartGame }: HomeProps) {
           <div className="flex flex-col">
             <span className="font-headline font-bold text-lg text-primary dark:text-white">{data.player.name}</span>
             <span className="text-[10px] uppercase tracking-widest text-stone-500 font-bold">
-              핸디캡 {avgScore > 0 ? (avgScore - 72).toFixed(1) : '-'}
+              {avgScore > 0 ? (avgScore - 72).toFixed(1) : '-'}
             </span>
           </div>
         </div>
@@ -103,9 +95,9 @@ export default function Home({ onStartGame }: HomeProps) {
 
       {showNotifications && (
         <div className="absolute top-16 right-4 w-72 bg-white dark:bg-stone-800 rounded-2xl shadow-xl z-50 p-4">
-          <h3 className="font-bold text-primary dark:text-white mb-3">알림</h3>
+          <h3 className="font-bold text-primary dark:text-white mb-3">🔔 {t('notifications')}</h3>
           {data.friends.length === 0 ? (
-            <p className="text-stone-500 text-sm">친구를 추가하면他们的 라운딩 알림을 받을 수 있어요!</p>
+            <p className="text-stone-500 text-sm">{t('addFriendHint')}</p>
           ) : (
             <div className="space-y-2">
               {data.friends.slice(0, 3).map(friend => (
@@ -115,7 +107,7 @@ export default function Home({ onStartGame }: HomeProps) {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium dark:text-white">{friend.name}</p>
-                    <p className="text-xs text-stone-500">라운딩 준비중</p>
+                    <p className="text-xs text-stone-500">{t('startRound')}...</p>
                   </div>
                 </div>
               ))}
@@ -128,26 +120,26 @@ export default function Home({ onStartGame }: HomeProps) {
         <section className="relative overflow-hidden rounded-[2rem] bg-primary dark:bg-primary-container text-white p-8 min-h-[180px] flex flex-col justify-end group">
           <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-tertiary-fixed opacity-10 rounded-full blur-3xl"></div>
           <div className="relative z-10 flex flex-col gap-1">
-            <span className="text-primary-fixed-dim text-sm font-semibold tracking-wider">내 성적 요약</span>
+            <span className="text-primary-fixed-dim text-sm font-semibold tracking-wider">{t('myPerformance')}</span>
             <h2 className="text-5xl font-extrabold font-headline leading-none tracking-tight">
               {avgScore > 0 ? avgScore : '-'}
-              <span className="text-2xl font-medium ml-2 text-primary-fixed opacity-80">평균 타수</span>
+              <span className="text-2xl font-medium ml-2 text-primary-fixed opacity-80">{t('avgScore')}</span>
             </h2>
             <p className="text-primary-fixed-dim/80 text-sm mt-2 font-medium">
-              {totalRounds > 0 ? `지난 ${totalRounds}번의 라운딩 기준` : '아직 기록이 없습니다'}
+              {totalRounds > 0 ? `${t('basedOn')}${totalRounds} ${t('lastRounds')}` : t('noRecords')}
             </p>
           </div>
         </section>
 
         <section className="space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-extrabold font-headline text-primary dark:text-white tracking-tight">최근 라운딩</h2>
+            <h2 className="text-xl font-extrabold font-headline text-primary dark:text-white tracking-tight">{t('recentRounds')}</h2>
             <button 
               onClick={onStartGame}
               className="bg-primary dark:bg-secondary text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 active:scale-95 transition-transform"
             >
               <span className="material-symbols-outlined text-lg">add</span>
-              새 라운딩
+              {t('newRound')}
             </button>
           </div>
 
@@ -156,21 +148,14 @@ export default function Home({ onStartGame }: HomeProps) {
               <div className="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="material-symbols-outlined text-3xl text-outline">golf_course</span>
               </div>
-              <div className="text-stone-500 mb-2 font-semibold">아직 기록이 없어요</div>
-              <div className="text-stone-400 text-sm">첫 라운드를 시작해보세요!</div>
-              {!devMode && (
-                <div className="mt-4 text-stone-400 text-xs">💡 테스트: 타이틀 5회 탭</div>
-              )}
+              <div className="text-stone-500 mb-2 font-semibold">{t('noRecords')}</div>
+              <div className="text-stone-400 text-sm">{t('startFirst')}</div>
             </div>
           ) : (
             <div className="space-y-4">
               {recentRounds.map(round => {
                 const achievements = getAchievements(round);
-                const dateStr = new Date(round.date).toLocaleDateString('ko-KR', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric'
-                }).replace('년 ', '.').replace('월 ', '.').replace('일', '');
+                const dateStr = new Date(round.date).toLocaleDateString();
                 
               return (
                 <div key={round.id} className="bg-surface-container-lowest dark:bg-stone-800 rounded-[1.5rem] p-5 shadow-sm">
@@ -189,15 +174,15 @@ export default function Home({ onStartGame }: HomeProps) {
 
                     <div className="grid grid-cols-3 gap-3 mb-4">
                       <div className="bg-surface-container-low dark:bg-stone-700 rounded-xl py-3 px-2 text-center">
-                        <p className="text-[10px] text-stone-500 font-bold mb-1">퍼팅</p>
+                        <p className="text-[10px] text-stone-500 font-bold mb-1">{t('putting')}</p>
                         <p className="text-lg font-bold text-primary dark:text-white font-headline">-</p>
                       </div>
                       <div className="bg-surface-container-low dark:bg-stone-700 rounded-xl py-3 px-2 text-center">
-                        <p className="text-[10px] text-stone-500 font-bold mb-1">파</p>
+                        <p className="text-[10px] text-stone-500 font-bold mb-1">{t('par')}</p>
                         <p className="text-lg font-bold text-primary dark:text-white font-headline">{round.holes.filter(h => h.score === h.par).length}</p>
                       </div>
                       <div className="bg-surface-container-low dark:bg-stone-700 rounded-xl py-3 px-2 text-center">
-                        <p className="text-[10px] text-stone-500 font-bold mb-1">버디+</p>
+                        <p className="text-[10px] text-stone-500 font-bold mb-1">{t('birdiePlus')}</p>
                         <p className="text-lg font-bold text-primary dark:text-white font-headline">{round.holes.filter(h => h.score !== null && h.score < h.par).length}</p>
                       </div>
                     </div>
@@ -208,7 +193,7 @@ export default function Home({ onStartGame }: HomeProps) {
                         className="flex-1 bg-primary dark:bg-secondary text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
                       >
                         <span className="material-symbols-outlined">share</span>
-                        공유하기
+                        {t('share')}
                       </button>
                       <button
                         onClick={() => handleDelete(round.id)}
