@@ -60,12 +60,12 @@ export default function Stats({ onBack }: StatsProps) {
   const sortedByScore = [...data.rounds].sort((a, b) => a.totalScore - b.totalScore);
 
   return (
-    <div className="min-h-screen bg-surface dark:bg-stone-900 pb-32">
-      <header className="bg-white dark:bg-stone-950 flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+    <div className="min-h-screen bg-surface pb-32">
+      <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
         <button onClick={onBack} className="p-2 -ml-2">
           <span className="material-symbols-outlined text-stone-500">arrow_back</span>
         </button>
-        <h1 className="text-xl font-extrabold text-primary dark:text-white font-headline">{t('stats')}</h1>
+        <h1 className="text-xl font-extrabold text-primary font-headline">{t('stats')}</h1>
         <div className="w-10"></div>
       </header>
 
@@ -110,9 +110,9 @@ export default function Stats({ onBack }: StatsProps) {
               #f59e0b ${eaglePercent + birdiePercent}% ${eaglePercent + birdiePercent + parPercent}%,
               #ef4444 ${eaglePercent + birdiePercent + parPercent}% 100%
             )` }}></div>
-            <div className="absolute inset-6 rounded-full bg-surface dark:bg-stone-800 flex items-center justify-center">
+            <div className="absolute inset-6 rounded-full bg-surface flex items-center justify-center">
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary dark:text-white">{eaglesOrBetter + birdies}</div>
+                <div className="text-2xl font-bold text-primary">{eaglesOrBetter + birdies}</div>
                 <div className="text-sm text-stone-500">{t('birdiePlus')}</div>
               </div>
             </div>
@@ -155,7 +155,7 @@ export default function Stats({ onBack }: StatsProps) {
             {t('personalBest')}
           </h3>
           {data.rounds.length === 0 ? (
-            <div className="bg-surface-container-lowest dark:bg-stone-800 rounded-2xl p-8 text-center">
+            <div className="bg-surface-container-lowest rounded-2xl p-8 text-center">
               <div className="text-stone-500">{t('noRecords')}</div>
             </div>
           ) : (
@@ -163,18 +163,18 @@ export default function Stats({ onBack }: StatsProps) {
               {sortedByScore.slice(0, 10).map((round, i) => {
                 const scoreDisplay = getScoreDisplay(round.relativeScore);
                 return (
-                  <div key={round.id} className="bg-surface-container-lowest dark:bg-stone-800 rounded-2xl p-4 flex items-center justify-between">
+                  <div key={round.id} className="bg-surface-container-lowest rounded-2xl p-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold font-headline ${
                         i === 0 ? 'bg-yellow-400 text-stone-900' :
                         i === 1 ? 'bg-stone-300 text-stone-700' :
                         i === 2 ? 'bg-amber-600 text-white' :
-                        'bg-surface-container dark:bg-stone-700 text-stone-600'
+                        'bg-surface-container text-stone-600'
                       }`}>
                         {i + 1}
                       </div>
                       <div>
-                        <div className="font-bold text-primary dark:text-white">{round.courseName}</div>
+                        <div className="font-bold text-primary">{round.courseName}</div>
                         <div className="text-xs text-stone-500">{new Date(round.date).toLocaleDateString()}</div>
                       </div>
                     </div>

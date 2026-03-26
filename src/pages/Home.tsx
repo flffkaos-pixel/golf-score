@@ -53,7 +53,7 @@ export default function Home({ onStartGame }: HomeProps) {
   };
 
   return (
-    <div className="min-h-screen pb-32 bg-surface dark:bg-stone-900">
+    <div className="min-h-screen pb-32 bg-surface">
       {devMode && (
         <div className="bg-red-600 text-white px-4 py-2 text-sm">
           <div className="flex items-center justify-between max-w-5xl mx-auto">
@@ -67,19 +67,19 @@ export default function Home({ onStartGame }: HomeProps) {
         </div>
       )}
 
-      <header className="bg-white dark:bg-stone-950 flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+      <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center">
             <span className="text-primary text-lg">⛳</span>
           </div>
           <div className="flex flex-col">
-            <span className="font-headline font-bold text-lg text-primary dark:text-white">{data.player.name}</span>
+            <span className="font-headline font-bold text-lg text-primary">{data.player.name}</span>
             <span className="text-[10px] uppercase tracking-widest text-stone-500 font-bold">
               {avgScore > 0 ? (avgScore - 72).toFixed(1) : '-'}
             </span>
           </div>
         </div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-primary dark:text-white font-headline">
+        <h1 className="text-2xl font-extrabold tracking-tight text-primary font-headline">
           GreenScore
         </h1>
         <button 
@@ -94,19 +94,19 @@ export default function Home({ onStartGame }: HomeProps) {
       </header>
 
       {showNotifications && (
-        <div className="absolute top-16 right-4 w-72 bg-white dark:bg-stone-800 rounded-2xl shadow-xl z-50 p-4">
-          <h3 className="font-bold text-primary dark:text-white mb-3">🔔 {t('notifications')}</h3>
+        <div className="absolute top-16 right-4 w-72 bg-white rounded-2xl shadow-xl z-50 p-4">
+          <h3 className="font-bold text-primary mb-3">🔔 {t('notifications')}</h3>
           {data.friends.length === 0 ? (
             <p className="text-stone-500 text-sm">{t('addFriendHint')}</p>
           ) : (
             <div className="space-y-2">
               {data.friends.slice(0, 3).map(friend => (
-                <div key={friend.id} className="flex items-center gap-3 p-2 bg-surface-container dark:bg-stone-700 rounded-xl">
+                <div key={friend.id} className="flex items-center gap-3 p-2 bg-surface-container rounded-xl">
                   <div className="w-8 h-8 bg-secondary-container rounded-full flex items-center justify-center text-xs font-bold">
                     {friend.name[0]}
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium dark:text-white">{friend.name}</p>
+                    <p className="text-sm font-medium">{friend.name}</p>
                     <p className="text-xs text-stone-500">{t('startRound')}...</p>
                   </div>
                 </div>
@@ -117,7 +117,7 @@ export default function Home({ onStartGame }: HomeProps) {
       )}
 
       <main className="px-6 pt-6 space-y-8 max-w-5xl mx-auto">
-        <section className="relative overflow-hidden rounded-[2rem] bg-primary dark:bg-primary-container text-white p-8 min-h-[180px] flex flex-col justify-end group">
+        <section className="relative overflow-hidden rounded-[2rem] bg-primary text-white p-8 min-h-[180px] flex flex-col justify-end group">
           <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-tertiary-fixed opacity-10 rounded-full blur-3xl"></div>
           <div className="relative z-10 flex flex-col gap-1">
             <span className="text-primary-fixed-dim text-sm font-semibold tracking-wider">{t('myPerformance')}</span>
@@ -133,10 +133,10 @@ export default function Home({ onStartGame }: HomeProps) {
 
         <section className="space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-extrabold font-headline text-primary dark:text-white tracking-tight">{t('recentRounds')}</h2>
+            <h2 className="text-xl font-extrabold font-headline text-primary tracking-tight">{t('recentRounds')}</h2>
             <button 
               onClick={onStartGame}
-              className="bg-primary dark:bg-secondary text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 active:scale-95 transition-transform"
+              className="bg-primary text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 active:scale-95 transition-transform"
             >
               <span className="material-symbols-outlined text-lg">add</span>
               {t('newRound')}
@@ -144,7 +144,7 @@ export default function Home({ onStartGame }: HomeProps) {
           </div>
 
           {recentRounds.length === 0 ? (
-            <div className="bg-surface-container-lowest dark:bg-stone-800 rounded-[2rem] p-8 text-center">
+            <div className="bg-surface-container-lowest rounded-[2rem] p-8 text-center">
               <div className="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="material-symbols-outlined text-3xl text-outline">golf_course</span>
               </div>
@@ -158,14 +158,14 @@ export default function Home({ onStartGame }: HomeProps) {
                 const dateStr = new Date(round.date).toLocaleDateString();
                 
               return (
-                <div key={round.id} className="bg-surface-container-lowest dark:bg-stone-800 rounded-[1.5rem] p-5 shadow-sm">
+                <div key={round.id} className="bg-surface-container-lowest rounded-[1.5rem] p-5 shadow-sm">
                   <div className="flex justify-between items-start mb-4">
                     <div className="space-y-1">
                       <p className="text-xs font-bold text-stone-400 uppercase tracking-widest">{dateStr}</p>
-                      <h3 className="text-lg font-bold text-primary dark:text-white font-headline">{round.courseName}</h3>
+                      <h3 className="text-lg font-bold text-primary font-headline">{round.courseName}</h3>
                     </div>
                     <div className="text-right">
-                      <span className="text-2xl font-black font-headline text-primary dark:text-white">{round.totalScore}</span>
+                      <span className="text-2xl font-black font-headline text-primary">{round.totalScore}</span>
                       <p className={`text-sm font-bold ${getScoreDisplay(round.relativeScore).color}`}>
                         {getScoreDisplay(round.relativeScore).text}
                       </p>
@@ -173,24 +173,24 @@ export default function Home({ onStartGame }: HomeProps) {
                   </div>
 
                     <div className="grid grid-cols-3 gap-3 mb-4">
-                      <div className="bg-surface-container-low dark:bg-stone-700 rounded-xl py-3 px-2 text-center">
+                      <div className="bg-surface-container-low rounded-xl py-3 px-2 text-center">
                         <p className="text-[10px] text-stone-500 font-bold mb-1">{t('putting')}</p>
-                        <p className="text-lg font-bold text-primary dark:text-white font-headline">-</p>
+                        <p className="text-lg font-bold text-primary font-headline">-</p>
                       </div>
-                      <div className="bg-surface-container-low dark:bg-stone-700 rounded-xl py-3 px-2 text-center">
+                      <div className="bg-surface-container-low rounded-xl py-3 px-2 text-center">
                         <p className="text-[10px] text-stone-500 font-bold mb-1">{t('par')}</p>
-                        <p className="text-lg font-bold text-primary dark:text-white font-headline">{round.holes.filter(h => h.score === h.par).length}</p>
+                        <p className="text-lg font-bold text-primary font-headline">{round.holes.filter(h => h.score === h.par).length}</p>
                       </div>
-                      <div className="bg-surface-container-low dark:bg-stone-700 rounded-xl py-3 px-2 text-center">
+                      <div className="bg-surface-container-low rounded-xl py-3 px-2 text-center">
                         <p className="text-[10px] text-stone-500 font-bold mb-1">{t('birdiePlus')}</p>
-                        <p className="text-lg font-bold text-primary dark:text-white font-headline">{round.holes.filter(h => h.score !== null && h.score < h.par).length}</p>
+                        <p className="text-lg font-bold text-primary font-headline">{round.holes.filter(h => h.score !== null && h.score < h.par).length}</p>
                       </div>
                     </div>
 
                     <div className="flex gap-2 mb-4">
                       <button
                         onClick={() => shareScore(round)}
-                        className="flex-1 bg-primary dark:bg-secondary text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                        className="flex-1 bg-primary text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
                       >
                         <span className="material-symbols-outlined">share</span>
                         {t('share')}
@@ -206,7 +206,7 @@ export default function Home({ onStartGame }: HomeProps) {
                     {achievements.length > 0 && (
                       <div className="flex flex-wrap gap-2">
                         {achievements.slice(0, 5).map((achievement, i) => (
-                          <span key={i} className="bg-tertiary-fixed/20 text-tertiary dark:bg-lime-500/20 dark:text-lime-400 px-3 py-1 rounded-full text-xs font-bold">
+                          <span key={i} className="bg-tertiary-fixed/20 text-tertiary px-3 py-1 rounded-full text-xs font-bold">
                             {achievement}
                           </span>
                         ))}

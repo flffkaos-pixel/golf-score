@@ -73,12 +73,12 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
 
   if (step === 'name') {
     return (
-      <div className="min-h-screen bg-surface dark:bg-stone-900 pb-32">
-        <header className="bg-white dark:bg-stone-950 flex justify-between items-center w-full px-6 py-4 sticky top-0 z-50">
+      <div className="min-h-screen bg-surface pb-32">
+        <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-50">
           <button onClick={onBack} className="p-2 -ml-2">
             <span className="material-symbols-outlined text-stone-500">arrow_back</span>
           </button>
-          <h1 className="text-xl font-extrabold text-primary dark:text-white font-headline">{t('newRound')}</h1>
+          <h1 className="text-xl font-extrabold text-primary font-headline">{t('newRound')}</h1>
           <div className="w-10"></div>
         </header>
 
@@ -93,7 +93,7 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
                 value={courseName}
                 onChange={(e) => setCourseName(e.target.value)}
                 placeholder={t('coursePlaceholder')}
-                className="w-full bg-surface-container-low dark:bg-stone-800 border-none rounded-2xl py-5 px-6 text-lg outline-none focus:ring-2 focus:ring-secondary-container transition-all placeholder:text-outline/60 font-body text-primary dark:text-white"
+                className="w-full bg-surface-container-low border-none rounded-2xl py-5 px-6 text-lg outline-none focus:ring-2 focus:ring-secondary-container transition-all placeholder:text-outline/60 font-body text-primary"
               />
             </div>
 
@@ -116,26 +116,26 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
   const completedHoles = round.holes.filter(h => h.score !== null).length;
 
   return (
-    <div className="min-h-screen bg-surface dark:bg-stone-900 pb-32">
+    <div className="min-h-screen bg-surface pb-32">
       {achievement && (
         <div className="fixed inset-0 bg-primary/80 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-stone-800 rounded-[2rem] p-12 text-center animate-bounce">
+          <div className="bg-white rounded-[2rem] p-12 text-center animate-bounce">
             <div className="w-20 h-20 bg-tertiary-fixed rounded-full flex items-center justify-center mx-auto mb-6">
               <span className="text-4xl">⛳</span>
             </div>
-            <div className="text-4xl font-extrabold text-primary dark:text-white font-headline mb-2">{achievement}!</div>
+            <div className="text-4xl font-extrabold text-primary font-headline mb-2">{achievement}!</div>
             <div className="text-stone-500">Great shot!</div>
           </div>
         </div>
       )}
 
-      <header className="bg-white dark:bg-stone-950 flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+      <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
         <button onClick={onBack} className="p-2 -ml-2">
           <span className="material-symbols-outlined text-stone-500">close</span>
         </button>
         <div className="text-center">
           <p className="text-xs text-stone-500 font-bold uppercase tracking-wider">{courseName}</p>
-          <p className="text-lg font-bold text-primary dark:text-white font-headline">{completedHoles}/18 {t('holeCount')}</p>
+          <p className="text-lg font-bold text-primary font-headline">{completedHoles}/18 {t('hole')}</p>
         </div>
         <div className="text-right">
           <p className="text-xs text-stone-500 font-bold uppercase tracking-wider">{t('totalScore')}</p>
@@ -149,12 +149,12 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
       </header>
 
       <main className="pt-6 px-4 max-w-md mx-auto">
-        <section className="relative overflow-hidden rounded-[1.5rem] bg-primary dark:bg-primary-container text-white p-6 mb-8 shadow-lg">
+        <section className="relative overflow-hidden rounded-[1.5rem] bg-primary text-white p-6 mb-8 shadow-lg">
           <div className="absolute top-0 right-0 w-24 h-24 bg-tertiary-fixed/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
           <div className="relative z-10">
             <div className="flex justify-between items-end mb-2">
               <h2 className="text-4xl font-extrabold font-headline">
-                {currentHole + 1}번 {t('hole')}
+                {currentHole + 1} {t('hole')}
               </h2>
               <div className="bg-tertiary-fixed text-tertiary px-4 py-1 rounded-full font-bold text-lg">
                 {t('par')} {currentHoleData.par}
@@ -177,7 +177,7 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
               className={`py-3 rounded-2xl font-bold font-headline transition-all active:scale-95 ${
                 currentHoleData.par === par 
                   ? 'bg-secondary text-white shadow-lg' 
-                  : 'bg-surface-container dark:bg-stone-700 text-stone-600 dark:text-stone-300'
+                  : 'bg-surface-container text-stone-600'
               }`}
             >
               {t('par')} {par}
@@ -209,7 +209,7 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
           ))}
           <button
             onClick={() => updateScore(currentHole, 0)}
-            className="aspect-square rounded-2xl bg-surface-container dark:bg-stone-700 text-stone-500 font-bold text-xs flex items-center justify-center transition-all active:scale-95"
+            className="aspect-square rounded-2xl bg-surface-container text-stone-500 font-bold text-xs flex items-center justify-center transition-all active:scale-95"
           >
             DEL
           </button>
@@ -219,7 +219,7 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
           <button
             onClick={() => setCurrentHole(Math.max(0, currentHole - 1))}
             disabled={currentHole === 0}
-            className="flex-1 bg-surface-container dark:bg-stone-700 text-on-surface-variant font-bold py-4 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-30"
+            className="flex-1 bg-surface-container text-on-surface-variant font-bold py-4 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-30"
           >
             <span className="material-symbols-outlined">arrow_back</span>
             {t('previous')}
@@ -259,7 +259,7 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
                     ? 'bg-primary text-white shadow-md' 
                     : hole.score !== null 
                       ? getScoreColor(hole.score, hole.par)
-                      : 'bg-surface-container dark:bg-stone-700 text-stone-400'
+                      : 'bg-surface-container text-stone-400'
                 }`}
               >
                 {hole.score !== null ? hole.score : i + 1}

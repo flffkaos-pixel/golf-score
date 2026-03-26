@@ -30,12 +30,12 @@ export default function History({ onBack }: HistoryProps) {
     const bogeys = selectedRound.holes.filter(h => h.score !== null && h.score > h.par).length;
 
     return (
-      <div className="min-h-screen bg-surface dark:bg-stone-900 pb-32">
-        <header className="bg-white dark:bg-stone-950 flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+      <div className="min-h-screen bg-surface pb-32">
+        <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
           <button onClick={() => setSelectedRound(null)} className="p-2 -ml-2">
             <span className="material-symbols-outlined text-stone-500">arrow_back</span>
           </button>
-          <h1 className="text-xl font-extrabold text-primary dark:text-white font-headline">{t('roundDetail')}</h1>
+          <h1 className="text-xl font-extrabold text-primary font-headline">{t('roundDetail')}</h1>
           <div className="w-10"></div>
         </header>
 
@@ -58,21 +58,21 @@ export default function History({ onBack }: HistoryProps) {
           </section>
 
           <div className="grid grid-cols-3 gap-4 mb-8">
-            <div className="bg-surface-container-lowest dark:bg-stone-800 rounded-2xl p-4 text-center">
+            <div className="bg-surface-container-lowest rounded-2xl p-4 text-center">
               <p className="text-2xl font-black font-headline text-secondary">{birdies}</p>
               <p className="text-xs text-stone-500 font-bold">{t('birdiePlus')}</p>
             </div>
-            <div className="bg-surface-container-lowest dark:bg-stone-800 rounded-2xl p-4 text-center">
+            <div className="bg-surface-container-lowest rounded-2xl p-4 text-center">
               <p className="text-2xl font-black font-headline">{pars}</p>
               <p className="text-xs text-stone-500 font-bold">{t('par')}</p>
             </div>
-            <div className="bg-surface-container-lowest dark:bg-stone-800 rounded-2xl p-4 text-center">
+            <div className="bg-surface-container-lowest rounded-2xl p-4 text-center">
               <p className="text-2xl font-black font-headline text-yellow-600">{bogeys}</p>
               <p className="text-xs text-stone-500 font-bold">{t('bogey')}+</p>
             </div>
           </div>
 
-          <section className="bg-surface-container-lowest dark:bg-stone-800 rounded-[2rem] p-6 mb-8">
+          <section className="bg-surface-container-lowest rounded-[2rem] p-6 mb-8">
             <h3 className="font-headline text-lg font-bold mb-4 flex items-center gap-2">
               <span className="material-symbols-outlined text-secondary">scoreboard</span>
               {t('holeCount')}별 상세 스코어
@@ -134,18 +134,18 @@ export default function History({ onBack }: HistoryProps) {
   }
 
   return (
-    <div className="min-h-screen bg-surface dark:bg-stone-900 pb-32">
-      <header className="bg-white dark:bg-stone-950 flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+    <div className="min-h-screen bg-surface pb-32">
+      <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
         <button onClick={onBack} className="p-2 -ml-2">
           <span className="material-symbols-outlined text-stone-500">arrow_back</span>
         </button>
-        <h1 className="text-xl font-extrabold text-primary dark:text-white font-headline">{t('history')}</h1>
+        <h1 className="text-xl font-extrabold text-primary font-headline">{t('history')}</h1>
         <div className="w-10"></div>
       </header>
 
       <main className="px-6 pt-6 max-w-5xl mx-auto">
         {data.rounds.length === 0 ? (
-          <div className="bg-surface-container-lowest dark:bg-stone-800 rounded-2xl p-8 text-center">
+          <div className="bg-surface-container-lowest rounded-2xl p-8 text-center">
             <div className="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="material-symbols-outlined text-3xl text-outline">history</span>
             </div>
@@ -162,12 +162,12 @@ export default function History({ onBack }: HistoryProps) {
                 <button
                   key={round.id}
                   onClick={() => setSelectedRound(round)}
-                  className="w-full bg-surface-container-lowest dark:bg-stone-800 rounded-2xl p-5 text-left active:scale-98 transition-transform"
+                  className="w-full bg-surface-container-lowest rounded-2xl p-5 text-left active:scale-98 transition-transform"
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div>
                       <p className="text-xs font-bold text-stone-400 uppercase tracking-widest">{dateStr}</p>
-                      <h3 className="text-lg font-bold text-primary dark:text-white font-headline">{round.courseName}</h3>
+                      <h3 className="text-lg font-bold text-primary font-headline">{round.courseName}</h3>
                     </div>
                     <div className="bg-secondary-container text-on-secondary-container px-4 py-2 rounded-2xl">
                       <span className="text-2xl font-black font-headline">{round.totalScore}</span>

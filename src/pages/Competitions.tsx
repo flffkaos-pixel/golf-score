@@ -39,12 +39,12 @@ export default function Competitions({ onBack }: CompetitionsProps) {
   const activeComps = data.competitions.filter(c => c.status !== 'finished');
 
   return (
-    <div className="min-h-screen bg-surface dark:bg-stone-900 pb-32">
-      <header className="bg-white dark:bg-stone-950 flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+    <div className="min-h-screen bg-surface pb-32">
+      <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
         <button onClick={onBack} className="p-2 -ml-2">
           <span className="material-symbols-outlined text-stone-500">arrow_back</span>
         </button>
-        <h1 className="text-xl font-extrabold text-primary dark:text-white font-headline">{t('competitions')}</h1>
+        <h1 className="text-xl font-extrabold text-primary font-headline">{t('competitions')}</h1>
         <button onClick={() => setShowCreate(!showCreate)} className="text-secondary font-bold">
           {showCreate ? t('cancel') : '+ 만들기'}
         </button>
@@ -60,19 +60,19 @@ export default function Competitions({ onBack }: CompetitionsProps) {
         </button>
 
         {showCreate && (
-          <div className="bg-surface-container-lowest dark:bg-stone-800 rounded-2xl p-6 mt-4">
+          <div className="bg-surface-container-lowest rounded-2xl p-6 mt-4">
             <input
               type="text"
               value={newCompName}
               onChange={(e) => setNewCompName(e.target.value)}
               placeholder={t('compNamePlaceholder')}
-              className="w-full bg-surface-container dark:bg-stone-700 border-none rounded-xl px-4 py-4 outline-none mb-4 text-lg text-primary dark:text-white"
+              className="w-full bg-surface-container border-none rounded-xl px-4 py-4 outline-none mb-4 text-lg text-primary"
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
             />
             <div className="flex gap-3">
               <button
                 onClick={() => setShowCreate(false)}
-                className="flex-1 bg-surface-container dark:bg-stone-600 text-stone-600 dark:text-stone-300 py-4 rounded-xl font-bold active:scale-98 transition-transform"
+                className="flex-1 bg-surface-container text-stone-600 py-4 rounded-xl font-bold active:scale-98 transition-transform"
               >
                 {t('cancel')}
               </button>
@@ -91,7 +91,7 @@ export default function Competitions({ onBack }: CompetitionsProps) {
           <h2 className="font-headline font-bold text-lg mb-4">{t('activeCompetitions')}</h2>
 
           {activeComps.length === 0 ? (
-            <div className="bg-surface-container-lowest dark:bg-stone-800 rounded-2xl p-8 text-center">
+            <div className="bg-surface-container-lowest rounded-2xl p-8 text-center">
               <div className="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="material-symbols-outlined text-3xl text-outline">emoji_events</span>
               </div>
@@ -101,10 +101,10 @@ export default function Competitions({ onBack }: CompetitionsProps) {
           ) : (
             <div className="space-y-4">
               {activeComps.map(comp => (
-                <div key={comp.id} className="bg-surface-container-lowest dark:bg-stone-800 rounded-2xl p-5">
+                <div key={comp.id} className="bg-surface-container-lowest rounded-2xl p-5">
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h3 className="text-lg font-bold text-primary dark:text-white font-headline">{comp.name}</h3>
+                      <h3 className="text-lg font-bold text-primary font-headline">{comp.name}</h3>
                       <p className="text-xs text-stone-500">{new Date(comp.startDate).toLocaleDateString()}</p>
                     </div>
                     <span className={`${getStatusColor(comp.status)} text-xs px-3 py-1 rounded-full font-bold`}>
@@ -118,7 +118,7 @@ export default function Competitions({ onBack }: CompetitionsProps) {
                       {comp.players.slice(0, 5).map((player) => (
                         <div
                           key={player.id}
-                          className="w-8 h-8 bg-secondary-container rounded-full flex items-center justify-center text-xs font-bold text-secondary border-2 border-surface-container-lowest dark:border-stone-800"
+                          className="w-8 h-8 bg-secondary-container rounded-full flex items-center justify-center text-xs font-bold text-secondary border-2 border-surface-container-lowest"
                         >
                           {player.name[0].toUpperCase()}
                         </div>
@@ -128,7 +128,7 @@ export default function Competitions({ onBack }: CompetitionsProps) {
                   </div>
 
                   {comp.rounds.length > 0 && (
-                    <div className="bg-surface-container dark:bg-stone-700 rounded-xl p-4 mb-4">
+                    <div className="bg-surface-container rounded-xl p-4 mb-4">
                       <p className="text-xs text-stone-500 font-bold mb-2">{t('ranking')}</p>
                       {comp.rounds
                         .sort((a, b) => a.relativeScore - b.relativeScore)
@@ -146,7 +146,7 @@ export default function Competitions({ onBack }: CompetitionsProps) {
                                 }`}>
                                   {i + 1}
                                 </span>
-                                <span className="text-primary dark:text-white font-semibold">{player.name}</span>
+                                <span className="text-primary font-semibold">{player.name}</span>
                               </div>
                               <span className={`font-bold ${scoreDisplay.color}`}>
                                 {round.totalScore} ({scoreDisplay.text})

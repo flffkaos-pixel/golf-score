@@ -26,12 +26,12 @@ export default function Friends({ onBack }: FriendsProps) {
   };
 
   return (
-    <div className="min-h-screen bg-surface dark:bg-stone-900 pb-32">
-      <header className="bg-white dark:bg-stone-950 flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+    <div className="min-h-screen bg-surface pb-32">
+      <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
         <button onClick={onBack} className="p-2 -ml-2">
           <span className="material-symbols-outlined text-stone-500">arrow_back</span>
         </button>
-        <h1 className="text-xl font-extrabold text-primary dark:text-white font-headline">{t('friends')}</h1>
+        <h1 className="text-xl font-extrabold text-primary font-headline">{t('friends')}</h1>
         <button onClick={() => setShowAdd(!showAdd)} className="text-secondary font-bold">
           {showAdd ? t('cancel') : '+ 추가'}
         </button>
@@ -50,13 +50,13 @@ export default function Friends({ onBack }: FriendsProps) {
         </p>
 
         {showAdd && (
-          <div className="bg-surface-container-lowest dark:bg-stone-800 rounded-2xl p-6 mt-6">
+          <div className="bg-surface-container-lowest rounded-2xl p-6 mt-6">
             <input
               type="text"
               value={newFriend}
               onChange={(e) => setNewFriend(e.target.value)}
               placeholder="친구 이름"
-              className="w-full bg-surface-container dark:bg-stone-700 border-none rounded-xl px-4 py-4 outline-none mb-4 text-lg text-primary dark:text-white"
+              className="w-full bg-surface-container border-none rounded-xl px-4 py-4 outline-none mb-4 text-lg text-primary"
               onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
             />
             <button
@@ -75,7 +75,7 @@ export default function Friends({ onBack }: FriendsProps) {
           </h2>
 
           {data.friends.length === 0 ? (
-            <div className="bg-surface-container-lowest dark:bg-stone-800 rounded-2xl p-8 text-center">
+            <div className="bg-surface-container-lowest rounded-2xl p-8 text-center">
               <div className="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="material-symbols-outlined text-3xl text-outline">group_add</span>
               </div>
@@ -85,12 +85,12 @@ export default function Friends({ onBack }: FriendsProps) {
           ) : (
             <div className="space-y-3">
               {data.friends.map(friend => (
-                <div key={friend.id} className="bg-surface-container-lowest dark:bg-stone-800 rounded-2xl p-4 flex items-center justify-between">
+                <div key={friend.id} className="bg-surface-container-lowest rounded-2xl p-4 flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-secondary-container rounded-full flex items-center justify-center text-secondary font-bold text-lg font-headline">
                       {friend.name[0].toUpperCase()}
                     </div>
-                    <span className="font-bold text-primary dark:text-white font-headline text-lg">{friend.name}</span>
+                    <span className="font-bold text-primary font-headline text-lg">{friend.name}</span>
                   </div>
                   <button
                     onClick={() => removeFriend(friend.id)}

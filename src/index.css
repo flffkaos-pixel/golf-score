@@ -68,55 +68,6 @@ body {
   min-height: 100dvh;
 }
 
-html.dark body {
-  background: #17191c;
-  color: #e3e3e3;
-}
-
-html.dark {
-  color-scheme: dark;
-}
-
-html.dark .bg-surface {
-  background: #17191c;
-}
-
-html.dark .bg-surface-container-lowest {
-  background: #1f2324;
-}
-
-html.dark .bg-surface-container {
-  background: #2e3132;
-}
-
-html.dark .bg-surface-container-low {
-  background: #272a2b;
-}
-
-html.dark .bg-white {
-  background: #1f2324;
-}
-
-html.dark .text-primary {
-  color: #c1ecd4;
-}
-
-html.dark .text-stone-500 {
-  color: #9ca3af;
-}
-
-html.dark .text-stone-400 {
-  color: #9ca3af;
-}
-
-html.dark .border-stone-200 {
-  border-color: #3f4144;
-}
-
-html.dark .bg-primary-container {
-  background: #0d261c;
-}
-
 h1, h2, h3, h4, .font-headline {
   font-family: var(--font-headline);
 }
