@@ -114,18 +114,24 @@ export default function Friends({ onBack }: FriendsProps) {
 
         <div className="flex gap-3">
           <button
-            onClick={() => setShowAdd(!showAdd)}
+            onClick={() => {
+              setShowAdd(!showAdd);
+              setShowRedeem(false);
+            }}
             className="flex-1 bg-primary text-white py-3 rounded-2xl font-headline font-bold text-base flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-lg"
           >
             <span className="material-symbols-outlined">person_add</span>
             {showAdd ? '취소' : '친구 추가'}
           </button>
           <button
-            onClick={() => setShowRedeem(!showRedeem)}
+            onClick={() => {
+              setShowRedeem(!showRedeem);
+              setShowAdd(false);
+            }}
             className="flex-1 bg-tertiary text-white py-3 rounded-2xl font-headline font-bold text-base flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-lg"
           >
             <span className="material-symbols-outlined">vpn_key</span>
-            코드 입력
+            {showRedeem ? '취소' : '초대 코드 입력'}
           </button>
         </div>
 
@@ -136,63 +142,6 @@ export default function Friends({ onBack }: FriendsProps) {
               value={newFriend}
               onChange={(e) => setNewFriend(e.target.value)}
               placeholder="친구 이름 (테스트용)"
-              className="w-full bg-surface-container border-none rounded-xl px-4 py-4 outline-none mb-4 text-lg text-primary"
-              onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-            />
-            <button
-              onClick={handleAdd}
-              disabled={!newFriend.trim()}
-              className="w-full bg-primary text-white py-4 rounded-xl font-bold disabled:opacity-50 active:scale-98 transition-transform"
-            >
-              추가하기
-            </button>
-          </div>
-        )}
-
-        {showRedeem && (
-          <div className="bg-surface-container-lowest rounded-2xl p-6 mt-3">
-            <input
-              type="text"
-              value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-              placeholder="초대 코드 입력"
-              className="w-full bg-surface-container border-none rounded-xl px-4 py-4 outline-none mb-4 text-lg text-primary"
-              onKeyDown={(e) => e.key === 'Enter' && handleRedeem()}
-            />
-            <button
-              onClick={handleRedeem}
-              disabled={!inviteCode.trim()}
-              className="w-full bg-tertiary text-white py-4 rounded-xl font-bold disabled:opacity-50 active:scale-98 transition-transform"
-            >
-              친구 추가
-            </button>
-          </div>
-        )}
-
-        <div className="flex gap-3">
-          <button
-            onClick={() => setShowAdd(!showAdd)}
-            className="flex-1 bg-primary text-white py-3 rounded-2xl font-headline font-bold text-base flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-lg"
-          >
-            <span className="material-symbols-outlined">person_add</span>
-            {showAdd ? '취소' : '친구 추가'}
-          </button>
-          <button
-            onClick={() => setShowRedeem(!showRedeem)}
-            className="flex-1 bg-tertiary text-white py-3 rounded-2xl font-headline font-bold text-base flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-lg"
-          >
-            <span className="material-symbols-outlined">vpn_key</span>
-            코드 입력
-          </button>
-        </div>
-
-        {showAdd && (
-          <div className="bg-surface-container-lowest rounded-2xl p-6 mt-3">
-            <input
-              type="text"
-              value={newFriend}
-              onChange={(e) => setNewFriend(e.target.value)}
-              placeholder="친구 이름"
               className="w-full bg-surface-container border-none rounded-xl px-4 py-4 outline-none mb-4 text-lg text-primary"
               onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
             />
