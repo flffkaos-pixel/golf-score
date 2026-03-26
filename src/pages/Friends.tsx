@@ -31,16 +31,18 @@ export default function Friends({ onBack }: FriendsProps) {
   };
 
   const generateCode = async () => {
+    if (!user) {
+      alert('로그인 후 이용해주세요.');
+      return;
+    }
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
     
-    if (user) {
-      await supabase.from('friend_invites').upsert({
-        code,
-        inviter_id: user.id,
-        inviter_name: data.player.name,
-        created_at: new Date().toISOString(),
-      });
-    }
+    await supabase.from('friend_invites').upsert({
+      code,
+      inviter_id: user.id,
+      inviter_name: data.player.name,
+      created_at: new Date().toISOString(),
+    });
     
     navigator.clipboard.writeText(code);
     alert(`초대 코드: ${code}\n클립보드에 복사되었습니다!\n친구에게 코드를 보내주세요.`);
