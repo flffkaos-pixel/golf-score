@@ -18,20 +18,26 @@ function LoginWarning() {
   if (user || loading) return null;
 
   return (
-    <div className="fixed inset-0 bg-surface/95 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-      <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
-        <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <span className="material-symbols-outlined text-5xl text-red-500">login</span>
+    <div className="fixed inset-0 bg-surface/80 backdrop-blur-sm z-40 flex items-center justify-center p-6">
+      <div className="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-xl border border-stone-200">
+        <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span className="material-symbols-outlined text-4xl text-amber-600">info</span>
         </div>
-        <h2 className="text-2xl font-bold text-primary mb-3">로그인 필요</h2>
-        <p className="text-stone-500 mb-6">
-          데이터를 저장하고 친구와 대회를 공유하려면 로그인이 필요합니다.
+        <h2 className="text-xl font-bold text-primary mb-2">테스트 모드</h2>
+        <p className="text-stone-500 text-sm mb-4">
+          로그인하면 데이터가 저장되고 친구와 대회를 공유할 수 있습니다.
         </p>
         <button
           onClick={signInWithGoogle}
-          className="w-full bg-primary text-white py-4 rounded-2xl font-bold active:scale-98 transition-transform"
+          className="w-full bg-primary text-white py-3 rounded-xl font-bold active:scale-98 transition-transform mb-2"
         >
-          Google로 로그인
+          로그인하기
+        </button>
+        <button
+          onClick={() => {}}
+          className="w-full bg-stone-100 text-stone-600 py-3 rounded-xl font-bold active:scale-98 transition-transform"
+        >
+          테스트 계속하기
         </button>
       </div>
     </div>

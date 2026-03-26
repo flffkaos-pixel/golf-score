@@ -124,7 +124,11 @@ export default function Friends({ onBack }: FriendsProps) {
                       </button>
                     )}
                     <button
-                      onClick={() => removeFriend(friend.id)}
+                      onClick={() => {
+                        if (confirm('정말 삭제하시겠습니까?')) {
+                          removeFriend(friend.id);
+                        }
+                      }}
                       className="text-error p-3 bg-error-container rounded-xl active:scale-95 transition-transform"
                     >
                       <span className="material-symbols-outlined">person_remove</span>
