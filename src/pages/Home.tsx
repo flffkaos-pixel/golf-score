@@ -11,7 +11,6 @@ export default function Home({ onStartGame }: HomeProps) {
   const { data, deleteRound, addSampleData, clearAllData } = useGolf();
   const { t } = useAppSettings();
   const [devMode, setDevMode] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
   
   const recentRounds = data.rounds.slice(0, 5);
   const totalRounds = data.rounds.length;
@@ -64,55 +63,6 @@ export default function Home({ onStartGame }: HomeProps) {
             <button onClick={addSampleData} className="bg-on-secondary/20 px-3 py-1 rounded text-xs">📊 Add Sample</button>
             <button onClick={clearAllData} className="bg-error px-3 py-1 rounded text-xs">🗑️ Clear All</button>
           </div>
-        </div>
-      )}
-
-      <header className="bg-surface-container-lowest flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-            <span className="text-on-primary text-lg">⛳</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="font-headline font-bold text-lg text-primary">{data.player.name}</span>
-            <span className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">
-              {avgScore > 0 ? (avgScore - 72).toFixed(1) : '-'}
-            </span>
-          </div>
-        </div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-primary font-headline">
-          GreenScore
-        </h1>
-        <button 
-          onClick={() => setShowNotifications(!showNotifications)}
-          className="text-on-surface-variant p-2 rounded-full active:scale-95 transition-transform relative"
-        >
-          <span className="material-symbols-outlined">notifications</span>
-          {data.friends.length > 0 && (
-            <span className="absolute top-1 right-1 w-2 h-2 bg-secondary rounded-full"></span>
-          )}
-        </button>
-      </header>
-
-      {showNotifications && (
-        <div className="absolute top-16 right-4 w-72 bg-surface-container-lowest rounded-2xl shadow-xl z-50 p-4">
-          <h3 className="font-bold text-primary mb-3">🔔 {t('notifications')}</h3>
-          {data.friends.length === 0 ? (
-            <p className="text-on-surface-variant text-sm">{t('addFriendHint')}</p>
-          ) : (
-            <div className="space-y-2">
-              {data.friends.slice(0, 3).map(friend => (
-                <div key={friend.id} className="flex items-center gap-3 p-2 bg-surface-container rounded-xl">
-                  <div className="w-8 h-8 bg-secondary-container rounded-full flex items-center justify-center text-xs font-bold text-on-secondary-container">
-                    {friend.name[0]}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-on-surface">{friend.name}</p>
-                    <p className="text-xs text-on-surface-variant">{t('startRound')}...</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       )}
 
