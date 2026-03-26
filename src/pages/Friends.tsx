@@ -31,18 +31,16 @@ export default function Friends({ onBack }: FriendsProps) {
   };
 
   const generateCode = async () => {
-    if (!user) {
-      alert('로그인 후 이용해주세요.');
-      return;
-    }
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
     
-    await supabase.from('friend_invites').upsert({
-      code,
-      inviter_id: user.id,
-      inviter_name: data.player.name,
-      created_at: new Date().toISOString(),
-    });
+    if (user) {
+      await supabase.from('friend_invites').upsert({
+        code,
+        inviter_id: user.id,
+        inviter_name: data.player.name,
+        created_at: new Date().toISOString(),
+      });
+    }
     
     navigator.clipboard.writeText(code);
     alert(`초대 코드: ${code}\n클립보드에 복사되었습니다!\n친구에게 코드를 보내주세요.`);
@@ -93,15 +91,21 @@ export default function Friends({ onBack }: FriendsProps) {
       </header>
 
       <main className="px-6 pt-6 max-w-5xl mx-auto">
-        {user && (
-          <button
+        <button
+          onClick={generateCode}
+          className="w-full bg-secondary text-white py-4 rounded-2xl font-headline font-bold text-base flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-lg mb-3"
+        >
+          <span className="material-symbols-outlined">share</span>
+          내 초대 코드 만들기
+        </button>
+
+        <button
             onClick={generateCode}
             className="w-full bg-secondary text-white py-4 rounded-2xl font-headline font-bold text-base flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-lg mb-3"
           >
             <span className="material-symbols-outlined">share</span>
-            내 초대 코드 만들기
-          </button>
-        )}
+          내 초대 코드 만들기
+        </button>
 
         <div className="flex gap-3">
           <button
