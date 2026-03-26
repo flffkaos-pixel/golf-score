@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAppSettings, type Language } from '../hooks/useAppSettings';
 import { useAuth } from '../hooks/useAuth';
+import { useGolf } from '../hooks/useGolf';
 
 const languageNames: Record<Language, string> = {
   ko: '한국어',
@@ -16,6 +17,15 @@ interface SettingsProps {
 export default function Settings({ onBack }: SettingsProps) {
   const { language, setLanguage, darkMode, setDarkMode, t } = useAppSettings();
   const { user, loading, signInWithGoogle, signOut } = useAuth();
+  const { clearLocalData } = useGolf();
+
+  const handleSignOut = async () => {
+    if (user) {
+      await signOut();
+    }
+    clearLocalData();
+    window.location.reload();
+  };
   const [playerName, setPlayerName] = useState(() => {
     const data = localStorage.getItem('golf_score_data');
     if (data) {
@@ -67,12 +77,12 @@ export default function Settings({ onBack }: SettingsProps) {
                   <div className="text-left">
                     <p className="font-bold text-primary">{user.user_metadata?.full_name || user.user_metadata?.name || user.email}</p>
                     <p className="text-xs text-green-600">
-                      ✓ {user.app_metadata?.provider === 'kakao' ? '카카오 로그인됨' : 'Google 로그인됨'}
+                      ✓ Google 로그인됨
                     </p>
                   </div>
                 </div>
                 <button
-                  onClick={signOut}
+                  onClick={handleSignOut}
                   className="px-4 py-2 bg-red-100 text-red-600 rounded-xl font-bold text-sm"
                 >
                   로그아웃

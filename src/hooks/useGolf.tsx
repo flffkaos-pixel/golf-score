@@ -17,6 +17,7 @@ interface GolfContextType {
   addRoundToCompetition: (compId: string, round: Round) => void;
   addSampleData: () => void;
   clearAllData: () => void;
+  clearLocalData: () => void;
   syncing: boolean;
 }
 
@@ -225,6 +226,11 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const clearLocalData = () => {
+    localStorage.removeItem('golf_score_data');
+    setData(loadData());
+  };
+
   return (
     <GolfContext.Provider value={{
       data,
@@ -239,6 +245,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       addRoundToCompetition,
       addSampleData,
       clearAllData,
+      clearLocalData,
       syncing,
     }}>
       {children}
