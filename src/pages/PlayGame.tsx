@@ -57,7 +57,6 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
   const updateScore = (holeIndex: number, score: number) => {
     if (!round) return;
     const newHoles = [...round.holes];
-    const prevScore = newHoles[holeIndex].score;
     newHoles[holeIndex] = { ...newHoles[holeIndex], score };
     const calculated = calculateScore(newHoles);
     const updated = {
@@ -67,9 +66,13 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
     };
     setRound(updated);
     updateRound(updated);
+  };
 
-    if (prevScore === null && score !== null) {
-      const diff = score - newHoles[holeIndex].par;
+  const checkAchievementAndNext = () => {
+    if (!round) return;
+    const currentHoleData = round.holes[currentHole];
+    if (currentHoleData.score !== null) {
+      const diff = currentHoleData.score - currentHoleData.par;
       if (diff <= -3) {
         setAchievement(t('holeInOne'));
         setTimeout(() => setAchievement(null), 3000);
@@ -83,6 +86,12 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
         setAchievement(t('par'));
         setTimeout(() => setAchievement(null), 1500);
       }
+    }
+    
+    if (currentHole < 17) {
+      setCurrentHole(currentHole + 1);
+    } else {
+      handleFinish();
     }
   };
 
@@ -300,13 +309,7 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
             {t('previous')}
           </button>
           <button
-            onClick={() => {
-              if (currentHole < 17) {
-                setCurrentHole(currentHole + 1);
-              } else {
-                handleFinish();
-              }
-            }}
+            onClick={checkAchievementAndNext}
             className="flex-2 bg-primary text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition-transform flex-[2]"
           >
             {currentHole < 17 ? (
