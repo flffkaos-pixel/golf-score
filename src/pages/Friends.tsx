@@ -7,12 +7,14 @@ interface FriendsProps {
 }
 
 export default function Friends({ onBack }: FriendsProps) {
-  const { data, addFriend, removeFriend, updateFriend } = useGolf();
+  const { data, addFriend, removeFriend, updateFriend, generateInviteCode, redeemInviteCode } = useGolf();
   const { t } = useAppSettings();
   const [newFriend, setNewFriend] = useState('');
   const [showAdd, setShowAdd] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
+  const [showRedeem, setShowRedeem] = useState(false);
 
   const handleAdd = () => {
     if (!newFriend.trim()) return;
@@ -34,10 +36,22 @@ export default function Friends({ onBack }: FriendsProps) {
     setEditName('');
   };
 
-  const generateInviteCode = () => {
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const handleGenerateInvite = () => {
+    const code = generateInviteCode();
     navigator.clipboard.writeText(code);
     alert(`초대 코드: ${code}\n클립보드에 복사되었습니다!`);
+  };
+
+  const handleRedeem = async () => {
+    if (!inviteCode.trim()) return;
+    const success = await redeemInviteCode(inviteCode.trim());
+    if (success) {
+      alert('친구 추가 완료!');
+      setInviteCode('');
+      setShowRedeem(false);
+    } else {
+      alert('유효하지 않은 초대 코드입니다.');
+    }
   };
 
   return (
@@ -53,16 +67,45 @@ export default function Friends({ onBack }: FriendsProps) {
       </header>
 
       <main className="px-6 pt-6 max-w-5xl mx-auto">
-        <button
-          onClick={generateInviteCode}
-          className="w-full bg-secondary text-white py-5 rounded-2xl font-headline font-bold text-lg flex items-center justify-center gap-3 active:scale-98 transition-transform shadow-lg"
-        >
-          <span className="material-symbols-outlined">share</span>
-          {t('invite')}
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={handleGenerateInvite}
+            className="flex-1 bg-secondary text-white py-4 rounded-2xl font-headline font-bold text-base flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-lg"
+          >
+            <span className="material-symbols-outlined">share</span>
+            {t('invite')}
+          </button>
+          <button
+            onClick={() => setShowRedeem(!showRedeem)}
+            className="flex-1 bg-tertiary text-white py-4 rounded-2xl font-headline font-bold text-base flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-lg"
+          >
+            <span className="material-symbols-outlined">vpn_key</span>
+            코드 입력
+          </button>
+        </div>
         <p className="text-stone-500 text-sm text-center mt-3">
           {t('inviteDesc')}
         </p>
+
+        {showRedeem && (
+          <div className="bg-surface-container-lowest rounded-2xl p-6 mt-6">
+            <input
+              type="text"
+              value={inviteCode}
+              onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+              placeholder="초대 코드 입력"
+              className="w-full bg-surface-container border-none rounded-xl px-4 py-4 outline-none mb-4 text-lg text-primary"
+              onKeyDown={(e) => e.key === 'Enter' && handleRedeem()}
+            />
+            <button
+              onClick={handleRedeem}
+              disabled={!inviteCode.trim()}
+              className="w-full bg-tertiary text-white py-4 rounded-xl font-bold disabled:opacity-50 active:scale-98 transition-transform"
+            >
+              친구 추가
+            </button>
+          </div>
+        )}
 
         {showAdd && (
           <div className="bg-surface-container-lowest rounded-2xl p-6 mt-6">
@@ -115,7 +158,12 @@ export default function Friends({ onBack }: FriendsProps) {
                         autoFocus
                       />
                     ) : (
-                      <span className="font-bold text-primary font-headline text-lg">{friend.name}</span>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-primary font-headline text-lg">{friend.name}</span>
+                        {friend.userId && (
+                          <span className="text-xs text-secondary">연결됨</span>
+                        )}
+                      </div>
                     )}
                   </div>
                   <div className="flex items-center gap-2">

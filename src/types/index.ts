@@ -18,6 +18,14 @@ export interface Player {
   id: string;
   name: string;
   avatar?: string;
+  userId?: string; // Supabase actual user ID
+}
+
+export interface FriendInvite {
+  code: string;
+  inviterId: string;
+  inviterName: string;
+  createdAt: string;
 }
 
 export interface Competition {
