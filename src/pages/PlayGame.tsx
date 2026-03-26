@@ -248,13 +248,13 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
           </button>
         </div>
 
-        <div className="p-4 mt-6">
-          <div className="flex gap-1 justify-center overflow-x-auto hide-scrollbar">
+        <div className="p-4 pb-0 mt-6">
+          <div className="flex gap-1 overflow-x-auto hide-scrollbar py-1">
             {round.holes.map((hole, i) => (
               <button
                 key={i}
                 onClick={() => setCurrentHole(i)}
-                className={`min-w-[2rem] h-10 rounded-xl text-sm font-bold transition-all ${
+                className={`min-w-[2.25rem] h-10 px-1 rounded-xl text-sm font-bold transition-all flex-shrink-0 ${
                   i === currentHole 
                     ? 'bg-primary text-white shadow-md' 
                     : hole.score !== null 
