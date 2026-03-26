@@ -57,15 +57,15 @@ export default function Settings({ onBack }: SettingsProps) {
             {user ? (
               <div className="p-5 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  {user.photoURL ? (
-                    <img src={user.photoURL} alt="Profile" className="w-12 h-12 rounded-full" />
+                  {user.user_metadata?.avatar_url ? (
+                    <img src={user.user_metadata.avatar_url} alt="Profile" className="w-12 h-12 rounded-full" />
                   ) : (
                     <div className="w-12 h-12 bg-secondary-container rounded-full flex items-center justify-center">
                       <span className="text-xl">👤</span>
                     </div>
                   )}
                   <div className="text-left">
-                    <p className="font-bold text-primary">{user.displayName || user.email}</p>
+                    <p className="font-bold text-primary">{user.user_metadata?.full_name || user.user_metadata?.name || user.email}</p>
                     <p className="text-xs text-green-600">✓ Google 로그인됨</p>
                   </div>
                 </div>

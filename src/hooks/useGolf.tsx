@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { GolfData, Player, Round, Competition } from '../types';
 import { loadData, saveData, generateId, createNewRound, calculateScore } from '../utils/storage';
+import { supabase } from '../supabase';
+import { useAuth } from './useAuth';
 
 interface GolfContextType {
   data: GolfData;
@@ -15,6 +17,7 @@ interface GolfContextType {
   addRoundToCompetition: (compId: string, round: Round) => void;
   addSampleData: () => void;
   clearAllData: () => void;
+  syncing: boolean;
 }
 
 const GolfContext = createContext<GolfContextType | null>(null);
@@ -48,10 +51,62 @@ const generateSampleRound = () => {
 
 export const GolfProvider = ({ children }: { children: ReactNode }) => {
   const [data, setData] = useState<GolfData>(loadData);
+  const [syncing, setSyncing] = useState(false);
+  const { user } = useAuth();
+
+  const syncToSupabase = async (golfData: GolfData) => {
+    if (!user) return;
+    setSyncing(true);
+    try {
+      const { error } = await supabase
+        .from('user_data')
+        .upsert({
+          user_id: user.id,
+          data: golfData,
+          updated_at: new Date().toISOString(),
+        });
+      if (error) console.error('Sync error:', error);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const loadFromSupabase = async () => {
+    if (!user) return;
+    setSyncing(true);
+    try {
+      const { data: supabaseData, error } = await supabase
+        .from('user_data')
+        .select('data')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error('Load error:', error);
+        return;
+      }
+      
+      if (supabaseData?.data) {
+        setData(supabaseData.data);
+        saveData(supabaseData.data);
+      }
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   useEffect(() => {
+    if (user) {
+      loadFromSupabase();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user && data) {
+      syncToSupabase(data);
+    }
     saveData(data);
-  }, [data]);
+  }, [data, user]);
 
   const addRound = (courseName: string): Round => {
     const newRound = createNewRound(courseName);
@@ -156,11 +211,17 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
-  const clearAllData = () => {
+  const clearAllData = async () => {
     if (confirm('모든 데이터가 삭제됩니다. 계속할까요?')) {
+      const newData = loadData();
+      setData(newData);
+      if (user) {
+        await supabase
+          .from('user_data')
+          .delete()
+          .eq('user_id', user.id);
+      }
       localStorage.removeItem('golf_score_data');
-      setData(loadData());
-      window.location.reload();
     }
   };
 
@@ -178,6 +239,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       addRoundToCompetition,
       addSampleData,
       clearAllData,
+      syncing,
     }}>
       {children}
     </GolfContext.Provider>
