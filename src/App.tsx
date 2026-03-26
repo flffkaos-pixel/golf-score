@@ -13,9 +13,10 @@ import Settings from './pages/Settings';
 type Page = 'home' | 'play' | 'friends' | 'competitions' | 'stats' | 'history' | 'settings';
 
 function LoginWarning() {
-  const { user, signInWithGoogle, loading } = useAuth();
+  const { user, loading } = useAuth();
+  const [dismissed, setDismissed] = useState(false);
 
-  if (user || loading) return null;
+  if (user || loading || dismissed) return null;
 
   return (
     <div className="fixed inset-0 bg-surface/80 backdrop-blur-sm z-40 flex items-center justify-center p-6">
@@ -27,20 +28,27 @@ function LoginWarning() {
         <p className="text-stone-500 text-sm mb-4">
           로그인하면 데이터가 저장되고 친구와 대회를 공유할 수 있습니다.
         </p>
+        <AuthButton />
         <button
-          onClick={signInWithGoogle}
-          className="w-full bg-primary text-white py-3 rounded-xl font-bold active:scale-98 transition-transform mb-2"
-        >
-          로그인하기
-        </button>
-        <button
-          onClick={() => {}}
+          onClick={() => setDismissed(true)}
           className="w-full bg-stone-100 text-stone-600 py-3 rounded-xl font-bold active:scale-98 transition-transform"
         >
           테스트 계속하기
         </button>
       </div>
     </div>
+  );
+}
+
+function AuthButton() {
+  const { signInWithGoogle } = useAuth();
+  return (
+    <button
+      onClick={signInWithGoogle}
+      className="w-full bg-primary text-white py-3 rounded-xl font-bold active:scale-98 transition-transform mb-2"
+    >
+      로그인하기
+    </button>
   );
 }
 
