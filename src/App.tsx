@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { GolfProvider } from './hooks/useGolf';
+import { GolfProvider, useGolf } from './hooks/useGolf';
 import { AppSettingsProvider } from './hooks/useAppSettings';
 import { AuthProvider } from './hooks/useAuth';
 import Home from './pages/Home';
@@ -12,15 +12,17 @@ import Settings from './pages/Settings';
 
 type Page = 'home' | 'play' | 'friends' | 'competitions' | 'stats' | 'history' | 'settings';
 
-function AppContent() {
+function NavigationBar() {
   const [page, setPage] = useState<Page>('home');
-
+  const { data } = useGolf();
+  
   const navigate = (newPage: Page) => setPage(newPage);
-
   const isActive = (p: Page) => page === p;
+  
+  const hasNotifications = data.competitions.filter(c => c.status === 'active').length > 0 || data.friends.length > 0;
 
   return (
-    <div className="min-h-screen bg-surface dark:bg-stone-900">
+    <>
       {page === 'home' && <Home onStartGame={() => navigate('play')} />}
       {page === 'play' && <PlayGame onBack={() => navigate('home')} onComplete={() => navigate('history')} />}
       {page === 'friends' && <Friends onBack={() => navigate('home')} />}
@@ -29,65 +31,79 @@ function AppContent() {
       {page === 'history' && <History onBack={() => navigate('home')} />}
       {page === 'settings' && <Settings onBack={() => navigate('home')} />}
 
-      {page !== 'play' && (
-        <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/70 dark:bg-stone-950/70 backdrop-blur-md shadow-[0_-4px_24px_rgba(25,28,29,0.06)] rounded-t-[1.5rem]">
-          <button
-            onClick={() => navigate('home')}
-            className={`flex flex-col items-center justify-center px-4 py-2 transition-transform active:scale-90 ${
-              isActive('home') ? 'bg-lime-400/20 text-primary dark:bg-lime-900/30 dark:text-lime-300 rounded-2xl' : 'text-stone-500 dark:text-stone-400'
-            }`}
-          >
-            <span className="material-symbols-outlined" style={isActive('home') ? {fontVariationSettings: "'FILL' 1"} : {}}>
-              dashboard
+      <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/70 dark:bg-stone-950/70 backdrop-blur-md shadow-[0_-4px_24px_rgba(25,28,29,0.06)] rounded-t-[1.5rem]">
+        <button
+          onClick={() => navigate('home')}
+          className={`flex flex-col items-center justify-center px-4 py-2 transition-transform active:scale-90 ${
+            isActive('home') ? 'bg-lime-400/20 text-primary dark:bg-lime-900/30 dark:text-lime-300 rounded-2xl' : 'text-stone-500 dark:text-stone-400'
+          }`}
+        >
+          <span className="material-symbols-outlined" style={isActive('home') ? {fontVariationSettings: "'FILL' 1"} : {}}>
+            dashboard
+          </span>
+          <span className="font-headline text-[11px] font-semibold uppercase tracking-wider mt-1 text-stone-600 dark:text-stone-300">Home</span>
+        </button>
+        <button
+          onClick={() => navigate('history')}
+          className={`flex flex-col items-center justify-center px-4 py-2 transition-transform active:scale-90 ${
+            isActive('history') ? 'bg-lime-400/20 text-primary dark:bg-lime-900/30 dark:text-lime-300 rounded-2xl' : 'text-stone-500 dark:text-stone-400'
+          }`}
+        >
+          <span className="material-symbols-outlined" style={isActive('history') ? {fontVariationSettings: "'FILL' 1"} : {}}>
+            history
+          </span>
+          <span className="font-headline text-[11px] font-semibold uppercase tracking-wider mt-1 text-stone-600 dark:text-stone-300">기록</span>
+        </button>
+        <button
+          onClick={() => navigate('competitions')}
+          className={`flex flex-col items-center justify-center px-4 py-2 transition-transform active:scale-90 relative ${
+            isActive('competitions') ? 'bg-lime-400/20 text-primary dark:bg-lime-900/30 dark:text-lime-300 rounded-2xl' : 'text-stone-500 dark:text-stone-400'
+          }`}
+        >
+          <span className="material-symbols-outlined relative" style={isActive('competitions') ? {fontVariationSettings: "'FILL' 1"} : {}}>
+            emoji_events
+          </span>
+          {data.competitions.filter(c => c.status === 'active').length > 0 && (
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-[10px] text-white font-bold">
+              {data.competitions.filter(c => c.status === 'active').length}
             </span>
-            <span className="font-headline text-[11px] font-semibold uppercase tracking-wider mt-1 text-stone-600 dark:text-stone-300">Home</span>
-          </button>
-          <button
-            onClick={() => navigate('history')}
-            className={`flex flex-col items-center justify-center px-4 py-2 transition-transform active:scale-90 ${
-              isActive('history') ? 'bg-lime-400/20 text-primary dark:bg-lime-900/30 dark:text-lime-300 rounded-2xl' : 'text-stone-500 dark:text-stone-400'
-            }`}
-          >
-            <span className="material-symbols-outlined" style={isActive('history') ? {fontVariationSettings: "'FILL' 1"} : {}}>
-              history
-            </span>
-            <span className="font-headline text-[11px] font-semibold uppercase tracking-wider mt-1 text-stone-600 dark:text-stone-300">기록</span>
-          </button>
-          <button
-            onClick={() => navigate('competitions')}
-            className={`flex flex-col items-center justify-center px-4 py-2 transition-transform active:scale-90 ${
-              isActive('competitions') ? 'bg-lime-400/20 text-primary dark:bg-lime-900/30 dark:text-lime-300 rounded-2xl' : 'text-stone-500 dark:text-stone-400'
-            }`}
-          >
-            <span className="material-symbols-outlined" style={isActive('competitions') ? {fontVariationSettings: "'FILL' 1"} : {}}>
-              emoji_events
-            </span>
-            <span className="font-headline text-[11px] font-semibold uppercase tracking-wider mt-1 text-stone-600 dark:text-stone-300">대회</span>
-          </button>
-          <button
-            onClick={() => navigate('stats')}
-            className={`flex flex-col items-center justify-center px-4 py-2 transition-transform active:scale-90 ${
-              isActive('stats') ? 'bg-lime-400/20 text-primary dark:bg-lime-900/30 dark:text-lime-300 rounded-2xl' : 'text-stone-500 dark:text-stone-400'
-            }`}
-          >
-            <span className="material-symbols-outlined" style={isActive('stats') ? {fontVariationSettings: "'FILL' 1"} : {}}>
-              insights
-            </span>
-            <span className="font-headline text-[11px] font-semibold uppercase tracking-wider mt-1 text-stone-600 dark:text-stone-300">Stats</span>
-          </button>
-          <button
-            onClick={() => navigate('settings')}
-            className={`flex flex-col items-center justify-center px-4 py-2 transition-transform active:scale-90 ${
-              isActive('settings') ? 'bg-lime-400/20 text-primary dark:bg-lime-900/30 dark:text-lime-300 rounded-2xl' : 'text-stone-500 dark:text-stone-400'
-            }`}
-          >
-            <span className="material-symbols-outlined" style={isActive('settings') ? {fontVariationSettings: "'FILL' 1"} : {}}>
-              settings
-            </span>
-            <span className="font-headline text-[11px] font-semibold uppercase tracking-wider mt-1 text-stone-600 dark:text-stone-300">설정</span>
-          </button>
-        </nav>
-      )}
+          )}
+          <span className="font-headline text-[11px] font-semibold uppercase tracking-wider mt-1 text-stone-600 dark:text-stone-300">대회</span>
+        </button>
+        <button
+          onClick={() => navigate('stats')}
+          className={`flex flex-col items-center justify-center px-4 py-2 transition-transform active:scale-90 ${
+            isActive('stats') ? 'bg-lime-400/20 text-primary dark:bg-lime-900/30 dark:text-lime-300 rounded-2xl' : 'text-stone-500 dark:text-stone-400'
+          }`}
+        >
+          <span className="material-symbols-outlined" style={isActive('stats') ? {fontVariationSettings: "'FILL' 1"} : {}}>
+            insights
+          </span>
+          <span className="font-headline text-[11px] font-semibold uppercase tracking-wider mt-1 text-stone-600 dark:text-stone-300">Stats</span>
+        </button>
+        <button
+          onClick={() => navigate('settings')}
+          className={`flex flex-col items-center justify-center px-4 py-2 transition-transform active:scale-90 ${
+            isActive('settings') ? 'bg-lime-400/20 text-primary dark:bg-lime-900/30 dark:text-lime-300 rounded-2xl' : 'text-stone-500 dark:text-stone-400'
+          }`}
+        >
+          <span className="material-symbols-outlined relative" style={isActive('settings') ? {fontVariationSettings: "'FILL' 1"} : {}}>
+            settings
+          </span>
+          {hasNotifications && (
+            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+          )}
+          <span className="font-headline text-[11px] font-semibold uppercase tracking-wider mt-1 text-stone-600 dark:text-stone-300">설정</span>
+        </button>
+      </nav>
+    </>
+  );
+}
+
+function AppContent() {
+  return (
+    <div className="min-h-screen bg-surface dark:bg-stone-900">
+      <NavigationBar />
     </div>
   );
 }
