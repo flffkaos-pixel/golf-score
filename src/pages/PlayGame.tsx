@@ -1,43 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useGolf } from '../hooks/useGolf';
 import { useAppSettings } from '../hooks/useAppSettings';
-import { useAuth } from '../hooks/useAuth';
 import { calculateScore } from '../utils/storage';
 
 interface PlayGameProps {
-  initialCompId?: string | null;
   onBack: () => void;
   onComplete: () => void;
 }
 
-export default function PlayGame({ initialCompId, onBack, onComplete }: PlayGameProps) {
-  const { data, addRound, updateRound, addRoundToCompetition } = useGolf();
+export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
+  const { data, addRound, updateRound } = useGolf();
   const { t } = useAppSettings();
-  const { user } = useAuth();
   const [courseName, setCourseName] = useState('');
-  const [selectedCompId, setSelectedCompId] = useState<string | null>(initialCompId || null);
   const [step, setStep] = useState<'name' | 'score'>('name');
   const [currentHole, setCurrentHole] = useState(0);
   const [round, setRound] = useState<ReturnType<typeof addRound> | null>(null);
   const [achievement, setAchievement] = useState<string | null>(null);
 
-  const activeComps = data.competitions.filter(c => c.status === 'active' || c.status === 'pending');
   const inProgressRounds = data.rounds.filter(r => r.holes.some(h => h.score !== null) && r.holes.some(h => h.score === null));
-
-  useEffect(() => {
-    if (activeComps.length === 1 && !selectedCompId) {
-      setSelectedCompId(activeComps[0].id);
-    }
-  }, [activeComps]);
 
   const handleStart = () => {
     if (!courseName.trim()) return;
     const newRound = addRound(courseName.trim());
-    if (selectedCompId) {
-      newRound.competitionId = selectedCompId;
-      newRound.playerId = user?.id || data.player.id;
-      updateRound(newRound);
-    }
     setRound(newRound);
     setStep('score');
   };
@@ -112,9 +96,6 @@ export default function PlayGame({ initialCompId, onBack, onComplete }: PlayGame
   };
 
   const handleFinish = () => {
-    if (round?.competitionId) {
-      addRoundToCompetition(round.competitionId, round);
-    }
     onComplete();
   };
 
@@ -154,39 +135,6 @@ export default function PlayGame({ initialCompId, onBack, onComplete }: PlayGame
                 className="w-full bg-surface-container-low border-none rounded-2xl py-5 px-6 text-lg outline-none focus:ring-2 focus:ring-secondary-container transition-all placeholder:text-outline/60 font-body text-primary"
               />
             </div>
-
-            {activeComps.length > 0 && (
-              <div>
-                <label className="block text-sm font-bold text-on-surface-variant mb-3 font-headline">
-                  대회 선택 (선택)
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => setSelectedCompId(null)}
-                    className={`px-4 py-3 rounded-xl font-bold transition-all ${
-                      selectedCompId === null
-                        ? 'bg-stone-400 text-white'
-                        : 'bg-surface-container text-stone-600'
-                    }`}
-                  >
-                    대회 없이 하기
-                  </button>
-                  {activeComps.map(comp => (
-                    <button
-                      key={comp.id}
-                      onClick={() => setSelectedCompId(comp.id)}
-                      className={`px-4 py-3 rounded-xl font-bold transition-all ${
-                        selectedCompId === comp.id
-                          ? 'bg-secondary text-white'
-                          : 'bg-surface-container text-stone-600'
-                      }`}
-                    >
-                      {comp.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
 
             <button
               onClick={handleStart}

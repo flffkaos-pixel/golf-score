@@ -6,10 +6,9 @@ import { getScoreDisplay } from '../utils/storage';
 
 interface CompetitionsProps {
   onBack: () => void;
-  onStartRound: (compId: string) => void;
 }
 
-export default function Competitions({ onBack, onStartRound }: CompetitionsProps) {
+export default function Competitions({ onBack }: CompetitionsProps) {
   const { data, createCompetition, joinCompetition, deleteCompetition } = useGolf();
   const { t } = useAppSettings();
   const { user } = useAuth();
@@ -252,13 +251,6 @@ export default function Competitions({ onBack, onStartRound }: CompetitionsProps
                         })}
                     </div>
                   )}
-
-                  <button
-                    onClick={() => onStartRound(comp.id)}
-                    className="w-full bg-secondary text-white py-3 rounded-xl font-bold active:scale-98 transition-transform mb-2"
-                  >
-                    새 라운드 시작
-                  </button>
 
                   {!comp.players.find(p => p.id === data.player.id) && (
                     <button

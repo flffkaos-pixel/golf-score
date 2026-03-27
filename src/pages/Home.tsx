@@ -4,7 +4,7 @@ import { useAppSettings } from '../hooks/useAppSettings';
 import { getScoreDisplay } from '../utils/storage';
 
 interface HomeProps {
-  onStartGame: (compId?: string | null) => void;
+  onStartGame: () => void;
 }
 
 export default function Home({ onStartGame }: HomeProps) {
@@ -85,7 +85,7 @@ export default function Home({ onStartGame }: HomeProps) {
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-extrabold font-headline text-primary tracking-tight">{t('recentRounds')}</h2>
             <button 
-              onClick={() => onStartGame(null)}
+              onClick={() => onStartGame()}
               className="bg-primary text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 active:scale-95 transition-transform"
             >
               <span className="material-symbols-outlined text-lg">add</span>
