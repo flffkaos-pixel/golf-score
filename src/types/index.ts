@@ -12,6 +12,8 @@ export interface Round {
   totalScore: number;
   totalPar: number;
   relativeScore: number;
+  competitionId?: string;
+  playerId?: string;
 }
 
 export interface Player {
