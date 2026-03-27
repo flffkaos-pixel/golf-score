@@ -105,9 +105,13 @@ function GlobalHeader() {
 
 function NavigationBar() {
   const [page, setPage] = useState<Page>('home');
+  const [selectedCompId, setSelectedCompId] = useState<string | null>(null);
   const { data } = useGolf();
   
-  const navigate = (newPage: Page) => setPage(newPage);
+  const navigate = (newPage: Page, compId?: string | null) => {
+    if (compId !== undefined) setSelectedCompId(compId);
+    setPage(newPage);
+  };
   const isActive = (p: Page) => page === p;
   
   const hasNotifications = data.competitions.filter(c => c.status === 'active').length > 0 || data.friends.length > 0;
@@ -116,10 +120,10 @@ function NavigationBar() {
     <>
       {page !== 'play' && <GlobalHeader />}
 
-      {page === 'home' && <Home onStartGame={() => navigate('play')} />}
-      {page === 'play' && <PlayGame onBack={() => navigate('home')} onComplete={() => navigate('history')} />}
+      {page === 'home' && <Home onStartGame={(compId) => navigate('play', compId)} />}
+      {page === 'play' && <PlayGame initialCompId={selectedCompId} onBack={() => navigate('home', null)} onComplete={() => navigate('history', null)} />}
       {page === 'friends' && <Friends onBack={() => navigate('home')} />}
-      {page === 'competitions' && <Competitions onBack={() => navigate('home')} />}
+      {page === 'competitions' && <Competitions onBack={() => navigate('home')} onStartRound={(compId) => navigate('play', compId)} />}
       {page === 'stats' && <Stats onBack={() => navigate('home')} />}
       {page === 'history' && <History onBack={() => navigate('home')} />}
       {page === 'settings' && <Settings onBack={() => navigate('home')} />}

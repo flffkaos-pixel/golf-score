@@ -6,19 +6,17 @@ import { getScoreDisplay } from '../utils/storage';
 
 interface CompetitionsProps {
   onBack: () => void;
+  onStartRound: (compId: string) => void;
 }
 
-export default function Competitions({ onBack }: CompetitionsProps) {
-  const { data, createCompetition, joinCompetition, deleteCompetition, addRound, updateRound } = useGolf();
+export default function Competitions({ onBack, onStartRound }: CompetitionsProps) {
+  const { data, createCompetition, joinCompetition, deleteCompetition } = useGolf();
   const { t } = useAppSettings();
   const { user } = useAuth();
   const [showCreate, setShowCreate] = useState(false);
   const [newCompName, setNewCompName] = useState('');
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [shareLinkCompId, setShareLinkCompId] = useState<string | null>(null);
-  const [selectedCompId, setSelectedCompId] = useState<string | null>(null);
-  const [compCourseName, setCompCourseName] = useState('');
-  const [showCompPlay, setShowCompPlay] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -57,18 +55,6 @@ export default function Competitions({ onBack }: CompetitionsProps) {
     setSelectedFriends([]);
   };
 
-  const handleStartCompRound = () => {
-    if (!selectedCompId || !compCourseName.trim()) return;
-    const newRound = addRound(compCourseName.trim());
-    newRound.competitionId = selectedCompId;
-    newRound.playerId = user?.id || data.player.id;
-    updateRound(newRound);
-    setCompCourseName('');
-    setShowCompPlay(false);
-    setSelectedCompId(null);
-    alert('대회 라운드가 시작되었습니다! 라운드가 끝나면 자동으로 대회 기록에 저장됩니다.');
-  };
-
   const toggleFriend = (friendId: string) => {
     setSelectedFriends(prev => 
       prev.includes(friendId) 
@@ -97,41 +83,6 @@ export default function Competitions({ onBack }: CompetitionsProps) {
 
   return (
     <div className="min-h-screen bg-surface pb-32">
-      {showCompPlay && (
-        <div className="fixed inset-0 bg-surface/80 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-xl border border-stone-200">
-            <h2 className="text-xl font-bold text-primary mb-4">대회 라운드 시작</h2>
-            <input
-              type="text"
-              value={compCourseName}
-              onChange={(e) => setCompCourseName(e.target.value)}
-              placeholder="코스 이름 입력"
-              className="w-full bg-surface-container border-none rounded-xl px-4 py-4 outline-none mb-4 text-lg text-primary"
-              onKeyDown={(e) => e.key === 'Enter' && handleStartCompRound()}
-            />
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setShowCompPlay(false);
-                  setSelectedCompId(null);
-                  setCompCourseName('');
-                }}
-                className="flex-1 bg-surface-container text-stone-600 py-4 rounded-xl font-bold active:scale-98 transition-transform"
-              >
-                취소
-              </button>
-              <button
-                onClick={handleStartCompRound}
-                disabled={!compCourseName.trim()}
-                className="flex-1 bg-secondary text-white py-4 rounded-xl font-bold disabled:opacity-50 active:scale-98 transition-transform"
-              >
-                시작
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
         <button onClick={onBack} className="p-2 -ml-2">
           <span className="material-symbols-outlined text-stone-500">arrow_back</span>
@@ -303,10 +254,7 @@ export default function Competitions({ onBack }: CompetitionsProps) {
                   )}
 
                   <button
-                    onClick={() => {
-                      setSelectedCompId(comp.id);
-                      setShowCompPlay(true);
-                    }}
+                    onClick={() => onStartRound(comp.id)}
                     className="w-full bg-secondary text-white py-3 rounded-xl font-bold active:scale-98 transition-transform mb-2"
                   >
                     새 라운드 시작

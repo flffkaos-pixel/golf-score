@@ -4,13 +4,14 @@ import { useAppSettings } from '../hooks/useAppSettings';
 import { getScoreDisplay } from '../utils/storage';
 
 interface HomeProps {
-  onStartGame: () => void;
+  onStartGame: (compId?: string | null) => void;
 }
 
 export default function Home({ onStartGame }: HomeProps) {
   const { data, deleteRound, addSampleData, clearAllData } = useGolf();
   const { t } = useAppSettings();
   const [devMode, setDevMode] = useState(false);
+  const [showCompSelect, setShowCompSelect] = useState(false);
   
   const recentRounds = data.rounds.slice(0, 5);
   const totalRounds = data.rounds.length;
@@ -85,13 +86,49 @@ export default function Home({ onStartGame }: HomeProps) {
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-extrabold font-headline text-primary tracking-tight">{t('recentRounds')}</h2>
             <button 
-              onClick={onStartGame}
+              onClick={() => {
+                const activeComps = data.competitions.filter(c => c.status === 'active' || c.status === 'pending');
+                if (activeComps.length > 0) {
+                  setShowCompSelect(true);
+                } else {
+                  onStartGame(null);
+                }
+              }}
               className="bg-primary text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 active:scale-95 transition-transform"
             >
               <span className="material-symbols-outlined text-lg">add</span>
               {t('newRound')}
             </button>
           </div>
+
+          {showCompSelect && (
+            <div className="bg-surface-container-lowest rounded-2xl p-4">
+              <p className="text-sm font-bold text-stone-500 mb-3">대회 참여 여부 선택</p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => {
+                    setShowCompSelect(false);
+                    onStartGame(null);
+                  }}
+                  className="px-4 py-3 rounded-xl font-bold bg-surface-container text-stone-600 active:scale-95 transition-transform"
+                >
+                  대회 없이 하기
+                </button>
+                {data.competitions.filter(c => c.status === 'active' || c.status === 'pending').map(comp => (
+                  <button
+                    key={comp.id}
+                    onClick={() => {
+                      setShowCompSelect(false);
+                      onStartGame(comp.id);
+                    }}
+                    className="px-4 py-3 rounded-xl font-bold bg-secondary text-white active:scale-95 transition-transform"
+                  >
+                    {comp.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {recentRounds.length === 0 ? (
             <div className="bg-surface-container-lowest rounded-[2rem] p-8 text-center">

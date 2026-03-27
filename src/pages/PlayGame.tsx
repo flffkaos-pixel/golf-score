@@ -5,16 +5,17 @@ import { useAuth } from '../hooks/useAuth';
 import { calculateScore } from '../utils/storage';
 
 interface PlayGameProps {
+  initialCompId?: string | null;
   onBack: () => void;
   onComplete: () => void;
 }
 
-export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
+export default function PlayGame({ initialCompId, onBack, onComplete }: PlayGameProps) {
   const { data, addRound, updateRound, addRoundToCompetition } = useGolf();
   const { t } = useAppSettings();
   const { user } = useAuth();
   const [courseName, setCourseName] = useState('');
-  const [selectedCompId, setSelectedCompId] = useState<string | null>(null);
+  const [selectedCompId, setSelectedCompId] = useState<string | null>(initialCompId || null);
   const [step, setStep] = useState<'name' | 'score'>('name');
   const [currentHole, setCurrentHole] = useState(0);
   const [round, setRound] = useState<ReturnType<typeof addRound> | null>(null);
