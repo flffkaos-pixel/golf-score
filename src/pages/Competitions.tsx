@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useGolf } from '../hooks/useGolf';
 import { useAppSettings } from '../hooks/useAppSettings';
+import { useAuth } from '../hooks/useAuth';
 import { getScoreDisplay } from '../utils/storage';
 
 interface CompetitionsProps {
@@ -10,9 +11,40 @@ interface CompetitionsProps {
 export default function Competitions({ onBack }: CompetitionsProps) {
   const { data, createCompetition, joinCompetition, deleteCompetition } = useGolf();
   const { t } = useAppSettings();
+  const { user } = useAuth();
   const [showCreate, setShowCreate] = useState(false);
   const [newCompName, setNewCompName] = useState('');
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
+  const [shareLinkCompId, setShareLinkCompId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const compId = params.get('comp');
+    const hostId = params.get('host');
+    const compName = params.get('name');
+    
+    if (compId && hostId && compName && user) {
+      const exists = data.competitions.some(c => c.id === compId);
+      if (!exists) {
+        joinCompetition(compId);
+        alert(`"${decodeURIComponent(compName)}" 대회に参加しました！`);
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
+  }, [user, data.competitions]);
+
+  const handleShareComp = async (compId: string) => {
+    const baseUrl = window.location.origin + window.location.pathname;
+    const comp = data.competitions.find(c => c.id === compId);
+    if (!comp) return;
+    
+    const shareLink = `${baseUrl}?comp=1&host=${encodeURIComponent(comp.hostId)}&name=${encodeURIComponent(comp.name)}`;
+    await navigator.clipboard.writeText(shareLink);
+    setShareLinkCompId(compId);
+    setTimeout(() => {
+      setShareLinkCompId(null);
+    }, 2000);
+  };
 
   const handleCreate = () => {
     if (!newCompName.trim()) return;
@@ -143,6 +175,19 @@ export default function Competitions({ onBack }: CompetitionsProps) {
                       <p className="text-xs text-stone-500">{new Date(comp.startDate).toLocaleDateString()}</p>
                     </div>
                     <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleShareComp(comp.id)}
+                        className={`p-2 rounded-full transition-colors ${
+                          shareLinkCompId === comp.id 
+                            ? 'bg-secondary text-white' 
+                            : 'bg-surface-container text-stone-600 hover:bg-secondary-container'
+                        }`}
+                        title="대회 공유"
+                      >
+                        <span className="material-symbols-outlined text-lg">
+                          {shareLinkCompId === comp.id ? 'check' : 'share'}
+                        </span>
+                      </button>
                       {comp.hostId === data.player.id && (
                         <button
                           onClick={() => {
