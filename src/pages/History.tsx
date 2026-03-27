@@ -11,6 +11,7 @@ export default function History({ onBack }: HistoryProps) {
   const { data, deleteRound } = useGolf();
   const { t } = useAppSettings();
   const [selectedRound, setSelectedRound] = useState<typeof data.rounds[0] | null>(null);
+  const [filter, setFilter] = useState<'all' | 'comp' | 'solo'>('all');
 
   const getScoreColor = (score: number | null, par: number) => {
     if (score === null) return 'bg-surface-container text-stone-400';
@@ -23,11 +24,21 @@ export default function History({ onBack }: HistoryProps) {
     return 'bg-red-500 text-white';
   };
 
+  const filteredRounds = data.rounds.filter(r => {
+    if (filter === 'comp') return !!r.competitionId;
+    if (filter === 'solo') return !r.competitionId;
+    return true;
+  });
+
+  const compRoundsCount = data.rounds.filter(r => r.competitionId).length;
+  const soloRoundsCount = data.rounds.filter(r => !r.competitionId).length;
+
   if (selectedRound) {
     const dateStr = new Date(selectedRound.date).toLocaleDateString();
     const birdies = selectedRound.holes.filter(h => h.score !== null && h.score < h.par).length;
     const pars = selectedRound.holes.filter(h => h.score !== null && h.score === h.par).length;
     const bogeys = selectedRound.holes.filter(h => h.score !== null && h.score > h.par).length;
+    const comp = selectedRound.competitionId ? data.competitions.find(c => c.id === selectedRound.competitionId) : null;
 
     return (
       <div className="min-h-screen bg-surface pb-32">
@@ -43,9 +54,16 @@ export default function History({ onBack }: HistoryProps) {
           <section className="relative overflow-hidden rounded-[2rem] bg-primary-container text-white p-8 mb-8">
             <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-tertiary-fixed/10 rounded-full blur-3xl"></div>
             <div className="relative z-10">
-              <span className="inline-block px-3 py-1 bg-tertiary-fixed/20 text-tertiary-fixed rounded-full font-label text-xs font-bold uppercase tracking-widest mb-4">
-                {t('roundDetail')}
-              </span>
+              {comp && (
+                <span className="inline-block px-3 py-1 bg-secondary/20 text-secondary rounded-full font-label text-xs font-bold uppercase tracking-widest mb-4">
+                  🏆 {comp.name}
+                </span>
+              )}
+              {!comp && (
+                <span className="inline-block px-3 py-1 bg-white/10 text-white/70 rounded-full font-label text-xs font-bold uppercase tracking-widest mb-4">
+                  개인 기록
+                </span>
+              )}
               <h2 className="font-headline text-3xl font-extrabold tracking-tight mb-2">{selectedRound.courseName}</h2>
               <p className="text-white/70 text-lg mb-6">{dateStr}</p>
               <div className="flex gap-8 items-end">
@@ -144,7 +162,28 @@ export default function History({ onBack }: HistoryProps) {
       </header>
 
       <main className="px-6 pt-6 max-w-5xl mx-auto">
-        {data.rounds.length === 0 ? (
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setFilter('all')}
+            className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${filter === 'all' ? 'bg-primary text-white' : 'bg-surface-container text-stone-600'}`}
+          >
+            전체 ({data.rounds.length})
+          </button>
+          <button
+            onClick={() => setFilter('comp')}
+            className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${filter === 'comp' ? 'bg-secondary text-white' : 'bg-surface-container text-stone-600'}`}
+          >
+            🏆 대회 ({compRoundsCount})
+          </button>
+          <button
+            onClick={() => setFilter('solo')}
+            className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${filter === 'solo' ? 'bg-stone-500 text-white' : 'bg-surface-container text-stone-600'}`}
+          >
+            개인 ({soloRoundsCount})
+          </button>
+        </div>
+
+        {filteredRounds.length === 0 ? (
           <div className="bg-surface-container-lowest rounded-2xl p-8 text-center">
             <div className="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="material-symbols-outlined text-3xl text-outline">history</span>
@@ -154,9 +193,10 @@ export default function History({ onBack }: HistoryProps) {
           </div>
         ) : (
           <div className="space-y-4">
-            {data.rounds.map(round => {
+            {filteredRounds.map(round => {
               const scoreDisplay = getScoreDisplay(round.relativeScore);
               const dateStr = new Date(round.date).toLocaleDateString();
+              const comp = round.competitionId ? data.competitions.find(c => c.id === round.competitionId) : null;
               
               return (
                 <button
@@ -166,10 +206,15 @@ export default function History({ onBack }: HistoryProps) {
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div>
+                      {comp && (
+                        <span className="inline-block px-2 py-0.5 bg-secondary/10 text-secondary text-xs font-bold rounded-full mb-1">
+                          🏆 {comp.name}
+                        </span>
+                      )}
                       <p className="text-xs font-bold text-stone-400 uppercase tracking-widest">{dateStr}</p>
                       <h3 className="text-lg font-bold text-primary font-headline">{round.courseName}</h3>
                     </div>
-                    <div className="bg-secondary-container text-on-secondary-container px-4 py-2 rounded-2xl">
+                    <div className={`px-4 py-2 rounded-2xl ${comp ? 'bg-secondary-container text-on-secondary-container' : 'bg-surface-container text-stone-600'}`}>
                       <span className="text-2xl font-black font-headline">{round.totalScore}</span>
                     </div>
                   </div>

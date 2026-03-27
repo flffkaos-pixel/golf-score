@@ -11,7 +11,6 @@ export default function Home({ onStartGame }: HomeProps) {
   const { data, deleteRound, addSampleData, clearAllData } = useGolf();
   const { t } = useAppSettings();
   const [devMode, setDevMode] = useState(false);
-  const [showCompSelect, setShowCompSelect] = useState(false);
   
   const recentRounds = data.rounds.slice(0, 5);
   const totalRounds = data.rounds.length;
@@ -86,49 +85,13 @@ export default function Home({ onStartGame }: HomeProps) {
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-extrabold font-headline text-primary tracking-tight">{t('recentRounds')}</h2>
             <button 
-              onClick={() => {
-                const activeComps = data.competitions.filter(c => c.status === 'active' || c.status === 'pending');
-                if (activeComps.length > 0) {
-                  setShowCompSelect(true);
-                } else {
-                  onStartGame(null);
-                }
-              }}
+              onClick={() => onStartGame(null)}
               className="bg-primary text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 active:scale-95 transition-transform"
             >
               <span className="material-symbols-outlined text-lg">add</span>
               {t('newRound')}
             </button>
           </div>
-
-          {showCompSelect && (
-            <div className="bg-surface-container-lowest rounded-2xl p-4">
-              <p className="text-sm font-bold text-stone-500 mb-3">대회 참여 여부 선택</p>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => {
-                    setShowCompSelect(false);
-                    onStartGame(null);
-                  }}
-                  className="px-4 py-3 rounded-xl font-bold bg-surface-container text-stone-600 active:scale-95 transition-transform"
-                >
-                  대회 없이 하기
-                </button>
-                {data.competitions.filter(c => c.status === 'active' || c.status === 'pending').map(comp => (
-                  <button
-                    key={comp.id}
-                    onClick={() => {
-                      setShowCompSelect(false);
-                      onStartGame(comp.id);
-                    }}
-                    className="px-4 py-3 rounded-xl font-bold bg-secondary text-white active:scale-95 transition-transform"
-                  >
-                    {comp.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
           {recentRounds.length === 0 ? (
             <div className="bg-surface-container-lowest rounded-[2rem] p-8 text-center">
@@ -143,11 +106,17 @@ export default function Home({ onStartGame }: HomeProps) {
               {recentRounds.map(round => {
                 const achievements = getAchievements(round);
                 const dateStr = new Date(round.date).toLocaleDateString();
+                const comp = round.competitionId ? data.competitions.find(c => c.id === round.competitionId) : null;
                 
               return (
                 <div key={round.id} className="bg-surface-container-lowest rounded-[1.5rem] p-5 shadow-sm">
                   <div className="flex justify-between items-start mb-4">
                     <div className="space-y-1">
+                      {comp && (
+                        <span className="inline-block px-2 py-0.5 bg-secondary/10 text-secondary text-xs font-bold rounded-full mb-1">
+                          🏆 {comp.name}
+                        </span>
+                      )}
                       <p className="text-xs font-bold text-stone-400 uppercase tracking-widest">{dateStr}</p>
                       <h3 className="text-lg font-bold text-primary font-headline">{round.courseName}</h3>
                     </div>
