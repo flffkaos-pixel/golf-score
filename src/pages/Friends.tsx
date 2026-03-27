@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useGolf } from '../hooks/useGolf';
 import { useAppSettings } from '../hooks/useAppSettings';
 import { useAuth } from '../hooks/useAuth';
@@ -16,6 +16,68 @@ export default function Friends({ onBack }: FriendsProps) {
   const [editName, setEditName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const [showRedeem, setShowRedeem] = useState(false);
+  const [showEmailInvite, setShowEmailInvite] = useState(false);
+  const [emailInput, setEmailInput] = useState('');
+  const [inviteLinkCopied, setInviteLinkCopied] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const inviteId = params.get('invite');
+    const inviterName = params.get('name');
+    const inviterId = params.get('id');
+    
+    if (inviteId && inviterName && inviterId && user) {
+      const exists = data.friends.some(f => f.userId === inviterId);
+      if (!exists) {
+        addFriend(inviterName, inviterId);
+        alert(`${inviterName}님을 친구로 추가했습니다!`);
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
+  }, [user, data.friends]);
+
+  const generateInviteLink = async () => {
+    if (!user) {
+      alert('로그인 후 이용해주세요.');
+      return;
+    }
+    
+    const baseUrl = window.location.origin + window.location.pathname;
+    const inviteLink = `${baseUrl}?invite=1&name=${encodeURIComponent(data.player.name)}&id=${encodeURIComponent(user.id)}`;
+    
+    await navigator.clipboard.writeText(inviteLink);
+    setInviteLinkCopied(true);
+    setTimeout(() => setInviteLinkCopied(false), 2000);
+  };
+
+  const handleEmailInvite = async () => {
+    if (!emailInput.trim() || !user) return;
+    
+    const { data: existingUser } = await supabase
+      .from('user_data')
+      .select('user_id')
+      .eq('email', emailInput.trim())
+      .single();
+    
+    if (!existingUser) {
+      alert('해당 이메일로 가입한 사용자가 없습니다.\n초대 링크를 보내주세요.');
+      return;
+    }
+    
+    const { data: userMeta } = await supabase.auth.getUser(existingUser.user_id);
+    const friendName = userMeta.user?.user_metadata?.full_name || '친구';
+    
+    const exists = data.friends.some(f => f.userId === existingUser.user_id);
+    if (exists) {
+      alert('이미 추가된 친구입니다.');
+    } else {
+      addFriend(friendName, existingUser.user_id);
+      alert(`${friendName}님을 친구로 추가했습니다!`);
+    }
+    
+    setEmailInput('');
+    setShowEmailInvite(false);
+  };
 
   const handleEditStart = (id: string, name: string) => {
     setEditingId(id);
@@ -30,23 +92,6 @@ export default function Friends({ onBack }: FriendsProps) {
     setEditName('');
   };
 
-  const generateCode = async () => {
-    if (!user) {
-      alert('로그인 후 이용해주세요.');
-      return;
-    }
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-    
-    await supabase.from('friend_invites').upsert({
-      code,
-      inviter_id: user.id,
-      inviter_name: data.player.name,
-      created_at: new Date().toISOString(),
-    });
-    
-    navigator.clipboard.writeText(code);
-    alert(`초대 코드: ${code}\n클립보드에 복사되었습니다!\n친구에게 코드를 보내주세요.`);
-  };
 
   const handleRedeem = async () => {
     if (!inviteCode.trim()) return;
@@ -94,17 +139,45 @@ export default function Friends({ onBack }: FriendsProps) {
 
       <main className="px-6 pt-6 max-w-5xl mx-auto">
         <button
-          onClick={generateCode}
+          onClick={generateInviteLink}
           className="w-full bg-secondary text-white py-4 rounded-2xl font-headline font-bold text-base flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-lg mb-3"
         >
-          <span className="material-symbols-outlined">share</span>
-          내 초대 코드 만들기
+          <span className="material-symbols-outlined">link</span>
+          {inviteLinkCopied ? '링크 복사됨!' : '초대 링크 만들기'}
         </button>
+
+        <button
+          onClick={() => setShowEmailInvite(!showEmailInvite)}
+          className="w-full bg-tertiary text-white py-3 rounded-2xl font-headline font-bold text-base flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-lg mb-3"
+        >
+          <span className="material-symbols-outlined">mail</span>
+          {showEmailInvite ? '취소' : '이메일로 초대'}
+        </button>
+
+        {showEmailInvite && (
+          <div className="bg-surface-container-lowest rounded-2xl p-6 mb-3">
+            <input
+              type="email"
+              value={emailInput}
+              onChange={(e) => setEmailInput(e.target.value)}
+              placeholder="친구의 이메일 입력"
+              className="w-full bg-surface-container border-none rounded-xl px-4 py-4 outline-none mb-4 text-lg text-primary"
+              onKeyDown={(e) => e.key === 'Enter' && handleEmailInvite()}
+            />
+            <button
+              onClick={handleEmailInvite}
+              disabled={!emailInput.trim()}
+              className="w-full bg-tertiary text-white py-4 rounded-xl font-bold disabled:opacity-50 active:scale-98 transition-transform"
+            >
+              친구 추가
+            </button>
+          </div>
+        )}
 
         <div className="flex gap-3">
           <button
             onClick={() => setShowRedeem(!showRedeem)}
-            className="flex-1 bg-tertiary text-white py-3 rounded-2xl font-headline font-bold text-base flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-lg"
+            className="flex-1 bg-stone-400 text-white py-3 rounded-2xl font-headline font-bold text-base flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-lg"
           >
             <span className="material-symbols-outlined">vpn_key</span>
             {showRedeem ? '취소' : '초대 코드 입력'}
@@ -124,7 +197,7 @@ export default function Friends({ onBack }: FriendsProps) {
             <button
               onClick={handleRedeem}
               disabled={!inviteCode.trim()}
-              className="w-full bg-tertiary text-white py-4 rounded-xl font-bold disabled:opacity-50 active:scale-98 transition-transform"
+              className="w-full bg-stone-400 text-white py-4 rounded-xl font-bold disabled:opacity-50 active:scale-98 transition-transform"
             >
               친구 추가
             </button>
