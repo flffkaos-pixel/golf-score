@@ -75,6 +75,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const syncCompetitionToSupabase = async (comp: Competition) => {
+    if (!user) return;
     try {
       const { error } = await supabase
         .from('shared_competitions')
@@ -100,20 +101,17 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      const friendIds = data.friends.filter(f => f.userId).map(f => f.userId as string);
-      const allIds = [user.id, ...friendIds];
-      
       const { data: sharedComps, error } = await supabase
         .from('shared_competitions')
         .select('*')
-        .overlaps('player_ids', allIds);
+        .eq('host_id', user.id);
       
       if (error) {
-        console.error('Load shared competitions error:', error);
+        console.error('Load competitions error:', error);
         return;
       }
       
-      if (sharedComps) {
+      if (sharedComps && sharedComps.length > 0) {
         const remoteComps: Competition[] = sharedComps.map(c => ({
           id: c.id,
           name: c.name,
@@ -129,6 +127,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
         setData(prev => {
           const localCompIds = new Set(prev.competitions.map(c => c.id));
           const newRemoteComps = remoteComps.filter(c => !localCompIds.has(c.id));
+          if (newRemoteComps.length === 0) return prev;
           return {
             ...prev,
             competitions: [...prev.competitions, ...newRemoteComps],
@@ -136,7 +135,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
         });
       }
     } catch (error) {
-      console.error('Load shared competitions error:', error);
+      console.error('Load competitions error:', error);
     }
   };
 
@@ -187,13 +186,15 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     if (user) {
       loadSharedCompetitions();
     }
-  }, [user, data.friends.map(f => f.id).join(',')]);
+  }, [user]);
 
   useEffect(() => {
     if (user && data) {
       syncToSupabase(data);
+      saveData(data);
+    } else {
+      saveData(data);
     }
-    saveData(data);
   }, [data, user]);
 
   const addRound = (courseName: string): Round => {
