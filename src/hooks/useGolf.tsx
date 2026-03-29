@@ -14,7 +14,7 @@ interface GolfContextType {
   removeFriend: (friendId: string) => void;
   updateFriend: (friendId: string, name: string) => void;
   createCompetition: (name: string, friendIds?: string[]) => Competition;
-  joinCompetition: (compId: string) => void;
+  joinCompetition: (compId: string, hostId?: string, compName?: string) => void;
   deleteCompetition: (compId: string) => void;
   addRoundToCompetition: (compId: string, round: Round) => void;
   addSampleData: () => void;
@@ -280,28 +280,72 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     return comp;
   };
 
-  const joinCompetition = (compId: string) => {
-    setData(prev => ({
-      ...prev,
-      competitions: prev.competitions.map(c => 
-        c.id === compId && !c.players.find(p => p.id === data.player.id)
-          ? { 
-              ...c, 
-              players: [...c.players, data.player],
-              playerIds: [...c.playerIds, data.player.id]
-            }
-          : c
-      ),
-    }));
+  const joinCompetition = async (compId: string, hostId?: string, compName?: string) => {
+    const existingComp = data.competitions.find(c => c.id === compId);
     
-    const comp = data.competitions.find(c => c.id === compId);
-    if (comp) {
-      const updatedComp = {
-        ...comp,
-        players: [...comp.players, data.player],
-        playerIds: [...comp.playerIds, data.player.id],
-      };
-      syncCompetitionToSupabase(updatedComp);
+    if (existingComp) {
+      if (!existingComp.players.find(p => p.id === data.player.id)) {
+        setData(prev => ({
+          ...prev,
+          competitions: prev.competitions.map(c => 
+            c.id === compId
+              ? { 
+                  ...c, 
+                  players: [...c.players, data.player],
+                  playerIds: [...c.playerIds, data.player.id]
+                }
+              : c
+          ),
+        }));
+        
+        const updatedComp = {
+          ...existingComp,
+          players: [...existingComp.players, data.player],
+          playerIds: [...existingComp.playerIds, data.player.id],
+        };
+        syncCompetitionToSupabase(updatedComp);
+      }
+      return;
+    }
+
+    if (hostId && compName) {
+      try {
+        const { data: compData, error } = await supabase
+          .from('shared_competitions')
+          .select('*')
+          .eq('id', compId)
+          .single();
+        
+        if (error || !compData) {
+          console.error('Competition not found:', error);
+          return;
+        }
+        
+        const newComp: Competition = {
+          id: compData.id,
+          name: compData.name,
+          hostId: compData.host_id,
+          hostName: compData.host_name,
+          players: compData.players,
+          playerIds: compData.player_ids,
+          rounds: compData.rounds || [],
+          startDate: compData.start_date,
+          status: compData.status || 'pending',
+        };
+        
+        if (!newComp.players.find(p => p.id === data.player.id)) {
+          newComp.players = [...newComp.players, data.player];
+          newComp.playerIds = [...newComp.playerIds, data.player.id];
+          syncCompetitionToSupabase(newComp);
+        }
+        
+        setData(prev => ({
+          ...prev,
+          competitions: [...prev.competitions, newComp],
+        }));
+      } catch (error) {
+        console.error('Failed to join competition:', error);
+      }
     }
   };
 

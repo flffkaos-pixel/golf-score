@@ -6,23 +6,31 @@ import { calculateScore } from '../utils/storage';
 interface PlayGameProps {
   onBack: () => void;
   onComplete: () => void;
+  competitionId?: string;
 }
 
-export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
-  const { data, addRound, updateRound } = useGolf();
+export default function PlayGame({ onBack, onComplete, competitionId }: PlayGameProps) {
+  const { data, addRound, updateRound, addRoundToCompetition } = useGolf();
   const { t } = useAppSettings();
   const [courseName, setCourseName] = useState('');
   const [step, setStep] = useState<'name' | 'score'>('name');
   const [currentHole, setCurrentHole] = useState(0);
   const [round, setRound] = useState<ReturnType<typeof addRound> | null>(null);
   const [achievement, setAchievement] = useState<string | null>(null);
+  const [showRankPopup, setShowRankPopup] = useState(false);
+  const [compRankings, setCompRankings] = useState<{player: string; score: number; relative: number}[]>([]);
 
   const inProgressRounds = data.rounds.filter(r => r.holes.some(h => h.score !== null) && r.holes.some(h => h.score === null));
 
   const handleStart = () => {
     if (!courseName.trim()) return;
     const newRound = addRound(courseName.trim());
-    setRound(newRound);
+    if (competitionId) {
+      const updatedRound = { ...newRound, competitionId, playerId: data.player.id };
+      updateRound(updatedRound);
+      addRoundToCompetition(competitionId, updatedRound);
+    }
+    setRound(competitionId ? { ...newRound, competitionId, playerId: data.player.id } : newRound);
     setStep('score');
   };
 
@@ -96,6 +104,24 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
   };
 
   const handleFinish = () => {
+    if (competitionId) {
+      const comp = data.competitions.find(c => c.id === competitionId);
+      if (comp) {
+        const allRounds = [...comp.rounds, { ...round!, playerId: data.player.id }];
+        const sorted = allRounds.sort((a, b) => a.relativeScore - b.relativeScore);
+        const rankings = sorted.map(r => {
+          const player = comp.players.find(p => p.id === r.playerId);
+          return {
+            player: player?.name || 'Unknown',
+            score: r.totalScore,
+            relative: r.relativeScore,
+          };
+        });
+        setCompRankings(rankings);
+        setShowRankPopup(true);
+        return;
+      }
+    }
     onComplete();
   };
 
@@ -185,8 +211,52 @@ export default function PlayGame({ onBack, onComplete }: PlayGameProps) {
   const currentHoleData = round.holes[currentHole];
   const completedHoles = round.holes.filter(h => h.score !== null).length;
 
+  const handlePopupClose = () => {
+    setShowRankPopup(false);
+    onComplete();
+  };
+
   return (
     <div className="min-h-screen bg-surface pb-32">
+      {showRankPopup && (
+        <div className="fixed inset-0 bg-primary/80 backdrop-blur-sm flex items-center justify-center z-50 p-6">
+          <div className="bg-white rounded-[2rem] p-6 w-full max-w-sm text-center animate-bounce shadow-2xl">
+            <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-4xl">🏆</span>
+            </div>
+            <h2 className="text-2xl font-extrabold text-primary font-headline mb-4">대회 완료!</h2>
+            <div className="space-y-2 mb-6">
+              {compRankings.map((r, i) => (
+                <div key={i} className={`flex items-center justify-between p-3 rounded-xl ${
+                  i === 0 ? 'bg-yellow-100' : i === 1 ? 'bg-stone-100' : i === 2 ? 'bg-amber-100' : 'bg-surface-container'
+                }`}>
+                  <div className="flex items-center gap-2">
+                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                      i === 0 ? 'bg-yellow-400 text-stone-900' : 
+                      i === 1 ? 'bg-stone-300 text-stone-700' : 
+                      i === 2 ? 'bg-amber-600 text-white' : 'bg-surface-container text-stone-600'
+                    }`}>
+                      {i + 1}
+                    </span>
+                    <span className="font-bold text-primary">{r.player}</span>
+                  </div>
+                  <span className={`font-bold ${
+                    r.relative > 0 ? 'text-error' : r.relative < 0 ? 'text-secondary' : 'text-stone-600'
+                  }`}>
+                    {r.score} ({r.relative > 0 ? '+' : ''}{r.relative})
+                  </span>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={handlePopupClose}
+              className="w-full bg-primary text-white py-4 rounded-xl font-bold active:scale-98 transition-transform"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
       {achievement && (
         <div className="fixed inset-0 bg-primary/80 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-[2rem] p-12 text-center animate-bounce">

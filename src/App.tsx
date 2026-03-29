@@ -12,6 +12,11 @@ import Settings from './pages/Settings';
 
 type Page = 'home' | 'play' | 'friends' | 'competitions' | 'stats' | 'history' | 'settings';
 
+interface NavigationBarProps {
+  onNavigate: (page: Page) => void;
+  currentPage: Page;
+}
+
 function LoginWarning() {
   const { user, loading } = useAuth();
   const [dismissed, setDismissed] = useState(false);
@@ -103,28 +108,19 @@ function GlobalHeader() {
   );
 }
 
-function NavigationBar() {
-  const [page, setPage] = useState<Page>('home');
+function NavigationBar({ onNavigate, currentPage }: NavigationBarProps) {
   const { data } = useGolf();
   
-  const navigate = (newPage: Page) => setPage(newPage);
-  const isActive = (p: Page) => page === p;
+  const navigate = (newPage: Page) => onNavigate(newPage);
+  const isActive = (p: Page) => currentPage === p;
   
   const hasNotifications = data.competitions.filter(c => c.status === 'active').length > 0 || data.friends.length > 0;
 
   return (
     <>
-      {page !== 'play' && <GlobalHeader />}
+      {currentPage !== 'play' && <GlobalHeader />}
 
-      {page === 'home' && <Home onStartGame={() => navigate('play')} />}
-      {page === 'play' && <PlayGame onBack={() => navigate('home')} onComplete={() => navigate('history')} />}
-      {page === 'friends' && <Friends onBack={() => navigate('home')} />}
-      {page === 'competitions' && <Competitions onBack={() => navigate('home')} />}
-      {page === 'stats' && <Stats onBack={() => navigate('home')} />}
-      {page === 'history' && <History onBack={() => navigate('home')} />}
-      {page === 'settings' && <Settings onBack={() => navigate('home')} />}
-
-      {page !== 'play' && (
+      {currentPage !== 'play' && (
         <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/70 dark:bg-stone-950/70 backdrop-blur-md shadow-[0_-4px_24px_rgba(25,28,29,0.06)] rounded-t-[1.5rem]">
           <button
             onClick={() => navigate('home')}
@@ -212,10 +208,30 @@ function NavigationBar() {
 }
 
 function AppContent() {
+  const [page, setPage] = useState<Page>('home');
+  const [competitionId, setCompetitionId] = useState<string | undefined>();
+
+  const navigate = (newPage: Page) => setPage(newPage);
+
+  const handleStartCompetitionGame = (compId: string) => {
+    setCompetitionId(compId);
+    setPage('play');
+  };
+
   return (
     <div className="min-h-screen bg-surface dark:bg-stone-900">
       <LoginWarning />
-      <NavigationBar />
+      <NavigationBar 
+        onNavigate={navigate} 
+        currentPage={page} 
+      />
+      {page === 'home' && <Home onStartGame={() => navigate('play')} />}
+      {page === 'play' && <PlayGame onBack={() => { setPage('home'); setCompetitionId(undefined); }} onComplete={() => navigate('history')} competitionId={competitionId} />}
+      {page === 'friends' && <Friends onBack={() => navigate('home')} />}
+      {page === 'competitions' && <Competitions onBack={() => navigate('home')} onStartCompetitionGame={handleStartCompetitionGame} />}
+      {page === 'stats' && <Stats onBack={() => navigate('home')} />}
+      {page === 'history' && <History onBack={() => navigate('home')} />}
+      {page === 'settings' && <Settings onBack={() => navigate('home')} />}
     </div>
   );
 }

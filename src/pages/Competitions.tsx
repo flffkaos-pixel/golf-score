@@ -6,9 +6,10 @@ import { getScoreDisplay } from '../utils/storage';
 
 interface CompetitionsProps {
   onBack: () => void;
+  onStartCompetitionGame: (compId: string) => void;
 }
 
-export default function Competitions({ onBack }: CompetitionsProps) {
+export default function Competitions({ onBack, onStartCompetitionGame }: CompetitionsProps) {
   const { data, createCompetition, joinCompetition, deleteCompetition } = useGolf();
   const { t } = useAppSettings();
   const { user } = useAuth();
@@ -26,8 +27,8 @@ export default function Competitions({ onBack }: CompetitionsProps) {
     if (compId && hostId && compName && user) {
       const exists = data.competitions.some(c => c.id === compId);
       if (!exists) {
-        joinCompetition(compId);
-        alert(`"${decodeURIComponent(compName)}" 대회に参加しました！`);
+        joinCompetition(compId, hostId as string, decodeURIComponent(compName));
+        alert(`"${decodeURIComponent(compName)}" 대회에 참여했습니다!`);
         window.history.replaceState({}, '', window.location.pathname);
       }
     }
@@ -38,7 +39,7 @@ export default function Competitions({ onBack }: CompetitionsProps) {
     const comp = data.competitions.find(c => c.id === compId);
     if (!comp) return;
     
-    const shareLink = `${baseUrl}?comp=1&host=${encodeURIComponent(comp.hostId)}&name=${encodeURIComponent(comp.name)}`;
+    const shareLink = `${baseUrl}?comp=${encodeURIComponent(compId)}&host=${encodeURIComponent(comp.hostId)}&name=${encodeURIComponent(comp.name)}`;
     await navigator.clipboard.writeText(shareLink);
     setShareLinkCompId(compId);
     setTimeout(() => {
@@ -55,11 +56,11 @@ export default function Competitions({ onBack }: CompetitionsProps) {
   };
 
   const toggleFriend = (friendId: string) => {
-    setSelectedFriends(prev => 
-      prev.includes(friendId) 
-        ? prev.filter(id => id !== friendId)
-        : [...prev, friendId]
-    );
+    if (selectedFriends.includes(friendId)) {
+      setSelectedFriends(prev => prev.filter(id => id !== friendId));
+    } else if (selectedFriends.length < 4) {
+      setSelectedFriends(prev => [...prev, friendId]);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -112,18 +113,23 @@ export default function Competitions({ onBack }: CompetitionsProps) {
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
             />
             
-            {data.friends.length > 0 && (
+              {data.friends.length > 0 && (
               <div className="mb-4">
-                <p className="text-sm text-stone-500 font-bold mb-2">친구 초대</p>
+                <p className="text-sm text-stone-500 font-bold mb-2">
+                  친구 초대 ({selectedFriends.length}/4)
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {data.friends.map(friend => (
                     <button
                       key={friend.id}
                       onClick={() => toggleFriend(friend.id)}
+                      disabled={!selectedFriends.includes(friend.id) && selectedFriends.length >= 4}
                       className={`px-3 py-2 rounded-xl text-sm font-bold transition-all ${
                         selectedFriends.includes(friend.id)
                           ? 'bg-secondary text-white'
-                          : 'bg-surface-container text-stone-600'
+                          : !selectedFriends.includes(friend.id) && selectedFriends.length >= 4
+                            ? 'bg-stone-200 text-stone-400 cursor-not-allowed'
+                            : 'bg-surface-container text-stone-600'
                       }`}
                     >
                       {friend.name}
@@ -176,6 +182,14 @@ export default function Competitions({ onBack }: CompetitionsProps) {
                     </div>
                     <div className="flex items-center gap-2">
                       <button
+                        onClick={() => onStartCompetitionGame(comp.id)}
+                        className="px-3 py-2 bg-secondary text-white rounded-full text-sm font-bold flex items-center gap-1 hover:bg-secondary-container transition-colors"
+                        title="새라운딩 시작"
+                      >
+                        <span className="material-symbols-outlined text-lg">play_arrow</span>
+                        시작
+                      </button>
+                      <button
                         onClick={() => handleShareComp(comp.id)}
                         className={`p-2 rounded-full transition-colors ${
                           shareLinkCompId === comp.id 
@@ -227,12 +241,12 @@ export default function Competitions({ onBack }: CompetitionsProps) {
                       <p className="text-xs text-stone-500 font-bold mb-2">{t('ranking')}</p>
                       {comp.rounds
                         .sort((a, b) => a.relativeScore - b.relativeScore)
-                        .slice(0, 3)
                         .map((round, i) => {
-                          const player = comp.players.find(p => p.id === round.id) || { name: 'Unknown' };
+                          const player = comp.players.find(p => p.id === round.playerId) || { name: 'Unknown' };
                           const scoreDisplay = getScoreDisplay(round.relativeScore);
+                          const isCurrentUser = round.playerId === data.player.id;
                           return (
-                            <div key={round.id} className="flex items-center justify-between text-sm mb-2 last:mb-0">
+                            <div key={round.id} className={`flex items-center justify-between text-sm mb-2 last:mb-0 rounded-lg px-2 py-1 ${isCurrentUser ? 'bg-secondary/10' : ''}`}>
                               <div className="flex items-center gap-2">
                                 <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                                   i === 0 ? 'bg-yellow-400 text-stone-900' : 
@@ -241,7 +255,10 @@ export default function Competitions({ onBack }: CompetitionsProps) {
                                 }`}>
                                   {i + 1}
                                 </span>
-                                <span className="text-primary font-semibold">{player.name}</span>
+                                <span className="text-primary font-semibold">
+                                  {player.name}
+                                  {isCurrentUser && <span className="ml-1 text-secondary">(나)</span>}
+                                </span>
                               </div>
                               <span className={`font-bold ${scoreDisplay.color}`}>
                                 {round.totalScore} ({scoreDisplay.text})
