@@ -199,34 +199,40 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
 
   const addRound = (courseName: string): Round => {
     const newRound = createNewRound(courseName);
-    setData(prev => ({
-      ...prev,
-      rounds: [newRound, ...prev.rounds],
-    }));
+    const newData = {
+      ...data,
+      rounds: [newRound, ...data.rounds],
+    };
+    setData(newData);
+    saveData(newData);
     return newRound;
   };
 
   const updateRound = (round: Round) => {
-    setData(prev => ({
-      ...prev,
-      rounds: prev.rounds.map(r => 
-        r.id === round.id ? round : r
-      ),
-    }));
+    const newData = {
+      ...data,
+      rounds: data.rounds.map(r => r.id === round.id ? round : r),
+    };
+    setData(newData);
+    saveData(newData);
   };
 
   const deleteRound = (roundId: string) => {
-    setData(prev => ({
-      ...prev,
-      rounds: prev.rounds.filter(r => r.id !== roundId),
-    }));
+    const newData = {
+      ...data,
+      rounds: data.rounds.filter(r => r.id !== roundId),
+    };
+    setData(newData);
+    saveData(newData);
   };
 
   const updatePlayer = (player: Partial<Player>) => {
-    setData(prev => ({
-      ...prev,
-      player: { ...prev.player, ...player },
-    }));
+    const newData = {
+      ...data,
+      player: { ...data.player, ...player },
+    };
+    setData(newData);
+    saveData(newData);
   };
 
   const addFriend = (name: string, userId?: string) => {
@@ -235,17 +241,21 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       name,
       userId,
     };
-    setData(prev => ({
-      ...prev,
-      friends: [...prev.friends, newFriend],
-    }));
+    const newData = {
+      ...data,
+      friends: [...data.friends, newFriend],
+    };
+    setData(newData);
+    saveData(newData);
   };
 
   const removeFriend = (friendId: string) => {
-    setData(prev => ({
-      ...prev,
-      friends: prev.friends.filter(f => f.id !== friendId),
-    }));
+    const newData = {
+      ...data,
+      friends: data.friends.filter(f => f.id !== friendId),
+    };
+    setData(newData);
+    saveData(newData);
   };
 
   const updateFriend = (friendId: string, name: string) => {
@@ -271,12 +281,17 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       status: 'pending',
     };
     
-    setData(prev => ({
-      ...prev,
-      competitions: [...prev.competitions, comp],
-    }));
+    const newData = {
+      ...data,
+      competitions: [...data.competitions, comp],
+    };
     
-    syncCompetitionToSupabase(comp);
+    setData(newData);
+    saveData(newData);
+    
+    if (user) {
+      syncCompetitionToSupabase(comp);
+    }
     return comp;
   };
 
@@ -285,25 +300,25 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     
     if (existingComp) {
       if (!existingComp.players.find(p => p.id === data.player.id)) {
-        setData(prev => ({
-          ...prev,
-          competitions: prev.competitions.map(c => 
-            c.id === compId
-              ? { 
-                  ...c, 
-                  players: [...c.players, data.player],
-                  playerIds: [...c.playerIds, data.player.id]
-                }
-              : c
-          ),
-        }));
-        
         const updatedComp = {
           ...existingComp,
           players: [...existingComp.players, data.player],
           playerIds: [...existingComp.playerIds, data.player.id],
         };
-        syncCompetitionToSupabase(updatedComp);
+        
+        const newData = {
+          ...data,
+          competitions: data.competitions.map(c => 
+            c.id === compId ? updatedComp : c
+          ),
+        };
+        
+        setData(newData);
+        saveData(newData);
+        
+        if (user) {
+          syncCompetitionToSupabase(updatedComp);
+        }
       }
       return;
     }
@@ -336,13 +351,19 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
         if (!newComp.players.find(p => p.id === data.player.id)) {
           newComp.players = [...newComp.players, data.player];
           newComp.playerIds = [...newComp.playerIds, data.player.id];
-          syncCompetitionToSupabase(newComp);
         }
         
-        setData(prev => ({
-          ...prev,
-          competitions: [...prev.competitions, newComp],
-        }));
+        const newData = {
+          ...data,
+          competitions: [...data.competitions, newComp],
+        };
+        
+        setData(newData);
+        saveData(newData);
+        
+        if (user) {
+          syncCompetitionToSupabase(newComp);
+        }
       } catch (error) {
         console.error('Failed to join competition:', error);
       }
@@ -350,21 +371,25 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteCompetition = (compId: string) => {
-    setData(prev => ({
-      ...prev,
-      competitions: prev.competitions.filter(c => c.id !== compId),
-    }));
+    const newData = {
+      ...data,
+      competitions: data.competitions.filter(c => c.id !== compId),
+    };
+    setData(newData);
+    saveData(newData);
   };
 
   const addRoundToCompetition = (compId: string, round: Round) => {
-    setData(prev => ({
-      ...prev,
-      competitions: prev.competitions.map(c => 
+    const newData = {
+      ...data,
+      competitions: data.competitions.map(c => 
         c.id === compId
           ? { ...c, rounds: [...c.rounds, round], status: 'active' as const }
           : c
       ),
-    }));
+    };
+    setData(newData);
+    saveData(newData);
   };
 
   const addSampleData = () => {
@@ -374,11 +399,13 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       name,
     }));
     
-    setData(prev => ({
-      ...prev,
-      rounds: [...sampleRounds, ...prev.rounds],
-      friends: [...prev.friends, ...sampleFriends],
-    }));
+    const newData = {
+      ...data,
+      rounds: [...sampleRounds, ...data.rounds],
+      friends: [...data.friends, ...sampleFriends],
+    };
+    setData(newData);
+    saveData(newData);
   };
 
   const clearAllData = async () => {
