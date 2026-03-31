@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useAppSettings, type Language } from '../hooks/useAppSettings';
 import { useAuth } from '../hooks/useAuth';
-import { useGolf } from '../hooks/useGolf';
 
 const languageNames: Record<Language, string> = {
   ko: '한국어',
@@ -17,13 +16,11 @@ interface SettingsProps {
 export default function Settings({ onBack }: SettingsProps) {
   const { language, setLanguage, darkMode, setDarkMode, t } = useAppSettings();
   const { user, loading, signInWithGoogle, signOut } = useAuth();
-  const { clearLocalData } = useGolf();
 
   const handleSignOut = async () => {
     if (user) {
       await signOut();
     }
-    clearLocalData();
     window.location.reload();
   };
   const [playerName, setPlayerName] = useState(() => {

@@ -101,18 +101,28 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     
     try {
-      const { data: sharedComps, error } = await supabase
+      const { data: hostedComps, error: hostedError } = await supabase
         .from('shared_competitions')
         .select('*')
         .eq('host_id', user.id);
       
-      if (error) {
-        console.error('Load competitions error:', error);
+      const { data: participatedComps, error: participatedError } = await supabase
+        .from('shared_competitions')
+        .select('*')
+        .contains('player_ids', [user.id]);
+
+      const allComps = [...(hostedComps || []), ...(participatedComps || [])];
+      const uniqueComps = allComps.filter((comp, index, self) => 
+        index === self.findIndex(c => c.id === comp.id)
+      );
+      
+      if (hostedError || participatedError) {
+        console.error('Load competitions error:', hostedError || participatedError);
         return;
       }
       
-      if (sharedComps && sharedComps.length > 0) {
-        const remoteComps: Competition[] = sharedComps.map(c => ({
+      if (uniqueComps && uniqueComps.length > 0) {
+        const remoteComps: Competition[] = uniqueComps.map(c => ({
           id: c.id,
           name: c.name,
           hostId: c.host_id,
@@ -156,17 +166,15 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       
       if (supabaseData?.data) {
         const localData = loadData();
+        const hasRemoteRounds = supabaseData.data.rounds?.length > 0;
+        const hasRemoteFriends = supabaseData.data.friends?.length > 0;
+        const hasRemoteCompetitions = supabaseData.data.competitions?.length > 0;
+        
         const mergedData = {
           ...supabaseData.data,
-          rounds: supabaseData.data.rounds?.length > 0 
-            ? supabaseData.data.rounds 
-            : localData.rounds,
-          friends: supabaseData.data.friends?.length > 0 
-            ? supabaseData.data.friends 
-            : localData.friends,
-          competitions: supabaseData.data.competitions?.length > 0 
-            ? supabaseData.data.competitions 
-            : localData.competitions,
+          rounds: hasRemoteRounds ? supabaseData.data.rounds : localData.rounds,
+          friends: hasRemoteFriends ? supabaseData.data.friends : localData.friends,
+          competitions: hasRemoteCompetitions ? supabaseData.data.competitions : localData.competitions,
         };
         setData(mergedData);
         saveData(mergedData);
