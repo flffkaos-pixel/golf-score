@@ -214,13 +214,14 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
   }, [user]);
 
   useEffect(() => {
+    saveData(data);
+  }, [data]);
+
+  useEffect(() => {
     if (user && data) {
       syncToSupabase(data);
-      saveData(data);
-    } else {
-      saveData(data);
     }
-  }, [data, user]);
+  }, [user]);
 
   const addRound = (courseName: string): Round => {
     const newRound = createNewRound(courseName);
