@@ -1,8 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { GolfData, Player, Round, Competition } from '../types';
 import { loadData, saveData, generateId, createNewRound, calculateScore } from '../utils/storage';
-import { supabase } from '../supabase';
-import { useAuth } from './useAuth';
 
 interface GolfContextType {
   data: GolfData;
@@ -54,51 +52,10 @@ const generateSampleRound = () => {
 
 export const GolfProvider = ({ children }: { children: ReactNode }) => {
   const [data, setData] = useState<GolfData>(loadData);
-  const [syncing, setSyncing] = useState(false);
-  const { user } = useAuth();
-
-  const syncToSupabase = async (golfData: GolfData) => {
-    // Supabase 동기화 비활성화 - 로컬 데이터만 사용
-    return;
-  };
-
-  const syncCompetitionToSupabase = async (comp: Competition) => {
-    // Supabase 동기화 비활성화 - 로컬 데이터만 사용
-    return;
-  };
-
-  const loadSharedCompetitions = async () => {
-    // Supabase 대회 로딩 비활성화 - 로컬 데이터만 사용
-    return;
-  };
-
-  const loadFromSupabase = async () => {
-    // Supabase에서 데이터 가져오지 않고 로컬만 사용
-    // 나중에 동기화 기능이 필요할 때 다시 활성화
-    return;
-  };
-
-  useEffect(() => {
-    if (user) {
-      loadFromSupabase();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (user) {
-      loadSharedCompetitions();
-    }
-  }, [user]);
 
   useEffect(() => {
     saveData(data);
   }, [data]);
-
-  useEffect(() => {
-    if (user && data) {
-      syncToSupabase(data);
-    }
-  }, [user]);
 
   const addRound = (courseName: string): Round => {
     const newRound = createNewRound(courseName);
@@ -107,7 +64,6 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       rounds: [newRound, ...data.rounds],
     };
     setData(newData);
-    saveData(newData);
     return newRound;
   };
 
@@ -117,7 +73,6 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       rounds: data.rounds.map(r => r.id === round.id ? round : r),
     };
     setData(newData);
-    saveData(newData);
   };
 
   const deleteRound = (roundId: string) => {
@@ -126,7 +81,6 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       rounds: data.rounds.filter(r => r.id !== roundId),
     };
     setData(newData);
-    saveData(newData);
   };
 
   const updatePlayer = (player: Partial<Player>) => {
@@ -135,7 +89,6 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       player: { ...data.player, ...player },
     };
     setData(newData);
-    saveData(newData);
   };
 
   const addFriend = (name: string, userId?: string) => {
@@ -149,7 +102,6 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       friends: [...data.friends, newFriend],
     };
     setData(newData);
-    saveData(newData);
   };
 
   const removeFriend = (friendId: string) => {
@@ -158,7 +110,6 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       friends: data.friends.filter(f => f.id !== friendId),
     };
     setData(newData);
-    saveData(newData);
   };
 
   const updateFriend = (friendId: string, name: string) => {
@@ -170,7 +121,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
-  const createCompetition = async (name: string, friendIds: string[] = []): Promise<Competition> => {
+  const createCompetition = (name: string, friendIds: string[] = []): Competition => {
     const invitedFriends = data.friends.filter(f => friendIds.includes(f.id));
     const comp: Competition = {
       id: generateId(),
@@ -190,16 +141,11 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     };
     
     setData(newData);
-    saveData(newData);
-    
-    if (user) {
-      await syncCompetitionToSupabase(comp);
-    }
     return comp;
   };
 
-  const joinCompetition = async (compId: string, hostId?: string, compName?: string) => {
-    const existingComp = data.competitions.find(c => c.id === compId);
+  const joinCompetition = (_compId: string, _hostId?: string, _compName?: string) => {
+    const existingComp = data.competitions.find(c => c.id === _compId);
     
     if (existingComp) {
       if (!existingComp.players.find(p => p.id === data.player.id)) {
@@ -212,64 +158,13 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
         const newData = {
           ...data,
           competitions: data.competitions.map(c => 
-            c.id === compId ? updatedComp : c
+            c.id === _compId ? updatedComp : c
           ),
         };
         
         setData(newData);
-        saveData(newData);
-        
-        if (user) {
-          syncCompetitionToSupabase(updatedComp);
-        }
       }
       return;
-    }
-
-    if (hostId && compName) {
-      try {
-        const { data: compData, error } = await supabase
-          .from('shared_competitions')
-          .select('*')
-          .eq('id', compId)
-          .single();
-        
-        if (error || !compData) {
-          console.error('Competition not found:', error);
-          return;
-        }
-        
-        const newComp: Competition = {
-          id: compData.id,
-          name: compData.name,
-          hostId: compData.host_id,
-          hostName: compData.host_name,
-          players: compData.players,
-          playerIds: compData.player_ids,
-          rounds: compData.rounds || [],
-          startDate: compData.start_date,
-          status: compData.status || 'pending',
-        };
-        
-        if (!newComp.players.find(p => p.id === data.player.id)) {
-          newComp.players = [...newComp.players, data.player];
-          newComp.playerIds = [...newComp.playerIds, data.player.id];
-        }
-        
-        const newData = {
-          ...data,
-          competitions: [...data.competitions, newComp],
-        };
-        
-        setData(newData);
-        saveData(newData);
-        
-        if (user) {
-          syncCompetitionToSupabase(newComp);
-        }
-      } catch (error) {
-        console.error('Failed to join competition:', error);
-      }
     }
   };
 
@@ -279,7 +174,6 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       competitions: data.competitions.filter(c => c.id !== compId),
     };
     setData(newData);
-    saveData(newData);
   };
 
   const addRoundToCompetition = (compId: string, round: Round) => {
@@ -292,14 +186,6 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       ),
     };
     setData(newData);
-    saveData(newData);
-    
-    if (user) {
-      const updatedComp = newData.competitions.find(c => c.id === compId);
-      if (updatedComp) {
-        syncCompetitionToSupabase(updatedComp);
-      }
-    }
   };
 
   const addSampleData = () => {
@@ -315,20 +201,12 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       friends: [...data.friends, ...sampleFriends],
     };
     setData(newData);
-    saveData(newData);
   };
 
-  const clearAllData = async () => {
+  const clearAllData = () => {
     if (confirm('모든 데이터가 삭제됩니다. 계속할까요?')) {
-      const newData = loadData();
-      setData(newData);
-      if (user) {
-        await supabase
-          .from('user_data')
-          .delete()
-          .eq('user_id', user.id);
-      }
       localStorage.removeItem('golf_score_data');
+      setData(loadData());
     }
   };
 
@@ -354,7 +232,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       addSampleData,
       clearAllData,
       clearLocalData,
-      syncing,
+      syncing: false,
     }}>
       {children}
     </GolfContext.Provider>
