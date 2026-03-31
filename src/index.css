@@ -63,6 +63,7 @@
   --color-secondary: #bff365;
   --color-secondary-container: #476800;
   --color-on-secondary: #002114;
+  --color-on-secondary-container: #d4f8a0;
   --color-tertiary: #c1ecd4;
   --color-tertiary-container: #324100;
   --color-tertiary-fixed: #bff365;
@@ -76,9 +77,9 @@
   --color-surface-container-highest: #1b263b;
   
   --color-on-surface: #dfe5fa;
-  --color-on-surface-variant: #a4abbf;
+  --color-on-surface-variant: #c8cee0;
   
-  --color-outline: #3d4759;
+  --color-outline: #4d5769;
   --color-outline-variant: #3d4759;
   
   --color-error: #ffb4ab;
@@ -157,47 +158,67 @@ h1, h2, h3, h4, .font-headline {
   color: var(--color-secondary);
 }
 
+/* ===== DARK MODE OVERRIDES ===== */
+
+/* Backgrounds */
 .dark .bg-white { background-color: var(--color-surface-container-lowest) !important; }
 .dark .bg-stone-50 { background-color: var(--color-surface-container-low); }
-.dark .bg-stone-100 { background-color: var(--color-surface-container-low); }
-.dark .bg-stone-200 { background-color: var(--color-surface-container); }
-.dark .bg-stone-300 { background-color: var(--color-surface-container-high); }
-.dark .bg-stone-400 { background-color: var(--color-surface-variant); }
+.dark .bg-stone-100 { background-color: var(--color-surface-container); }
+.dark .bg-stone-200 { background-color: var(--color-surface-container-high); }
+.dark .bg-stone-300 { background-color: var(--color-outline); }
+.dark .bg-stone-400 { background-color: var(--color-outline); }
+.dark .bg-stone-500 { background-color: var(--color-outline); }
+.dark .bg-surface-container { background-color: var(--color-surface-container); }
+.dark .bg-surface-container-low { background-color: var(--color-surface-container-low); }
+.dark .bg-surface-container-lowest { background-color: var(--color-surface-container-lowest); }
+.dark .bg-surface-container-high { background-color: var(--color-surface-container-high); }
+.dark .bg-primary { background-color: var(--color-primary); color: var(--color-on-primary); }
+.dark .bg-primary-container { background-color: var(--color-primary-container); color: var(--color-on-primary); }
+.dark .bg-secondary { background-color: var(--color-secondary); color: var(--color-on-secondary); }
+.dark .bg-secondary-container { background-color: var(--color-secondary-container); color: var(--color-on-secondary-container); }
+.dark .bg-tertiary-fixed { background-color: var(--color-tertiary-fixed); }
+.dark .bg-tertiary-fixed\/20 { background-color: rgba(191, 243, 101, 0.2); }
+.dark .bg-error-container { background-color: var(--color-error-container); }
+.dark .bg-blue-500 { background-color: #3b82f6; }
+.dark .bg-orange-400 { background-color: #f97316; }
+.dark .bg-red-500 { background-color: #ef4444; }
+.dark .bg-yellow-400 { background-color: #fbbf24; }
+.dark .bg-yellow-100 { background-color: rgba(251, 191, 36, 0.15); }
+.dark .bg-amber-100 { background-color: rgba(245, 158, 11, 0.15); }
+.dark .bg-amber-600 { background-color: #d97706; }
+.dark .bg-red-100 { background-color: rgba(255, 180, 171, 0.15); }
+
+/* Text colors */
+.dark .text-white { color: var(--color-on-primary); }
 .dark .text-stone-400 { color: var(--color-on-surface-variant); }
 .dark .text-stone-500 { color: var(--color-on-surface-variant); }
 .dark .text-stone-600 { color: var(--color-on-surface-variant); }
 .dark .text-stone-700 { color: var(--color-on-surface); }
-.dark .bg-surface-container { background-color: var(--color-surface-container); }
-.dark .bg-surface-container-low { background-color: var(--color-surface-container-low); }
-.dark .bg-surface-container-lowest { background-color: var(--color-surface-container-lowest); }
-.dark .bg-primary { background-color: var(--color-primary); color: var(--color-on-primary); }
-.dark .bg-primary-container { background-color: var(--color-primary-container); }
+.dark .text-stone-800 { color: var(--color-on-surface); }
+.dark .text-stone-900 { color: var(--color-on-surface); }
 .dark .text-primary { color: var(--color-primary); }
 .dark .text-secondary { color: var(--color-secondary); }
-.dark .bg-secondary { background-color: var(--color-secondary); color: var(--color-on-secondary); }
-.dark .bg-secondary-container { background-color: var(--color-secondary-container); }
-.dark .text-on-secondary-container { color: var(--color-on-secondary-container); }
-.dark .bg-tertiary-fixed\/20 { background-color: rgba(191, 243, 101, 0.2); }
 .dark .text-tertiary { color: var(--color-tertiary-fixed); }
+.dark .text-on-secondary-container { color: var(--color-on-secondary-container); }
 .dark .text-yellow-400 { color: #fbbf24; }
 .dark .text-yellow-600 { color: #fbbf24; }
 .dark .text-error { color: var(--color-error); }
-.dark .bg-error-container { background-color: var(--color-error-container); }
 .dark .text-on-error { color: var(--color-on-error); }
-.dark .bg-blue-500 { background-color: #3b82f6; }
-.dark .bg-orange-400 { background-color: #f97316; }
-.dark .bg-red-500 { background-color: #ef4444; }
+.dark .text-green-600 { color: #4ade80; }
+.dark .text-red-600 { color: #ffb4ab; }
 
-/* Home card dark mode fixes */
-.dark .bg-primary.text-white { color: var(--color-on-primary); }
+/* Home card dark mode */
 .dark .bg-primary .text-primary-fixed-dim { color: var(--color-primary-fixed-dim); }
 .dark .bg-primary .text-primary-fixed { color: var(--color-primary-fixed); }
 
-/* Competition gradient button dark mode */
+/* Competition gradient */
 .dark .bg-gradient-to-r.from-secondary.to-tertiary {
   background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-tertiary-fixed) 100%);
 }
 
-/* Competition pending status dark mode */
-.dark .bg-tertiary-fixed { background-color: var(--color-tertiary-fixed); }
-.dark .text-tertiary { color: var(--color-on-tertiary-fixed); }
+/* Specific overrides for hard-to-read combinations */
+.dark .bg-surface.text-stone-800 { color: var(--color-on-surface); }
+.dark .bg-yellow-400.text-stone-800 { color: #1a1a1a; }
+.dark .bg-yellow-400.text-stone-900 { color: #1a1a1a; }
+.dark .bg-stone-300.text-stone-700 { background-color: var(--color-outline); color: var(--color-on-surface); }
+.dark .bg-surface-container.text-stone-600 { color: var(--color-on-surface); }

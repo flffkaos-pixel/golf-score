@@ -10,7 +10,7 @@ interface PlayGameProps {
 }
 
 export default function PlayGame({ onBack, onComplete, competitionId }: PlayGameProps) {
-  const { data, addRound, updateRound, addRoundToCompetition, finishCompetitionRound } = useGolf();
+  const { data, addRound, updateRound, addRoundToCompetition, setData } = useGolf();
   const { t } = useAppSettings();
   const [courseName, setCourseName] = useState('');
   const [step, setStep] = useState<'name' | 'score'>('name');
@@ -107,8 +107,18 @@ export default function PlayGame({ onBack, onComplete, competitionId }: PlayGame
     if (competitionId) {
       const comp = data.competitions.find(c => c.id === competitionId);
       if (comp) {
-        const updatedRound = { ...round!, playerId: data.player.id };
-        const allRounds = [...comp.rounds, updatedRound];
+        const updatedRound = { ...round!, playerId: data.player.id, competitionId };
+        
+        // Update competition rounds
+        const existingRoundIndex = comp.rounds.findIndex(r => r.playerId === data.player.id);
+        let allRounds: typeof comp.rounds;
+        if (existingRoundIndex >= 0) {
+          allRounds = [...comp.rounds];
+          allRounds[existingRoundIndex] = updatedRound;
+        } else {
+          allRounds = [...comp.rounds, updatedRound];
+        }
+        
         const sorted = allRounds.sort((a, b) => a.relativeScore - b.relativeScore);
         const rankings = sorted.map(r => {
           const player = comp.players.find(p => p.id === r.playerId);
@@ -121,7 +131,27 @@ export default function PlayGame({ onBack, onComplete, competitionId }: PlayGame
         setCompRankings(rankings);
         setShowRankPopup(true);
         
-        finishCompetitionRound(competitionId, updatedRound, comp.players.map(p => p.id));
+        // Check if all players have finished
+        const playerIdsWithRounds = new Set(allRounds.map(r => r.playerId));
+        const allFinished = comp.players.every(p => playerIdsWithRounds.has(p.id));
+        
+        // Update both round and competition in one state update
+        setData(prev => {
+          const roundExists = prev.rounds.some(r => r.id === updatedRound.id);
+          const newRounds = roundExists
+            ? prev.rounds.map(r => r.id === updatedRound.id ? updatedRound : r)
+            : [updatedRound, ...prev.rounds];
+          
+          return {
+            ...prev,
+            rounds: newRounds,
+            competitions: prev.competitions.map(c => 
+              c.id === competitionId
+                ? { ...c, rounds: allRounds, status: allFinished ? 'finished' as const : 'active' as const }
+                : c
+            ),
+          };
+        });
         
         return;
       }

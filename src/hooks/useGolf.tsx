@@ -4,6 +4,7 @@ import { loadData, saveData, generateId, createNewRound, calculateScore } from '
 
 interface GolfContextType {
   data: GolfData;
+  setData: (data: GolfData | ((prev: GolfData) => GolfData)) => void;
   addRound: (courseName: string) => Round;
   updateRound: (round: Round) => void;
   deleteRound: (roundId: string) => void;
@@ -253,6 +254,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
   return (
     <GolfContext.Provider value={{
       data,
+      setData,
       addRound,
       updateRound,
       deleteRound,
