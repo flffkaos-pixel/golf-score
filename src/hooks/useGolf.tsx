@@ -170,20 +170,31 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
       
+      const localData = loadData();
+      
       if (supabaseData?.data) {
-        const localData = loadData();
         const hasRemoteRounds = supabaseData.data.rounds?.length > 0;
         const hasRemoteFriends = supabaseData.data.friends?.length > 0;
         const hasRemoteCompetitions = supabaseData.data.competitions?.length > 0;
         
         const mergedData = {
-          ...supabaseData.data,
-          rounds: hasRemoteRounds ? supabaseData.data.rounds : localData.rounds,
-          friends: hasRemoteFriends ? supabaseData.data.friends : localData.friends,
-          competitions: hasRemoteCompetitions ? supabaseData.data.competitions : localData.competitions,
+          ...localData,
+          player: supabaseData.data.player || localData.player,
+          rounds: hasRemoteRounds && localData.rounds.length === 0 
+            ? supabaseData.data.rounds 
+            : [...localData.rounds, ...(supabaseData.data.rounds || [])].filter((v, i, a) => a.findIndex(t => t.id === v.id) === i),
+          friends: hasRemoteFriends && localData.friends.length === 0 
+            ? supabaseData.data.friends 
+            : [...localData.friends, ...(supabaseData.data.friends || [])].filter((v, i, a) => a.findIndex(t => t.id === v.id) === i),
+          competitions: hasRemoteCompetitions && localData.competitions.length === 0 
+            ? supabaseData.data.competitions 
+            : [...localData.competitions, ...(supabaseData.data.competitions || [])].filter((v, i, a) => a.findIndex(t => t.id === v.id) === i),
         };
         setData(mergedData);
         saveData(mergedData);
+      } else {
+        setData(localData);
+        saveData(localData);
       }
     } finally {
       setSyncing(false);
@@ -404,6 +415,13 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     };
     setData(newData);
     saveData(newData);
+    
+    if (user) {
+      const updatedComp = newData.competitions.find(c => c.id === compId);
+      if (updatedComp) {
+        syncCompetitionToSupabase(updatedComp);
+      }
+    }
   };
 
   const addSampleData = () => {
