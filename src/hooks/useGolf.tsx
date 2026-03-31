@@ -173,22 +173,12 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       const localData = loadData();
       
       if (supabaseData?.data) {
-        const hasRemoteRounds = supabaseData.data.rounds?.length > 0;
-        const hasRemoteFriends = supabaseData.data.friends?.length > 0;
-        const hasRemoteCompetitions = supabaseData.data.competitions?.length > 0;
-        
         const mergedData = {
           ...localData,
           player: supabaseData.data.player || localData.player,
-          rounds: hasRemoteRounds && localData.rounds.length === 0 
-            ? supabaseData.data.rounds 
-            : [...localData.rounds, ...(supabaseData.data.rounds || [])].filter((v, i, a) => a.findIndex(t => t.id === v.id) === i),
-          friends: hasRemoteFriends && localData.friends.length === 0 
-            ? supabaseData.data.friends 
-            : [...localData.friends, ...(supabaseData.data.friends || [])].filter((v, i, a) => a.findIndex(t => t.id === v.id) === i),
-          competitions: hasRemoteCompetitions && localData.competitions.length === 0 
-            ? supabaseData.data.competitions 
-            : [...localData.competitions, ...(supabaseData.data.competitions || [])].filter((v, i, a) => a.findIndex(t => t.id === v.id) === i),
+          rounds: [...localData.rounds, ...(supabaseData.data.rounds || [])].filter((v, i, a) => a.findIndex(t => t.id === v.id) === i),
+          friends: [...localData.friends, ...(supabaseData.data.friends || [])].filter((v, i, a) => a.findIndex(t => t.id === v.id) === i),
+          competitions: [...localData.competitions, ...(supabaseData.data.competitions || [])].filter((v, i, a) => a.findIndex(t => t.id === v.id) === i),
         };
         setData(mergedData);
         saveData(mergedData);
