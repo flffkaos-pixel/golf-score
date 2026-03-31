@@ -94,7 +94,7 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
 
   return (
     <div className="min-h-screen bg-surface pb-32">
-      <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+      <header className="bg-white dark:bg-surface-container-lowest flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
         <button onClick={onBack} className="p-2 -ml-2">
           <span className="material-symbols-outlined text-stone-500">arrow_back</span>
         </button>
@@ -139,8 +139,8 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
                         selectedFriends.includes(friend.id)
                           ? 'bg-secondary text-white'
                           : !selectedFriends.includes(friend.id) && selectedFriends.length >= 4
-                            ? 'bg-stone-200 text-stone-400 cursor-not-allowed'
-                            : 'bg-surface-container text-stone-600'
+                            ? 'bg-stone-200 text-stone-400 cursor-not-allowed dark:bg-surface-container-high dark:text-outline'
+                            : 'bg-surface-container text-stone-600 dark:text-on-surface'
                       }`}
                     >
                       {friend.name}
@@ -156,7 +156,7 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
                   setShowCreate(false);
                   setSelectedFriends([]);
                 }}
-                className="flex-1 bg-surface-container text-stone-600 py-4 rounded-xl font-bold active:scale-98 transition-transform"
+                className="flex-1 bg-surface-container text-stone-600 py-4 rounded-xl font-bold active:scale-98 transition-transform dark:text-on-surface"
               >
                 {t('cancel')}
               </button>
@@ -268,8 +268,8 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
                               <div className="flex items-center gap-2">
                                 <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                                   i === 0 ? 'bg-yellow-400 text-stone-900' : 
-                                  i === 1 ? 'bg-stone-300 text-stone-700' : 
-                                  i === 2 ? 'bg-amber-600 text-white' : 'bg-surface-container text-stone-600'
+                                  i === 1 ? 'bg-stone-300 text-stone-700 dark:bg-stone-500 dark:text-stone-200' : 
+                                  i === 2 ? 'bg-amber-600 text-white' : 'bg-surface-container text-stone-600 dark:text-on-surface'
                                 }`}>
                                   {i + 1}
                                 </span>
@@ -304,7 +304,7 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
 
       {inviteCompId && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+          <div className="bg-white dark:bg-surface-container-lowest rounded-2xl p-6 w-full max-w-sm">
             <h3 className="text-xl font-bold text-primary font-headline mb-4">친구 초대</h3>
             {data.friends.length === 0 ? (
               <p className="text-stone-500 mb-4">초대할 친구가 없습니다.</p>
@@ -320,7 +320,7 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
                       disabled={alreadyJoined}
                       className={`w-full p-3 rounded-xl text-left font-bold transition-all ${
                         alreadyJoined
-                          ? 'bg-stone-100 text-stone-400 cursor-not-allowed'
+                          ? 'bg-stone-100 text-stone-400 cursor-not-allowed dark:bg-surface-container dark:text-outline'
                           : 'bg-surface-container text-primary active:scale-98 hover:bg-secondary-container'
                       }`}
                     >

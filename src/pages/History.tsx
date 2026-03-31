@@ -18,8 +18,8 @@ export default function History({ onBack }: HistoryProps) {
     const diff = score - par;
     if (diff <= -2) return 'bg-blue-500 text-white';
     if (diff === -1) return 'bg-secondary text-white';
-    if (diff === 0) return 'bg-surface text-stone-800';
-    if (diff === 1) return 'bg-yellow-400 text-stone-800';
+    if (diff === 0) return 'bg-surface text-stone-800 dark:text-on-surface';
+    if (diff === 1) return 'bg-yellow-400 text-stone-800 dark:text-stone-900';
     if (diff === 2) return 'bg-orange-400 text-white';
     return 'bg-red-500 text-white';
   };
@@ -42,7 +42,7 @@ export default function History({ onBack }: HistoryProps) {
 
     return (
       <div className="min-h-screen bg-surface pb-32">
-        <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+        <header className="bg-white dark:bg-surface-container-lowest flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
           <button onClick={() => setSelectedRound(null)} className="p-2 -ml-2">
             <span className="material-symbols-outlined text-stone-500">arrow_back</span>
           </button>
@@ -153,7 +153,7 @@ export default function History({ onBack }: HistoryProps) {
 
   return (
     <div className="min-h-screen bg-surface pb-32">
-      <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+      <header className="bg-white dark:bg-surface-container-lowest flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
         <button onClick={onBack} className="p-2 -ml-2">
           <span className="material-symbols-outlined text-stone-500">arrow_back</span>
         </button>
@@ -165,7 +165,7 @@ export default function History({ onBack }: HistoryProps) {
         <div className="flex gap-2 mb-6">
           <button
             onClick={() => setFilter('all')}
-            className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${filter === 'all' ? 'bg-primary text-white' : 'bg-surface-container text-stone-600'}`}
+            className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${filter === 'all' ? 'bg-primary text-white' : 'bg-surface-container text-stone-600 dark:text-on-surface'}`}
           >
             전체 ({data.rounds.length})
           </button>

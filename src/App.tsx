@@ -62,7 +62,7 @@ function GlobalHeader() {
   const { t } = useAppSettings();
   const [showNotifications, setShowNotifications] = useState(false);
   
-  const hasNotifications = data.friends.length > 0;
+  const hasNotifications = data.competitions.filter(c => c.status === 'active').length > 0 || data.friends.length > 0;
 
   return (
     <>
@@ -113,8 +113,6 @@ function NavigationBar({ onNavigate, currentPage }: NavigationBarProps) {
   
   const navigate = (newPage: Page) => onNavigate(newPage);
   const isActive = (p: Page) => currentPage === p;
-  
-  const hasNotifications = data.competitions.filter(c => c.status === 'active').length > 0 || data.friends.length > 0;
 
   return (
     <>
@@ -193,12 +191,9 @@ function NavigationBar({ onNavigate, currentPage }: NavigationBarProps) {
               isActive('settings') ? 'bg-lime-400/20 text-primary dark:bg-lime-900/30 dark:text-lime-300 rounded-2xl' : 'text-stone-500 dark:text-stone-400'
             }`}
           >
-            <span className="material-symbols-outlined relative" style={isActive('settings') ? {fontVariationSettings: "'FILL' 1"} : {}}>
+            <span className="material-symbols-outlined" style={isActive('settings') ? {fontVariationSettings: "'FILL' 1"} : {}}>
               settings
             </span>
-            {hasNotifications && (
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-            )}
             <span className="font-headline text-[11px] font-semibold uppercase tracking-wider mt-1 text-stone-600 dark:text-stone-300">설정</span>
           </button>
         </nav>

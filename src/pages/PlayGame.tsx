@@ -10,7 +10,7 @@ interface PlayGameProps {
 }
 
 export default function PlayGame({ onBack, onComplete, competitionId }: PlayGameProps) {
-  const { data, addRound, updateRound, addRoundToCompetition } = useGolf();
+  const { data, addRound, updateRound, addRoundToCompetition, finishCompetitionRound } = useGolf();
   const { t } = useAppSettings();
   const [courseName, setCourseName] = useState('');
   const [step, setStep] = useState<'name' | 'score'>('name');
@@ -107,7 +107,8 @@ export default function PlayGame({ onBack, onComplete, competitionId }: PlayGame
     if (competitionId) {
       const comp = data.competitions.find(c => c.id === competitionId);
       if (comp) {
-        const allRounds = [...comp.rounds, { ...round!, playerId: data.player.id }];
+        const updatedRound = { ...round!, playerId: data.player.id };
+        const allRounds = [...comp.rounds, updatedRound];
         const sorted = allRounds.sort((a, b) => a.relativeScore - b.relativeScore);
         const rankings = sorted.map(r => {
           const player = comp.players.find(p => p.id === r.playerId);
@@ -119,6 +120,9 @@ export default function PlayGame({ onBack, onComplete, competitionId }: PlayGame
         });
         setCompRankings(rankings);
         setShowRankPopup(true);
+        
+        finishCompetitionRound(competitionId, updatedRound, comp.players.map(p => p.id));
+        
         return;
       }
     }
@@ -130,8 +134,8 @@ export default function PlayGame({ onBack, onComplete, competitionId }: PlayGame
     const diff = score - par;
     if (diff <= -2) return 'bg-blue-500 text-white';
     if (diff === -1) return 'bg-secondary text-white';
-    if (diff === 0) return 'bg-surface text-stone-800';
-    if (diff === 1) return 'bg-yellow-400 text-stone-800';
+    if (diff === 0) return 'bg-surface text-stone-800 dark:text-on-surface';
+    if (diff === 1) return 'bg-yellow-400 text-stone-800 dark:text-stone-900';
     if (diff === 2) return 'bg-orange-400 text-white';
     return 'bg-red-500 text-white';
   };
@@ -139,7 +143,7 @@ export default function PlayGame({ onBack, onComplete, competitionId }: PlayGame
   if (step === 'name') {
     return (
       <div className="min-h-screen bg-surface pb-32">
-        <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-50">
+        <header className="bg-white dark:bg-surface-container-lowest flex justify-between items-center w-full px-6 py-4 sticky top-0 z-50">
           <button onClick={onBack} className="p-2 -ml-2">
             <span className="material-symbols-outlined text-stone-500">arrow_back</span>
           </button>
@@ -220,7 +224,7 @@ export default function PlayGame({ onBack, onComplete, competitionId }: PlayGame
     <div className="min-h-screen bg-surface pb-32">
       {showRankPopup && (
         <div className="fixed inset-0 bg-primary/80 backdrop-blur-sm flex items-center justify-center z-50 p-6">
-          <div className="bg-white rounded-[2rem] p-6 w-full max-w-sm text-center animate-bounce shadow-2xl">
+          <div className="bg-white dark:bg-surface-container-lowest rounded-[2rem] p-6 w-full max-w-sm text-center animate-bounce shadow-2xl">
             <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-4xl">🏆</span>
             </div>
@@ -228,13 +232,13 @@ export default function PlayGame({ onBack, onComplete, competitionId }: PlayGame
             <div className="space-y-2 mb-6">
               {compRankings.map((r, i) => (
                 <div key={i} className={`flex items-center justify-between p-3 rounded-xl ${
-                  i === 0 ? 'bg-yellow-100' : i === 1 ? 'bg-stone-100' : i === 2 ? 'bg-amber-100' : 'bg-surface-container'
+                  i === 0 ? 'bg-yellow-100 dark:bg-yellow-900/30' : i === 1 ? 'bg-stone-100 dark:bg-surface-container' : i === 2 ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-surface-container'
                 }`}>
                   <div className="flex items-center gap-2">
                     <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                       i === 0 ? 'bg-yellow-400 text-stone-900' : 
-                      i === 1 ? 'bg-stone-300 text-stone-700' : 
-                      i === 2 ? 'bg-amber-600 text-white' : 'bg-surface-container text-stone-600'
+                      i === 1 ? 'bg-stone-300 text-stone-700 dark:bg-stone-500 dark:text-stone-200' : 
+                      i === 2 ? 'bg-amber-600 text-white' : 'bg-surface-container text-stone-600 dark:text-on-surface'
                     }`}>
                       {i + 1}
                     </span>
@@ -259,7 +263,7 @@ export default function PlayGame({ onBack, onComplete, competitionId }: PlayGame
       )}
       {achievement && (
         <div className="fixed inset-0 bg-primary/80 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-[2rem] p-12 text-center animate-bounce">
+          <div className="bg-white dark:bg-surface-container-lowest rounded-[2rem] p-12 text-center animate-bounce">
             <div className="w-20 h-20 bg-tertiary-fixed rounded-full flex items-center justify-center mx-auto mb-6">
               <span className="text-4xl">⛳</span>
             </div>
@@ -269,7 +273,7 @@ export default function PlayGame({ onBack, onComplete, competitionId }: PlayGame
         </div>
       )}
 
-      <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+      <header className="bg-white dark:bg-surface-container-lowest flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
         <button onClick={() => handleExit(false)} className="p-2 -ml-2">
           <span className="material-symbols-outlined text-stone-500">close</span>
         </button>

@@ -15,6 +15,7 @@ interface GolfContextType {
   joinCompetition: (compId: string, hostId?: string, compName?: string) => void;
   deleteCompetition: (compId: string) => void;
   addRoundToCompetition: (compId: string, round: Round) => void;
+  finishCompetitionRound: (compId: string, round: Round, playerIds: string[]) => void;
   addPlayerToCompetition: (compId: string, friendId: string) => void;
   addSampleData: () => void;
   clearAllData: () => void;
@@ -189,6 +190,24 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     setData(newData);
   };
 
+  const finishCompetitionRound = (compId: string, round: Round, playerIds: string[]) => {
+    const newData = {
+      ...data,
+      competitions: data.competitions.map(c => {
+        if (c.id !== compId) return c;
+        const updatedRounds = [...c.rounds, round];
+        const playerIdsWithRounds = new Set(updatedRounds.map(r => r.playerId));
+        const allFinished = playerIds.every(pid => playerIdsWithRounds.has(pid));
+        return {
+          ...c,
+          rounds: updatedRounds,
+          status: allFinished ? 'finished' as const : 'active' as const,
+        };
+      }),
+    };
+    setData(newData);
+  };
+
   const addPlayerToCompetition = (compId: string, friendId: string) => {
     const friend = data.friends.find(f => f.id === friendId);
     if (!friend) return;
@@ -245,6 +264,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       joinCompetition,
       deleteCompetition,
       addRoundToCompetition,
+      finishCompetitionRound,
       addPlayerToCompetition,
       addSampleData,
       clearAllData,
