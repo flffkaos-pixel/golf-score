@@ -75,9 +75,13 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const syncCompetitionToSupabase = async (comp: Competition) => {
-    if (!user) return;
+    if (!user) {
+      console.log('No user, skipping sync');
+      return;
+    }
+    console.log('Syncing competition to supabase:', comp.name);
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('shared_competitions')
         .upsert({
           id: comp.id,
@@ -90,7 +94,9 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
           start_date: comp.startDate,
           status: comp.status,
           updated_at: new Date().toISOString(),
-        });
+        })
+        .select();
+      console.log('Sync result:', { data, error });
       if (error) console.error('Sync competition error:', error);
     } catch (error) {
       console.error('Sync competition error:', error);
@@ -267,7 +273,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
-  const createCompetition = (name: string, friendIds: string[] = []): Competition => {
+  const createCompetition = async (name: string, friendIds: string[] = []): Promise<Competition> => {
     const invitedFriends = data.friends.filter(f => friendIds.includes(f.id));
     const comp: Competition = {
       id: generateId(),
@@ -290,7 +296,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     saveData(newData);
     
     if (user) {
-      syncCompetitionToSupabase(comp);
+      await syncCompetitionToSupabase(comp);
     }
     return comp;
   };
