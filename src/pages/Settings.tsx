@@ -14,7 +14,7 @@ interface SettingsProps {
 }
 
 export default function Settings({ onBack }: SettingsProps) {
-  const { language, setLanguage, darkMode, setDarkMode, t } = useAppSettings();
+  const { language, setLanguage, t } = useAppSettings();
   const { user, loading, signInWithGoogle, signOut } = useAuth();
 
   const handleSignOut = async () => {
@@ -31,18 +31,8 @@ export default function Settings({ onBack }: SettingsProps) {
     }
     return 'golfer';
   });
-  const [playerDesc, setPlayerDesc] = useState(() => {
-    const data = localStorage.getItem('golf_score_data');
-    if (data) {
-      const parsed = JSON.parse(data);
-      return parsed.player?.description || '';
-    }
-    return '';
-  });
   const [newName, setNewName] = useState(playerName);
-  const [newDesc, setNewDesc] = useState(playerDesc);
   const [showNameEdit, setShowNameEdit] = useState(false);
-  const [showDescEdit, setShowDescEdit] = useState(false);
   const [showCompetitions, setShowCompetitions] = useState(false);
 
   const saveName = () => {
@@ -57,21 +47,9 @@ export default function Settings({ onBack }: SettingsProps) {
     alert(t('nameUpdated'));
   };
 
-  const saveDesc = () => {
-    const data = localStorage.getItem('golf_score_data');
-    if (data) {
-      const parsed = JSON.parse(data);
-      parsed.player.description = newDesc;
-      localStorage.setItem('golf_score_data', JSON.stringify(parsed));
-      setPlayerDesc(newDesc);
-    }
-    setShowDescEdit(false);
-    alert(t('descUpdated') || '설명이 저장되었습니다!');
-  };
-
   return (
     <div className="min-h-screen pb-32 bg-surface">
-      <header className="bg-white dark:bg-surface-container-lowest flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+      <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
         <button onClick={onBack} className="p-2 -ml-2">
           <span className="material-symbols-outlined text-stone-500">arrow_back</span>
         </button>
@@ -141,45 +119,12 @@ export default function Settings({ onBack }: SettingsProps) {
               </div>
               <span className="material-symbols-outlined text-stone-400">chevron_right</span>
             </button>
-            <div className="h-px bg-stone-200 dark:bg-outline-variant" />
-            <button
-              onClick={() => { setNewDesc(playerDesc); setShowDescEdit(true); }}
-              className="w-full p-5 flex items-center justify-between active:bg-surface-container transition-colors"
-            >
-              <div className="flex items-center gap-4">
-                <span className="material-symbols-outlined text-secondary">edit_note</span>
-                <div className="text-left">
-                  <p className="text-xs text-stone-500 font-bold">자기소개</p>
-                  <p className="font-bold text-primary">{playerDesc || '설명을 추가하세요'}</p>
-                </div>
-              </div>
-              <span className="material-symbols-outlined text-stone-400">chevron_right</span>
-            </button>
           </div>
         </section>
 
         <section className="mb-8">
           <h2 className="text-xs font-bold uppercase tracking-widest text-stone-500 mb-4 px-2">{t('appearance')}</h2>
           <div className="bg-surface-container-lowest rounded-2xl overflow-hidden">
-            <div className="flex items-center justify-between p-5">
-              <div className="flex items-center gap-4">
-                <span className="material-symbols-outlined text-secondary">dark_mode</span>
-                <span className="font-bold text-primary">{t('darkMode')}</span>
-              </div>
-              <button
-                onClick={() => setDarkMode(!darkMode)}
-                className={`w-14 h-8 rounded-full p-1 transition-colors ${darkMode ? 'bg-primary' : 'bg-stone-300 dark:bg-outline'}`}
-              >
-                <div className={`w-6 h-6 bg-white rounded-full transition-transform flex items-center justify-center ${darkMode ? 'translate-x-6' : ''}`}>
-                  {darkMode ? (
-                    <span className="text-xs">🌙</span>
-                  ) : (
-                    <span className="text-xs">☀️</span>
-                  )}
-                </div>
-              </button>
-            </div>
-            <div className="h-px bg-stone-200 dark:bg-outline-variant" />
             <div className="p-5">
               <div className="flex items-center gap-4 mb-4">
                 <span className="material-symbols-outlined text-secondary">language</span>
@@ -254,7 +199,7 @@ export default function Settings({ onBack }: SettingsProps) {
 
       {showNameEdit && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6">
-          <div className="bg-white dark:bg-surface-container-lowest rounded-2xl p-6 w-full max-w-sm">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
             <h3 className="text-xl font-bold text-primary font-headline mb-4">이름 변경</h3>
             <input
               type="text"
@@ -265,41 +210,12 @@ export default function Settings({ onBack }: SettingsProps) {
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setShowNameEdit(false)}
-                className="flex-1 bg-surface-container text-stone-600 py-3 rounded-xl font-bold dark:text-on-surface"
+                className="flex-1 bg-surface-container text-stone-600 py-3 rounded-xl font-bold"
               >
                 {t('cancel')}
               </button>
               <button
                 onClick={saveName}
-                className="flex-1 bg-primary text-white py-3 rounded-xl font-bold"
-              >
-                {t('save')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showDescEdit && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6">
-          <div className="bg-white dark:bg-surface-container-lowest rounded-2xl p-6 w-full max-w-sm">
-            <h3 className="text-xl font-bold text-primary font-headline mb-4">자기소개</h3>
-            <textarea
-              value={newDesc}
-              onChange={(e) => setNewDesc(e.target.value)}
-              placeholder="자기소개를 입력하세요"
-              rows={3}
-              className="w-full bg-surface-container rounded-xl py-4 px-4 text-lg outline-none focus:ring-2 focus:ring-primary text-primary resize-none"
-            />
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => setShowDescEdit(false)}
-                className="flex-1 bg-surface-container text-stone-600 py-3 rounded-xl font-bold dark:text-on-surface"
-              >
-                {t('cancel')}
-              </button>
-              <button
-                onClick={saveDesc}
                 className="flex-1 bg-primary text-white py-3 rounded-xl font-bold"
               >
                 {t('save')}

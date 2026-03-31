@@ -5,8 +5,6 @@ export type Language = 'ko' | 'en' | 'zh' | 'ja';
 interface AppSettingsContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  darkMode: boolean;
-  setDarkMode: (dark: boolean) => void;
   t: (key: string) => string;
 }
 
@@ -63,10 +61,7 @@ const translations: Record<Language, Record<string, string>> = {
     addFriendHint: '초대 코드를 공유하거나 친구를 추가하세요!',
     profile: '프로필',
     editName: '이름 변경',
-    appearance: '외관',
-    darkMode: '다크 모드',
-    notifications: '알림',
-    notificationsDesc: '친구의 라운딩 시작 알림',
+    appearance: '설정',
     about: '앱 정보',
     version: '버전',
     competitionsInfo: '대회 안내',
@@ -150,10 +145,7 @@ const translations: Record<Language, Record<string, string>> = {
     addFriendHint: 'Share invite code or add friends!',
     profile: 'Profile',
     editName: 'Edit Name',
-    appearance: 'Appearance',
-    darkMode: 'Dark Mode',
-    notifications: 'Notifications',
-    notificationsDesc: 'Notify when friends start round',
+    appearance: 'Settings',
     about: 'About',
     version: 'Version',
     competitionsInfo: 'Competitions Info',
@@ -237,10 +229,7 @@ const translations: Record<Language, Record<string, string>> = {
     addFriendHint: '分享邀请码或添加朋友！',
     profile: '个人资料',
     editName: '编辑姓名',
-    appearance: '外观',
-    darkMode: '深色模式',
-    notifications: '通知',
-    notificationsDesc: '朋友开始回合时通知',
+    appearance: '设置',
     about: '关于',
     version: '版本',
     competitionsInfo: '比赛信息',
@@ -324,10 +313,7 @@ const translations: Record<Language, Record<string, string>> = {
     addFriendHint: '招待コードを共有するか友達を追加！',
     profile: 'プロフィール',
     editName: '名前を変更',
-    appearance: '外観',
-    darkMode: 'ダークモード',
-    notifications: '通知',
-    notificationsDesc: 'ラウンド開始時に通知',
+    appearance: '設定',
     about: 'アプリについて',
     version: 'バージョン',
     competitionsInfo: '大会情報',
@@ -368,34 +354,19 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
     const saved = localStorage.getItem('language') as Language;
     return saved || 'ko';
   });
-  
-  const [darkMode, setDarkModeState] = useState(() => {
-    const saved = localStorage.getItem('darkMode');
-    return saved === 'true';
-  });
 
   useEffect(() => {
     localStorage.setItem('language', language);
   }, [language]);
 
-  useEffect(() => {
-    localStorage.setItem('darkMode', String(darkMode));
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
-
   const setLanguage = (lang: Language) => setLanguageState(lang);
-  const setDarkMode = (dark: boolean) => setDarkModeState(dark);
 
   const t = (key: string): string => {
     return translations[language][key] || key;
   };
 
   return (
-    <AppSettingsContext.Provider value={{ language, setLanguage, darkMode, setDarkMode, t }}>
+    <AppSettingsContext.Provider value={{ language, setLanguage, t }}>
       {children}
     </AppSettingsContext.Provider>
   );

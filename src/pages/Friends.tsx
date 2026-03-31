@@ -129,7 +129,7 @@ export default function Friends({ onBack }: FriendsProps) {
 
   return (
     <div className="min-h-screen bg-surface pb-32">
-      <header className="bg-white dark:bg-surface-container-lowest flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+      <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
         <button onClick={onBack} className="p-2 -ml-2">
           <span className="material-symbols-outlined text-stone-500">arrow_back</span>
         </button>
@@ -177,7 +177,7 @@ export default function Friends({ onBack }: FriendsProps) {
         <div className="flex gap-3">
           <button
             onClick={() => setShowRedeem(!showRedeem)}
-            className="flex-1 bg-stone-400 text-white py-3 rounded-2xl font-headline font-bold text-base flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-lg dark:bg-outline dark:text-on-surface"
+            className="flex-1 bg-stone-400 text-white py-3 rounded-2xl font-headline font-bold text-base flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-lg"
           >
             <span className="material-symbols-outlined">vpn_key</span>
             {showRedeem ? '취소' : '초대 코드 입력'}
@@ -197,7 +197,7 @@ export default function Friends({ onBack }: FriendsProps) {
             <button
               onClick={handleRedeem}
               disabled={!inviteCode.trim()}
-              className="w-full bg-stone-400 text-white py-4 rounded-xl font-bold disabled:opacity-50 active:scale-98 transition-transform dark:bg-outline dark:text-on-surface"
+              className="w-full bg-stone-400 text-white py-4 rounded-xl font-bold disabled:opacity-50 active:scale-98 transition-transform"
             >
               친구 추가
             </button>
