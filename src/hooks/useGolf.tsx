@@ -156,42 +156,9 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const loadFromSupabase = async () => {
-    if (!user) return;
-    setSyncing(true);
-    try {
-      const { data: supabaseData, error } = await supabase
-        .from('user_data')
-        .select('data')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (error && error.code !== 'PGRST116') {
-        console.error('Load error:', error);
-        return;
-      }
-      
-      const localData = loadData();
-      
-      if (supabaseData?.data) {
-        const remoteRounds = supabaseData.data.rounds || [];
-        const remoteFriends = supabaseData.data.friends || [];
-        const remoteCompetitions = supabaseData.data.competitions || [];
-        
-        const mergedData = {
-          ...localData,
-          player: supabaseData.data.player || localData.player,
-          rounds: [...localData.rounds, ...remoteRounds].filter((v, i, a) => a.findIndex(t => t.id === v.id) === i),
-          friends: [...localData.friends, ...remoteFriends].filter((v, i, a) => a.findIndex(t => t.id === v.id) === i),
-          competitions: [...localData.competitions, ...remoteCompetitions].filter((v, i, a) => a.findIndex(t => t.id === v.id) === i),
-        };
-        setData(mergedData);
-        if (JSON.stringify(mergedData) !== JSON.stringify(localData)) {
-          saveData(mergedData);
-        }
-      }
-    } finally {
-      setSyncing(false);
-    }
+    // Supabase에서 데이터 가져오지 않고 로컬만 사용
+    // 나중에 동기화 기능이 필요할 때 다시 활성화
+    return;
   };
 
   useEffect(() => {
