@@ -104,7 +104,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       const { data: sharedComps, error } = await supabase
         .from('shared_competitions')
         .select('*')
-        .eq('host_id', user.id);
+        .or(`host_id.eq.${user.id},player_ids.cs.{${user.id}}`);
       
       if (error) {
         console.error('Load competitions error:', error);
