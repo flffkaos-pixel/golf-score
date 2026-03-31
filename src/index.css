@@ -187,3 +187,17 @@ h1, h2, h3, h4, .font-headline {
 .dark .bg-blue-500 { background-color: #3b82f6; }
 .dark .bg-orange-400 { background-color: #f97316; }
 .dark .bg-red-500 { background-color: #ef4444; }
+
+/* Home card dark mode fixes */
+.dark .bg-primary.text-white { color: var(--color-on-primary); }
+.dark .bg-primary .text-primary-fixed-dim { color: var(--color-primary-fixed-dim); }
+.dark .bg-primary .text-primary-fixed { color: var(--color-primary-fixed); }
+
+/* Competition gradient button dark mode */
+.dark .bg-gradient-to-r.from-secondary.to-tertiary {
+  background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-tertiary-fixed) 100%);
+}
+
+/* Competition pending status dark mode */
+.dark .bg-tertiary-fixed { background-color: var(--color-tertiary-fixed); }
+.dark .text-tertiary { color: var(--color-on-tertiary-fixed); }

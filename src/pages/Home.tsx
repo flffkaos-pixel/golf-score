@@ -67,7 +67,7 @@ export default function Home({ onStartGame }: HomeProps) {
       )}
 
       <main className="px-6 pt-6 space-y-8 max-w-5xl mx-auto">
-        <section className="relative overflow-hidden rounded-[2rem] bg-primary text-white p-8 min-h-[180px] flex flex-col justify-end group">
+        <section className="relative overflow-hidden rounded-[2rem] bg-primary text-on-primary p-8 min-h-[180px] flex flex-col justify-end group">
           <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-tertiary-fixed opacity-10 rounded-full blur-3xl"></div>
           <div className="relative z-10 flex flex-col gap-1">
             <span className="text-primary-fixed-dim text-sm font-semibold tracking-wider">{t('myPerformance')}</span>

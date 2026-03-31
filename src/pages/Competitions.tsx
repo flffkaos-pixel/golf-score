@@ -66,9 +66,9 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-secondary text-white';
-      case 'finished': return 'bg-stone-400 text-white';
-      default: return 'bg-tertiary-fixed text-tertiary';
+      case 'active': return 'bg-secondary text-white dark:bg-secondary dark:text-on-secondary';
+      case 'finished': return 'bg-stone-400 text-white dark:bg-outline dark:text-on-surface';
+      default: return 'bg-tertiary-fixed text-on-tertiary-fixed dark:bg-secondary-container dark:text-on-secondary-container';
     }
   };
 
@@ -107,7 +107,7 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
       <main className="px-6 pt-6 max-w-5xl mx-auto">
         <button
           onClick={() => setShowCreate(!showCreate)}
-          className="w-full bg-gradient-to-r from-secondary to-tertiary text-white py-5 rounded-2xl font-headline font-bold text-lg flex items-center justify-center gap-3 active:scale-98 transition-transform shadow-lg"
+          className="w-full bg-gradient-to-r from-secondary to-tertiary text-white py-5 rounded-2xl font-headline font-bold text-lg flex items-center justify-center gap-3 active:scale-98 transition-transform shadow-lg dark:from-secondary dark:to-secondary dark:text-on-secondary"
         >
           <span className="material-symbols-outlined">add_circle</span>
           {t('createComp')}
