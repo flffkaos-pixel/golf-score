@@ -173,18 +173,21 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       const localData = loadData();
       
       if (supabaseData?.data) {
+        const remoteRounds = supabaseData.data.rounds || [];
+        const remoteFriends = supabaseData.data.friends || [];
+        const remoteCompetitions = supabaseData.data.competitions || [];
+        
         const mergedData = {
           ...localData,
           player: supabaseData.data.player || localData.player,
-          rounds: [...localData.rounds, ...(supabaseData.data.rounds || [])].filter((v, i, a) => a.findIndex(t => t.id === v.id) === i),
-          friends: [...localData.friends, ...(supabaseData.data.friends || [])].filter((v, i, a) => a.findIndex(t => t.id === v.id) === i),
-          competitions: [...localData.competitions, ...(supabaseData.data.competitions || [])].filter((v, i, a) => a.findIndex(t => t.id === v.id) === i),
+          rounds: [...localData.rounds, ...remoteRounds].filter((v, i, a) => a.findIndex(t => t.id === v.id) === i),
+          friends: [...localData.friends, ...remoteFriends].filter((v, i, a) => a.findIndex(t => t.id === v.id) === i),
+          competitions: [...localData.competitions, ...remoteCompetitions].filter((v, i, a) => a.findIndex(t => t.id === v.id) === i),
         };
         setData(mergedData);
-        saveData(mergedData);
-      } else {
-        setData(localData);
-        saveData(localData);
+        if (JSON.stringify(mergedData) !== JSON.stringify(localData)) {
+          saveData(mergedData);
+        }
       }
     } finally {
       setSyncing(false);
