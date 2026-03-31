@@ -10,13 +10,14 @@ interface CompetitionsProps {
 }
 
 export default function Competitions({ onBack, onStartCompetitionGame }: CompetitionsProps) {
-  const { data, createCompetition, joinCompetition, deleteCompetition } = useGolf();
+  const { data, createCompetition, joinCompetition, deleteCompetition, addPlayerToCompetition } = useGolf();
   const { t } = useAppSettings();
   const { user } = useAuth();
   const [showCreate, setShowCreate] = useState(false);
   const [newCompName, setNewCompName] = useState('');
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [shareLinkCompId, setShareLinkCompId] = useState<string | null>(null);
+  const [inviteCompId, setInviteCompId] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -77,6 +78,16 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
       case 'finished': return t('finished');
       default: return t('pending');
     }
+  };
+
+  const handleInviteFriend = (compId: string) => {
+    setInviteCompId(compId);
+  };
+
+  const confirmInviteFriend = (friendId: string) => {
+    if (!inviteCompId) return;
+    addPlayerToCompetition(inviteCompId, friendId);
+    setInviteCompId(null);
   };
 
   const activeComps = data.competitions.filter(c => c.status !== 'finished');
@@ -190,6 +201,13 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
                         시작
                       </button>
                       <button
+                        onClick={() => handleInviteFriend(comp.id)}
+                        className="p-2 rounded-full transition-colors bg-surface-container text-stone-600 hover:bg-secondary-container"
+                        title="친구 초대"
+                      >
+                        <span className="material-symbols-outlined text-lg">person_add</span>
+                      </button>
+                      <button
                         onClick={() => handleShareComp(comp.id)}
                         className={`p-2 rounded-full transition-colors ${
                           shareLinkCompId === comp.id 
@@ -283,6 +301,45 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
           )}
         </section>
       </main>
+
+      {inviteCompId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <h3 className="text-xl font-bold text-primary font-headline mb-4">친구 초대</h3>
+            {data.friends.length === 0 ? (
+              <p className="text-stone-500 mb-4">초대할 친구가 없습니다.</p>
+            ) : (
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {data.friends.map(friend => {
+                  const comp = data.competitions.find(c => c.id === inviteCompId);
+                  const alreadyJoined = comp?.players.some(p => p.id === friend.id);
+                  return (
+                    <button
+                      key={friend.id}
+                      onClick={() => !alreadyJoined && confirmInviteFriend(friend.id)}
+                      disabled={alreadyJoined}
+                      className={`w-full p-3 rounded-xl text-left font-bold transition-all ${
+                        alreadyJoined
+                          ? 'bg-stone-100 text-stone-400 cursor-not-allowed'
+                          : 'bg-surface-container text-primary active:scale-98 hover:bg-secondary-container'
+                      }`}
+                    >
+                      {friend.name}
+                      {alreadyJoined && <span className="ml-2 text-xs">(이미 참여)</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            <button
+              onClick={() => setInviteCompId(null)}
+              className="w-full bg-primary text-white py-3 rounded-xl font-bold mt-4"
+            >
+              닫기
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

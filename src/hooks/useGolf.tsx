@@ -15,6 +15,7 @@ interface GolfContextType {
   joinCompetition: (compId: string, hostId?: string, compName?: string) => void;
   deleteCompetition: (compId: string) => void;
   addRoundToCompetition: (compId: string, round: Round) => void;
+  addPlayerToCompetition: (compId: string, friendId: string) => void;
   addSampleData: () => void;
   clearAllData: () => void;
   clearLocalData: () => void;
@@ -188,6 +189,21 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     setData(newData);
   };
 
+  const addPlayerToCompetition = (compId: string, friendId: string) => {
+    const friend = data.friends.find(f => f.id === friendId);
+    if (!friend) return;
+    
+    const newData = {
+      ...data,
+      competitions: data.competitions.map(c => 
+        c.id === compId && !c.players.find(p => p.id === friendId)
+          ? { ...c, players: [...c.players, friend], playerIds: [...c.playerIds, friendId] }
+          : c
+      ),
+    };
+    setData(newData);
+  };
+
   const addSampleData = () => {
     const sampleRounds = Array.from({ length: 8 }, generateSampleRound);
     const sampleFriends = ['김철수', '이영희', '박민수', '정수진'].map(name => ({
@@ -229,6 +245,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       joinCompetition,
       deleteCompetition,
       addRoundToCompetition,
+      addPlayerToCompetition,
       addSampleData,
       clearAllData,
       clearLocalData,
