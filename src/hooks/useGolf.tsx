@@ -58,101 +58,18 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
 
   const syncToSupabase = async (golfData: GolfData) => {
-    if (!user) return;
-    setSyncing(true);
-    try {
-      const { error } = await supabase
-        .from('user_data')
-        .upsert({
-          user_id: user.id,
-          data: golfData,
-          updated_at: new Date().toISOString(),
-        });
-      if (error) console.error('Sync error:', error);
-    } finally {
-      setSyncing(false);
-    }
+    // Supabase 동기화 비활성화 - 로컬 데이터만 사용
+    return;
   };
 
   const syncCompetitionToSupabase = async (comp: Competition) => {
-    if (!user) {
-      console.log('No user, skipping sync');
-      return;
-    }
-    console.log('Syncing competition to supabase:', comp.name);
-    try {
-      const { data, error } = await supabase
-        .from('shared_competitions')
-        .upsert({
-          id: comp.id,
-          name: comp.name,
-          host_id: comp.hostId,
-          host_name: comp.hostName,
-          players: comp.players,
-          player_ids: comp.playerIds,
-          rounds: comp.rounds,
-          start_date: comp.startDate,
-          status: comp.status,
-          updated_at: new Date().toISOString(),
-        })
-        .select();
-      console.log('Sync result:', { data, error });
-      if (error) console.error('Sync competition error:', error);
-    } catch (error) {
-      console.error('Sync competition error:', error);
-    }
+    // Supabase 동기화 비활성화 - 로컬 데이터만 사용
+    return;
   };
 
   const loadSharedCompetitions = async () => {
-    if (!user) return;
-    
-    try {
-      const { data: hostedComps, error: hostedError } = await supabase
-        .from('shared_competitions')
-        .select('*')
-        .or(`host_id.eq.${user.id},player_ids.cs.{${user.id}}`);
-      
-      const { data: participatedComps, error: participatedError } = await supabase
-        .from('shared_competitions')
-        .select('*')
-        .contains('player_ids', [user.id]);
-
-      const allComps = [...(hostedComps || []), ...(participatedComps || [])];
-      const uniqueComps = allComps.filter((comp, index, self) => 
-        index === self.findIndex(c => c.id === comp.id)
-      );
-      
-      if (hostedError || participatedError) {
-        console.error('Load competitions error:', hostedError || participatedError);
-        return;
-      }
-      
-      if (uniqueComps && uniqueComps.length > 0) {
-        const remoteComps: Competition[] = uniqueComps.map(c => ({
-          id: c.id,
-          name: c.name,
-          hostId: c.host_id,
-          hostName: c.host_name,
-          players: c.players,
-          playerIds: c.player_ids,
-          rounds: c.rounds,
-          startDate: c.start_date,
-          status: c.status,
-        }));
-        
-        setData(prev => {
-          const localCompIds = new Set(prev.competitions.map(c => c.id));
-          const newRemoteComps = remoteComps.filter(c => !localCompIds.has(c.id));
-          if (newRemoteComps.length === 0) return prev;
-          return {
-            ...prev,
-            competitions: [...prev.competitions, ...newRemoteComps],
-          };
-        });
-      }
-    } catch (error) {
-      console.error('Load competitions error:', error);
-    }
+    // Supabase 대회 로딩 비활성화 - 로컬 데이터만 사용
+    return;
   };
 
   const loadFromSupabase = async () => {
