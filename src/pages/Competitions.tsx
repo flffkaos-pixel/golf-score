@@ -25,13 +25,13 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
     const hostId = params.get('host');
     const compName = params.get('name');
     
-    if (compId && hostId && compName && user) {
+    if (compId && hostId && compName) {
       const exists = data.competitions.some(c => c.id === compId);
       if (!exists) {
         joinCompetition(compId, hostId as string, decodeURIComponent(compName));
         alert(`"${decodeURIComponent(compName)}" 대회에 참여했습니다!`);
-        window.history.replaceState({}, '', window.location.pathname);
       }
+      window.history.replaceState({}, '', window.location.pathname);
     }
   }, [user, data.competitions]);
 

@@ -19,6 +19,27 @@ export default function Friends({ onBack }: FriendsProps) {
   const [showEmailInvite, setShowEmailInvite] = useState(false);
   const [emailInput, setEmailInput] = useState('');
   const [inviteLinkCopied, setInviteLinkCopied] = useState(false);
+  const [pendingRequests, setPendingRequests] = useState<Array<{id: string; from_user_id: string; from_user_name: string}>>([]);
+
+  // Load pending friend requests
+  useEffect(() => {
+    if (!user) return;
+    
+    const loadPendingRequests = async () => {
+      // Get pending requests where someone invited me
+      const { data: requests } = await supabase
+        .from('friend_requests')
+        .select('*')
+        .eq('to_user_id', user.id)
+        .eq('status', 'pending');
+      
+      if (requests) {
+        setPendingRequests(requests);
+      }
+    };
+    
+    loadPendingRequests();
+  }, [user]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -92,7 +113,6 @@ export default function Friends({ onBack }: FriendsProps) {
     setEditName('');
   };
 
-
   const handleRedeem = async () => {
     if (!inviteCode.trim()) return;
     const code = inviteCode.trim().toUpperCase();
@@ -127,6 +147,37 @@ export default function Friends({ onBack }: FriendsProps) {
     setShowRedeem(false);
   };
 
+  const acceptFriendRequest = async (requestId: string, fromUserId: string, fromUserName: string) => {
+    // Add as friend
+    addFriend(fromUserName, fromUserId);
+    
+    // Update request status
+    await supabase
+      .from('friend_requests')
+      .update({ status: 'accepted' })
+      .eq('id', requestId);
+    
+    // Create mutual friendship (they added me, now I add them back)
+    await supabase
+      .from('friendships')
+      .upsert({
+        user_id: fromUserId,
+        friend_id: user?.id,
+        friend_name: data.player.name,
+      }, { onConflict: 'user_id,friend_id' });
+    
+    setPendingRequests(prev => prev.filter(r => r.id !== requestId));
+  };
+
+  const declineFriendRequest = async (requestId: string) => {
+    await supabase
+      .from('friend_requests')
+      .delete()
+      .eq('id', requestId);
+    
+    setPendingRequests(prev => prev.filter(r => r.id !== requestId));
+  };
+
   return (
     <div className="min-h-screen bg-surface pb-32">
       <header className="bg-white flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
@@ -138,6 +189,39 @@ export default function Friends({ onBack }: FriendsProps) {
       </header>
 
       <main className="px-6 pt-6 max-w-5xl mx-auto">
+        {/* Pending friend requests */}
+        {pendingRequests.length > 0 && (
+          <div className="mb-6">
+            <h2 className="font-headline font-bold text-lg mb-3 text-amber-600">친구 요청</h2>
+            <div className="space-y-3">
+              {pendingRequests.map(request => (
+                <div key={request.id} className="bg-amber-50 rounded-2xl p-4 flex items-center justify-between border border-amber-200">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-amber-200 rounded-full flex items-center justify-center text-amber-700 font-bold text-lg">
+                      {request.from_user_name[0].toUpperCase()}
+                    </div>
+                    <span className="font-bold text-primary font-headline text-lg">{request.from_user_name}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => acceptFriendRequest(request.id, request.from_user_id, request.from_user_name)}
+                      className="bg-green-500 text-white px-4 py-2 rounded-xl font-bold active:scale-95"
+                    >
+                      수락
+                    </button>
+                    <button
+                      onClick={() => declineFriendRequest(request.id)}
+                      className="bg-stone-200 text-stone-600 px-4 py-2 rounded-xl font-bold active:scale-95"
+                    >
+                      거절
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <button
           onClick={generateInviteLink}
           className="w-full bg-secondary text-white py-4 rounded-2xl font-headline font-bold text-base flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-lg mb-3"
