@@ -4,6 +4,11 @@ import { useAppSettings } from '../hooks/useAppSettings';
 import { useAuth } from '../hooks/useAuth';
 import { getScoreDisplay } from '../utils/storage';
 
+function isHost(comp: any, user: any, playerId: string): boolean {
+  const uid = user?.id || playerId;
+  return comp.hostId === uid;
+}
+
 interface CompetitionsProps {
   onBack: () => void;
   onStartCompetitionGame: (compId: string) => void;
@@ -220,7 +225,7 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
                           {shareLinkCompId === comp.id ? 'check' : 'share'}
                         </span>
                       </button>
-                      {comp.hostId === data.player.id && (
+                      {isHost(comp, user, data.player.id) && (
                         <button
                           onClick={() => {
                             if (confirm(t('deleteConfirm'))) {
