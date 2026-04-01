@@ -63,7 +63,14 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
           .order('created_at', { ascending: false });
         
         if (!cError && competitions) {
+          const { data: userMeta } = await supabase.auth.getUser();
+          const currentUserId = userMeta?.user?.id;
+          
           const remoteCompetitions: Competition[] = competitions
+            .filter(c => {
+              if (!currentUserId) return false;
+              return c.player_ids?.includes(currentUserId) || c.host_id === currentUserId;
+            })
             .map(c => ({
               id: c.id,
               name: c.name,
@@ -79,6 +86,9 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
               endDate: c.end_date,
               status: c.status,
             }));
+
+          // Build remote comp ID set
+          const remoteIds = new Set(remoteCompetitions.map(c => c.id));
 
           // Load rounds for each competition
           for (const comp of remoteCompetitions) {
@@ -102,10 +112,14 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
             }
           }
 
-          setData(prev => ({
-            ...prev,
-            competitions: remoteCompetitions,
-          }));
+          // Merge: keep local-only comps, replace with remote for synced ones
+          setData(prev => {
+            const localOnly = prev.competitions.filter(c => !remoteIds.has(c.id));
+            return {
+              ...prev,
+              competitions: [...remoteCompetitions, ...localOnly],
+            };
+          });
         }
       } catch (e) {
         console.error('Failed to load remote data:', e);
@@ -355,7 +369,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     const currentUserName = data.player.name;
 
     const invitedFriends = data.friends.filter(f => friendIds.includes(f.id));
-    const allPlayerIds = [currentUserId || data.player.id, ...invitedFriends.map(f => f.id)];
+    const allPlayerIds = [currentUserId || data.player.id, ...invitedFriends.map(f => f.userId || f.id)];
     const allPlayerNames = [currentUserName, ...invitedFriends.map(f => f.name)];
 
     const comp: Competition = {
@@ -363,7 +377,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       name,
       hostId: currentUserId || data.player.id,
       hostName: currentUserName,
-      players: [{ id: currentUserId || data.player.id, name: currentUserName }, ...invitedFriends],
+      players: [{ id: currentUserId || data.player.id, name: currentUserName }, ...invitedFriends.map(f => ({ id: f.userId || f.id, name: f.name }))],
       playerIds: allPlayerIds,
       rounds: [],
       startDate: new Date().toISOString(),
@@ -543,11 +557,13 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     const friend = data.friends.find(f => f.id === friendId);
     if (!friend) return;
     
+    const friendSupabaseId = friend.userId || friend.id;
+    
     setData(prev => ({
       ...prev,
       competitions: prev.competitions.map(c => 
-        c.id === compId && !c.players.find(p => p.id === friendId)
-          ? { ...c, players: [...c.players, friend], playerIds: [...c.playerIds, friendId] }
+        c.id === compId && !c.players.find(p => p.id === friendSupabaseId)
+          ? { ...c, players: [...c.players, { id: friendSupabaseId, name: friend.name }], playerIds: [...c.playerIds, friendSupabaseId] }
           : c
       ),
     }));
@@ -564,11 +580,11 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
         const playerIds = existingComp.player_ids || [];
         const playerNames = existingComp.player_names || [];
         
-        if (!playerIds.includes(friendId)) {
+        if (!playerIds.includes(friendSupabaseId)) {
           await supabase
             .from('competitions')
             .update({
-              player_ids: [...playerIds, friendId],
+              player_ids: [...playerIds, friendSupabaseId],
               player_names: [...playerNames, friend.name],
             })
             .eq('id', compId);
