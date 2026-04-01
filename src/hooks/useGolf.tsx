@@ -99,26 +99,34 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
           setData(prev => ({ ...prev, friends: remoteFriends }));
         }
 
-        // Load competitions
+        // Load competitions — merge with local data
         const { data: comps } = await supabase
           .from('competitions')
           .select('*')
           .or(`player_ids.cs.{${uid}},host_id.eq.${uid}`)
           .order('created_at', { ascending: false });
 
-        if (comps && comps.length > 0 && !cancelled) {
-          const compIds = comps.map(c => c.id);
-          const { data: allRounds } = await supabase
-            .from('competition_rounds')
-            .select('*')
-            .in('competition_id', compIds);
+        if (!cancelled) {
+          if (comps && comps.length > 0) {
+            const compIds = comps.map(c => c.id);
+            const { data: allRounds } = await supabase
+              .from('competition_rounds')
+              .select('*')
+              .in('competition_id', compIds);
 
-          const remoteComps: Competition[] = comps.map(c => {
-            const compRounds = (allRounds || []).filter(r => r.competition_id === c.id);
-            return mapDbCompToComp(c, compRounds);
-          });
+            const remoteComps: Competition[] = comps.map(c => {
+              const compRounds = (allRounds || []).filter(r => r.competition_id === c.id);
+              return mapDbCompToComp(c, compRounds);
+            });
 
-          setData(prev => ({ ...prev, competitions: remoteComps }));
+            setData(prev => {
+              // Keep local-only competitions (not yet synced or deleted from remote)
+              const localOnly = prev.competitions.filter(c => !compIds.includes(c.id));
+              return { ...prev, competitions: [...remoteComps, ...localOnly] };
+            });
+          }
+          setSyncing(false);
+          isInitialLoadDone.current = true;
         }
       } catch (e) {
         console.error('Initial load error:', e);
@@ -282,10 +290,10 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // Save local data (rounds, player) to localStorage
+  // Save local data to localStorage (including competitions)
   useEffect(() => {
     saveData(data);
-  }, [data.rounds, data.player]);
+  }, [data.rounds, data.player, data.competitions, data.friends]);
 
   const addRound = (courseName: string): Round => {
     const newRound = createNewRound(courseName);
