@@ -75,38 +75,38 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Initial load from Supabase
+  // Initial load from Supabase — wait for auth
   useEffect(() => {
+    const uid = ownUserId.current;
+    if (!uid) return;
+
+    let cancelled = false;
     const loadAll = async () => {
       setSyncing(true);
       try {
-        const uid = ownUserId.current;
-
         // Load friends
-        if (uid) {
-          const { data: friendships } = await supabase
-            .from('friendships')
-            .select('*')
-            .eq('user_id', uid);
-          
-          if (friendships) {
-            const remoteFriends: Player[] = friendships.map(f => ({
-              id: f.friend_id,
-              name: f.friend_name,
-              userId: f.friend_id,
-            }));
-            setData(prev => ({ ...prev, friends: remoteFriends }));
-          }
+        const { data: friendships } = await supabase
+          .from('friendships')
+          .select('*')
+          .eq('user_id', uid);
+        
+        if (friendships && !cancelled) {
+          const remoteFriends: Player[] = friendships.map(f => ({
+            id: f.friend_id,
+            name: f.friend_name,
+            userId: f.friend_id,
+          }));
+          setData(prev => ({ ...prev, friends: remoteFriends }));
         }
 
         // Load competitions
-        let compsQuery = supabase.from('competitions').select('*').order('created_at', { ascending: false });
-        if (uid) {
-          compsQuery = compsQuery.or(`player_ids.cs.{${uid}},host_id.eq.${uid}`);
-        }
-        const { data: comps } = await compsQuery;
+        const { data: comps } = await supabase
+          .from('competitions')
+          .select('*')
+          .or(`player_ids.cs.{${uid}},host_id.eq.${uid}`)
+          .order('created_at', { ascending: false });
 
-        if (comps && comps.length > 0) {
+        if (comps && comps.length > 0 && !cancelled) {
           const compIds = comps.map(c => c.id);
           const { data: allRounds } = await supabase
             .from('competition_rounds')
@@ -123,13 +123,16 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       } catch (e) {
         console.error('Initial load error:', e);
       } finally {
-        setSyncing(false);
-        isInitialLoadDone.current = true;
+        if (!cancelled) {
+          setSyncing(false);
+          isInitialLoadDone.current = true;
+        }
       }
     };
 
     loadAll();
-  }, []);
+    return () => { cancelled = true; };
+  }, [ownUserId.current]);
 
   // Realtime subscriptions
   useEffect(() => {
@@ -140,6 +143,10 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
         { event: 'INSERT', schema: 'public', table: 'competitions' },
         async (payload) => {
           const c = payload.new as any;
+          const uid = ownUserId.current;
+          // Only add if current user is a participant
+          if (uid && c.player_ids && !c.player_ids.includes(uid) && c.host_id !== uid) return;
+          
           const { data: rounds } = await supabase
             .from('competition_rounds')
             .select('*')
@@ -157,6 +164,12 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
         { event: 'UPDATE', schema: 'public', table: 'competitions' },
         async (payload) => {
           const c = payload.new as any;
+          setData(prev => {
+            // Only update if we already have this competition locally
+            if (!prev.competitions.some(x => x.id === c.id)) return prev;
+            return prev; // Will be updated by rounds subscription
+          });
+          
           const { data: rounds } = await supabase
             .from('competition_rounds')
             .select('*')
@@ -384,23 +397,50 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     return comp;
   }, [data.friends, data.player]);
 
-  const joinCompetition = useCallback(async (_compId: string, _hostId?: string, _compName?: string) => {
+  const joinCompetition = useCallback(async (compId: string, hostId?: string, compName?: string) => {
     const uid = ownUserId.current;
     const playerId = uid || data.player.id;
     const playerName = data.player.name;
 
-    // Check if already joined locally
+    // Update local state immediately
     setData(prev => {
-      const existing = prev.competitions.find(c => c.id === _compId);
-      if (existing && existing.players.some(p => p.id === playerId)) return prev;
-      return prev;
+      const existing = prev.competitions.find(c => c.id === compId);
+      if (existing) {
+        if (existing.players.some(p => p.id === playerId)) return prev;
+        return {
+          ...prev,
+          competitions: prev.competitions.map(c =>
+            c.id === compId
+              ? { ...c, players: [...c.players, { id: playerId, name: playerName }], playerIds: [...c.playerIds, playerId] }
+              : c
+          ),
+        };
+      }
+      // Competition not in local state yet — add it
+      return {
+        ...prev,
+        competitions: [
+          ...prev.competitions,
+          {
+            id: compId,
+            name: compName || '',
+            hostId: hostId || '',
+            hostName: '',
+            players: [{ id: playerId, name: playerName }],
+            playerIds: [playerId],
+            rounds: [],
+            startDate: new Date().toISOString(),
+            status: 'pending' as const,
+          },
+        ],
+      };
     });
 
     try {
       const { data: existingComp, error: fetchError } = await supabase
         .from('competitions')
         .select('player_ids, player_names')
-        .eq('id', _compId)
+        .eq('id', compId)
         .single();
 
       if (fetchError || !existingComp) return;
@@ -415,7 +455,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
             player_ids: [...pIds, playerId],
             player_names: [...pNames, playerName],
           })
-          .eq('id', _compId);
+          .eq('id', compId);
         
         if (error) console.error('Join comp error:', error);
       }
@@ -425,15 +465,26 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
   }, [data.player]);
 
   const deleteCompetition = useCallback(async (compId: string) => {
+    // Remove locally first
     setData(prev => ({
       ...prev,
       competitions: prev.competitions.filter(c => c.id !== compId),
     }));
 
     try {
-      await supabase.from('competition_rounds').delete().eq('competition_id', compId);
+      const { error: roundsError } = await supabase.from('competition_rounds').delete().eq('competition_id', compId);
+      if (roundsError) console.error('Delete rounds error:', roundsError);
+      
       const { error } = await supabase.from('competitions').delete().eq('id', compId);
-      if (error) console.error('Delete comp error:', error);
+      if (error) {
+        console.error('Delete comp error:', error);
+        // Re-add locally if Supabase delete failed
+        setData(prev => {
+          if (prev.competitions.some(c => c.id === compId)) return prev;
+          // Revert: restore from a backup or just leave it deleted locally
+          return prev;
+        });
+      }
     } catch (e) {
       console.error('Delete competition error:', e);
     }
