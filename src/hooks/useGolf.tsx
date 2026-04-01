@@ -1,7 +1,7 @@
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from 'react';
 import { supabase } from '../supabase';
 import type { GolfData, Player, Round, Competition } from '../types';
-import { loadData, generateId, createNewRound, calculateScore } from '../utils/storage';
+import { loadData, saveData, generateId, createNewRound, calculateScore } from '../utils/storage';
 
 interface GolfContextType {
   data: GolfData;
@@ -15,10 +15,10 @@ interface GolfContextType {
   updateFriend: (friendId: string, name: string) => void;
   createCompetition: (name: string, friendIds?: string[]) => Promise<Competition>;
   joinCompetition: (compId: string, hostId?: string, compName?: string) => Promise<void>;
-  deleteCompetition: (compId: string) => void;
+  deleteCompetition: (compId: string) => Promise<void>;
   addRoundToCompetition: (compId: string, round: Round) => void;
-  finishCompetitionRound: (compId: string, round: Round, playerIds: string[]) => void;
-  addPlayerToCompetition: (compId: string, friendId: string) => void;
+  finishCompetitionRound: (compId: string, round: Round, playerIds: string[]) => Promise<void>;
+  addPlayerToCompetition: (compId: string, friendId: string) => Promise<void>;
   addSampleData: () => void;
   clearAllData: () => void;
   clearLocalData: () => void;
@@ -29,76 +29,169 @@ const GolfContext = createContext<GolfContextType | null>(null);
 
 const courseNames = ['하늘CC', 'ocean 파크', '숲속高尔夫', 'lakeサイド', 'sunsetCC', '마운틴View', '바다RESORT', '골든밸리'];
 
-export const GolfProvider = ({ children }: { children: ReactNode }) => {
-  const [data, setData] = useState<GolfData>(loadData);
-  const [syncing, setSyncing] = useState(false);
+function mapDbCompToComp(c: any, rounds: any[] = []): Competition {
+  return {
+    id: c.id,
+    name: c.name,
+    hostId: c.host_id,
+    hostName: c.host_name,
+    players: (c.player_names || []).map((name: string, i: number) => ({
+      id: c.player_ids?.[i] || `player_${i}`,
+      name,
+    })),
+    playerIds: c.player_ids || [],
+    rounds: rounds.map((r: any) => ({
+      id: r.id,
+      date: r.played_at,
+      courseName: r.course_name,
+      holes: r.holes,
+      totalScore: r.total_score,
+      totalPar: r.total_par,
+      relativeScore: r.relative_score,
+      competitionId: r.competition_id,
+      playerId: r.player_id,
+    })),
+    startDate: c.start_date || c.created_at,
+    endDate: c.end_date,
+    status: c.status,
+  };
+}
 
-  // Load friends from Supabase when user is available
+export const GolfProvider = ({ children }: { children: ReactNode }) => {
+  const localData = loadData();
+  const [data, setData] = useState<GolfData>(localData);
+  const [syncing, setSyncing] = useState(true);
+  const isInitialLoadDone = useRef(false);
+  const ownUserId = useRef<string | null>(null);
+
+  // Get current user ID
   useEffect(() => {
-    const loadRemoteData = async () => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      ownUserId.current = user?.id || null;
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      ownUserId.current = session?.user?.id || null;
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Initial load from Supabase
+  useEffect(() => {
+    const loadAll = async () => {
       setSyncing(true);
       try {
-        // Load friendships
-        const { data: friendships, error: fError } = await supabase
-          .from('friendships')
-          .select('*');
-        
-        if (!fError && friendships) {
-          const remoteFriends: Player[] = friendships.map(f => ({
-            id: f.friend_id,
-            name: f.friend_name,
-            userId: f.friend_id,
-          }));
+        const uid = ownUserId.current;
+
+        // Load friends
+        if (uid) {
+          const { data: friendships } = await supabase
+            .from('friendships')
+            .select('*')
+            .eq('user_id', uid);
           
-          setData(prev => ({
-            ...prev,
-            friends: remoteFriends,
-          }));
+          if (friendships) {
+            const remoteFriends: Player[] = friendships.map(f => ({
+              id: f.friend_id,
+              name: f.friend_name,
+              userId: f.friend_id,
+            }));
+            setData(prev => ({ ...prev, friends: remoteFriends }));
+          }
         }
 
-        // Load competitions where user is a participant
-        const { data: competitions, error: cError } = await supabase
-          .from('competitions')
-          .select('*')
-          .order('created_at', { ascending: false });
-        
-        if (!cError && competitions) {
-          const { data: userMeta } = await supabase.auth.getUser();
-          const currentUserId = userMeta?.user?.id;
+        // Load competitions
+        let compsQuery = supabase.from('competitions').select('*').order('created_at', { ascending: false });
+        if (uid) {
+          compsQuery = compsQuery.or(`player_ids.cs.{${uid}},host_id.eq.${uid}`);
+        }
+        const { data: comps } = await compsQuery;
+
+        if (comps && comps.length > 0) {
+          const compIds = comps.map(c => c.id);
+          const { data: allRounds } = await supabase
+            .from('competition_rounds')
+            .select('*')
+            .in('competition_id', compIds);
+
+          const remoteComps: Competition[] = comps.map(c => {
+            const compRounds = (allRounds || []).filter(r => r.competition_id === c.id);
+            return mapDbCompToComp(c, compRounds);
+          });
+
+          setData(prev => ({ ...prev, competitions: remoteComps }));
+        }
+      } catch (e) {
+        console.error('Initial load error:', e);
+      } finally {
+        setSyncing(false);
+        isInitialLoadDone.current = true;
+      }
+    };
+
+    loadAll();
+  }, []);
+
+  // Realtime subscriptions
+  useEffect(() => {
+    const channel = supabase
+      .channel('golf-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'competitions' },
+        async (payload) => {
+          const c = payload.new as any;
+          const { data: rounds } = await supabase
+            .from('competition_rounds')
+            .select('*')
+            .eq('competition_id', c.id);
           
-          const remoteCompetitions: Competition[] = competitions
-            .filter(c => {
-              if (!currentUserId) return false;
-              return c.player_ids?.includes(currentUserId) || c.host_id === currentUserId;
-            })
-            .map(c => ({
-              id: c.id,
-              name: c.name,
-              hostId: c.host_id,
-              hostName: c.host_name,
-              players: (c.player_names || []).map((name: string, i: number) => ({
-                id: c.player_ids?.[i] || `player_${i}`,
-                name,
-              })),
-              playerIds: c.player_ids || [],
-              rounds: [],
-              startDate: c.start_date || c.created_at,
-              endDate: c.end_date,
-              status: c.status,
-            }));
-
-          // Build remote comp ID set
-          const remoteIds = new Set(remoteCompetitions.map(c => c.id));
-
-          // Load rounds for each competition
-          for (const comp of remoteCompetitions) {
-            const { data: rounds, error: rError } = await supabase
-              .from('competition_rounds')
-              .select('*')
-              .eq('competition_id', comp.id);
-            
-            if (!rError && rounds) {
-              comp.rounds = rounds.map(r => ({
+          const newComp = mapDbCompToComp(c, rounds || []);
+          setData(prev => {
+            if (prev.competitions.some(x => x.id === newComp.id)) return prev;
+            return { ...prev, competitions: [...prev.competitions, newComp] };
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'competitions' },
+        async (payload) => {
+          const c = payload.new as any;
+          const { data: rounds } = await supabase
+            .from('competition_rounds')
+            .select('*')
+            .eq('competition_id', c.id);
+          
+          const updatedComp = mapDbCompToComp(c, rounds || []);
+          setData(prev => ({
+            ...prev,
+            competitions: prev.competitions.map(x => x.id === updatedComp.id ? updatedComp : x),
+          }));
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'competitions' },
+        (payload) => {
+          const compId = (payload.old as any).id;
+          setData(prev => ({
+            ...prev,
+            competitions: prev.competitions.filter(c => c.id !== compId),
+          }));
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'competition_rounds' },
+        (payload) => {
+          const r = payload.new as any;
+          setData(prev => ({
+            ...prev,
+            competitions: prev.competitions.map(c => {
+              if (c.id !== r.competition_id) return c;
+              const exists = c.rounds.some(x => x.id === r.id);
+              if (exists) return c;
+              const newRound: Round = {
                 id: r.id,
                 date: r.played_at,
                 courseName: r.course_name,
@@ -106,180 +199,84 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
                 totalScore: r.total_score,
                 totalPar: r.total_par,
                 relativeScore: r.relative_score,
-                competitionId: comp.id,
+                competitionId: r.competition_id,
                 playerId: r.player_id,
-              }));
-            }
-          }
-
-          // Merge: keep local-only comps, replace with remote for synced ones
+              };
+              const newRounds = [...c.rounds, newRound];
+              const playersWithRounds = new Set(newRounds.map(x => x.playerId));
+              const allDone = c.players.every(p => playersWithRounds.has(p.id));
+              return { ...c, rounds: newRounds, status: allDone ? 'finished' as const : 'active' as const };
+            }),
+          }));
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'competition_rounds' },
+        (payload) => {
+          const r = payload.new as any;
+          setData(prev => ({
+            ...prev,
+            competitions: prev.competitions.map(c => {
+              if (c.id !== r.competition_id) return c;
+              const idx = c.rounds.findIndex(x => x.id === r.id);
+              if (idx < 0) return c;
+              const updatedRound: Round = {
+                id: r.id,
+                date: r.played_at,
+                courseName: r.course_name,
+                holes: r.holes,
+                totalScore: r.total_score,
+                totalPar: r.total_par,
+                relativeScore: r.relative_score,
+                competitionId: r.competition_id,
+                playerId: r.player_id,
+              };
+              const newRounds = [...c.rounds];
+              newRounds[idx] = updatedRound;
+              return { ...c, rounds: newRounds };
+            }),
+          }));
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'friendships' },
+        (payload) => {
+          const f = payload.new as any;
           setData(prev => {
-            const localOnly = prev.competitions.filter(c => !remoteIds.has(c.id));
+            if (prev.friends.some(x => x.id === f.friend_id)) return prev;
             return {
               ...prev,
-              competitions: [...remoteCompetitions, ...localOnly],
+              friends: [...prev.friends, { id: f.friend_id, name: f.friend_name, userId: f.friend_id }],
             };
           });
         }
-      } catch (e) {
-        console.error('Failed to load remote data:', e);
-      } finally {
-        setSyncing(false);
-      }
-    };
-
-    loadRemoteData();
-  }, []);
-
-  // Realtime subscription for competitions
-  useEffect(() => {
-    const channel = supabase
-      .channel('competitions-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'competitions' },
-        async (payload) => {
-          console.log('Competition change:', payload);
-          
-          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-            const c = payload.new as any;
-            const { data: rounds } = await supabase
-              .from('competition_rounds')
-              .select('*')
-              .eq('competition_id', c.id);
-            
-            const compRounds = (rounds || []).map(r => ({
-              id: r.id,
-              date: r.played_at,
-              courseName: r.course_name,
-              holes: r.holes,
-              totalScore: r.total_score,
-              totalPar: r.total_par,
-              relativeScore: r.relative_score,
-              competitionId: c.id,
-              playerId: r.player_id,
-            }));
-
-            setData(prev => {
-              const existing = prev.competitions.findIndex(comp => comp.id === c.id);
-              const compPlayers = (c.player_names || []).map((name: string, i: number) => ({
-                id: c.player_ids?.[i] || `player_${i}`,
-                name,
-              }));
-              
-              const newComp: Competition = {
-                id: c.id,
-                name: c.name,
-                hostId: c.host_id,
-                hostName: c.host_name,
-                players: compPlayers,
-                playerIds: c.player_ids || [],
-                rounds: compRounds,
-                startDate: c.start_date || c.created_at,
-                endDate: c.end_date,
-                status: c.status,
-              };
-
-              const newComps = [...prev.competitions];
-              if (existing >= 0) {
-                newComps[existing] = { ...newComps[existing], ...newComp };
-              } else {
-                newComps.unshift(newComp);
-              }
-              
-              return { ...prev, competitions: newComps };
-            });
-          } else if (payload.eventType === 'DELETE') {
-            const compId = (payload.old as any).id;
-            setData(prev => ({
-              ...prev,
-              competitions: prev.competitions.filter(c => c.id !== compId),
-            }));
-          }
-        }
       )
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'competition_rounds' },
-        async (payload) => {
-          console.log('Round change:', payload);
-          
-          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-            const r = payload.new as any;
-            const compId = r.competition_id;
-            
-            setData(prev => ({
-              ...prev,
-              competitions: prev.competitions.map(c => {
-                if (c.id !== compId) return c;
-                
-                const existingRoundIdx = c.rounds.findIndex(cr => cr.id === r.id);
-                const newRound: Round = {
-                  id: r.id,
-                  date: r.played_at,
-                  courseName: r.course_name,
-                  holes: r.holes,
-                  totalScore: r.total_score,
-                  totalPar: r.total_par,
-                  relativeScore: r.relative_score,
-                  competitionId: compId,
-                  playerId: r.player_id,
-                };
-                
-                const newRounds = [...c.rounds];
-                if (existingRoundIdx >= 0) {
-                  newRounds[existingRoundIdx] = newRound;
-                } else {
-                  newRounds.push(newRound);
-                }
-                
-                const playerIdsWithRounds = new Set(newRounds.map(cr => cr.playerId));
-                const allFinished = c.players.every(p => playerIdsWithRounds.has(p.id));
-                
-                return { ...c, rounds: newRounds, status: allFinished ? 'finished' as const : 'active' as const };
-              }),
-            }));
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'friendships' },
-        async (payload) => {
-          console.log('Friendship change:', payload);
-          
-          if (payload.eventType === 'INSERT') {
-            const f = payload.new as any;
-            setData(prev => {
-              const exists = prev.friends.some(fr => fr.id === f.friend_id);
-              if (exists) return prev;
-              return {
-                ...prev,
-                friends: [...prev.friends, { id: f.friend_id, name: f.friend_name, userId: f.friend_id }],
-              };
-            });
-          } else if (payload.eventType === 'DELETE') {
-            const friendId = (payload.old as any).friend_id;
-            setData(prev => ({
-              ...prev,
-              friends: prev.friends.filter(f => f.id !== friendId),
-            }));
-          }
+        { event: 'DELETE', schema: 'public', table: 'friendships' },
+        (payload) => {
+          const friendId = (payload.old as any).friend_id;
+          setData(prev => ({
+            ...prev,
+            friends: prev.friends.filter(f => f.id !== friendId),
+          }));
         }
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, []);
+
+  // Save local data (rounds, player) to localStorage
+  useEffect(() => {
+    saveData(data);
+  }, [data.rounds, data.player]);
 
   const addRound = (courseName: string): Round => {
     const newRound = createNewRound(courseName);
-    setData(prev => ({
-      ...prev,
-      rounds: [newRound, ...prev.rounds],
-    }));
+    setData(prev => ({ ...prev, rounds: [newRound, ...prev.rounds] }));
     return newRound;
   };
 
@@ -298,170 +295,132 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updatePlayer = (player: Partial<Player>) => {
-    setData(prev => ({
-      ...prev,
-      player: { ...prev.player, ...player },
-    }));
+    setData(prev => ({ ...prev, player: { ...prev.player, ...player } }));
   };
 
   const addFriend = useCallback(async (name: string, userId?: string) => {
     const friendId = userId || generateId();
     
-    // Add to local state immediately
-    const newFriend: Player = { id: friendId, name, userId: friendId };
     setData(prev => {
-      const exists = prev.friends.some(f => f.id === friendId);
-      if (exists) return prev;
-      return { ...prev, friends: [...prev.friends, newFriend] };
+      if (prev.friends.some(f => f.id === friendId)) return prev;
+      return { ...prev, friends: [...prev.friends, { id: friendId, name, userId: friendId }] };
     });
 
-    // Sync to Supabase
     try {
-      const { data: userMeta } = await supabase.auth.getUser();
-      const currentUserId = userMeta?.user?.id;
-      if (!currentUserId) return;
-
-      await supabase
-        .from('friendships')
-        .upsert({
-          user_id: currentUserId,
-          friend_id: friendId,
-          friend_name: name,
-        }, { onConflict: 'user_id,friend_id' });
+      const uid = ownUserId.current;
+      if (!uid) return;
+      await supabase.from('friendships').upsert(
+        { user_id: uid, friend_id: friendId, friend_name: name },
+        { onConflict: 'user_id,friend_id' }
+      );
     } catch (e) {
-      console.error('Failed to sync friend:', e);
+      console.error('Friend sync error:', e);
     }
   }, []);
 
   const removeFriend = useCallback(async (friendId: string) => {
-    setData(prev => ({
-      ...prev,
-      friends: prev.friends.filter(f => f.id !== friendId),
-    }));
-
+    setData(prev => ({ ...prev, friends: prev.friends.filter(f => f.id !== friendId) }));
     try {
-      const { data: userMeta } = await supabase.auth.getUser();
-      const currentUserId = userMeta?.user?.id;
-      if (!currentUserId) return;
-
-      await supabase
-        .from('friendships')
-        .delete()
-        .eq('user_id', currentUserId)
-        .eq('friend_id', friendId);
+      const uid = ownUserId.current;
+      if (!uid) return;
+      await supabase.from('friendships').delete().eq('user_id', uid).eq('friend_id', friendId);
     } catch (e) {
-      console.error('Failed to remove friend:', e);
+      console.error('Remove friend error:', e);
     }
   }, []);
 
   const updateFriend = (friendId: string, name: string) => {
     setData(prev => ({
       ...prev,
-      friends: prev.friends.map(f => 
-        f.id === friendId ? { ...f, name } : f
-      ),
+      friends: prev.friends.map(f => f.id === friendId ? { ...f, name } : f),
     }));
   };
 
   const createCompetition = useCallback(async (name: string, friendIds: string[] = []): Promise<Competition> => {
-    const { data: userMeta } = await supabase.auth.getUser();
-    const currentUserId = userMeta?.user?.id;
-    const currentUserName = data.player.name;
+    const uid = ownUserId.current;
+    const hostId = uid || data.player.id;
+    const hostName = data.player.name;
 
     const invitedFriends = data.friends.filter(f => friendIds.includes(f.id));
-    const allPlayerIds = [currentUserId || data.player.id, ...invitedFriends.map(f => f.userId || f.id)];
-    const allPlayerNames = [currentUserName, ...invitedFriends.map(f => f.name)];
+    const allPlayerIds = [hostId, ...invitedFriends.map(f => f.userId || f.id)];
+    const allPlayerNames = [hostName, ...invitedFriends.map(f => f.name)];
 
+    const compId = generateId();
     const comp: Competition = {
-      id: generateId(),
+      id: compId,
       name,
-      hostId: currentUserId || data.player.id,
-      hostName: currentUserName,
-      players: [{ id: currentUserId || data.player.id, name: currentUserName }, ...invitedFriends.map(f => ({ id: f.userId || f.id, name: f.name }))],
+      hostId,
+      hostName,
+      players: [
+        { id: hostId, name: hostName },
+        ...invitedFriends.map(f => ({ id: f.userId || f.id, name: f.name })),
+      ],
       playerIds: allPlayerIds,
       rounds: [],
       startDate: new Date().toISOString(),
       status: 'pending',
     };
-    
-    setData(prev => ({
-      ...prev,
-      competitions: [...prev.competitions, comp],
-    }));
+
+    // Add to local state immediately
+    setData(prev => ({ ...prev, competitions: [...prev.competitions, comp] }));
 
     // Save to Supabase
     try {
-      await supabase
-        .from('competitions')
-        .insert({
-          id: comp.id,
-          name: comp.name,
-          host_id: comp.hostId,
-          host_name: comp.hostName,
-          player_ids: allPlayerIds,
-          player_names: allPlayerNames,
-          status: comp.status,
-          start_date: comp.startDate,
-        });
+      const { error } = await supabase.from('competitions').insert({
+        id: compId,
+        name,
+        host_id: hostId,
+        host_name: hostName,
+        player_ids: allPlayerIds,
+        player_names: allPlayerNames,
+        status: 'pending',
+        start_date: comp.startDate,
+      });
+      if (error) console.error('Competition insert error:', error);
     } catch (e) {
-      console.error('Failed to create competition in DB:', e);
+      console.error('Competition save error:', e);
     }
-    
+
     return comp;
   }, [data.friends, data.player]);
 
   const joinCompetition = useCallback(async (_compId: string, _hostId?: string, _compName?: string) => {
-    const { data: userMeta } = await supabase.auth.getUser();
-    const currentUserId = userMeta?.user?.id;
-    const currentUserName = data.player.name;
+    const uid = ownUserId.current;
+    const playerId = uid || data.player.id;
+    const playerName = data.player.name;
 
+    // Check if already joined locally
     setData(prev => {
-      const existingComp = prev.competitions.find(c => c.id === _compId);
-      
-      if (existingComp) {
-        if (!existingComp.players.find(p => p.id === currentUserId || p.id === data.player.id)) {
-          const updatedComp = {
-            ...existingComp,
-            players: [...existingComp.players, { id: currentUserId || data.player.id, name: currentUserName }],
-            playerIds: [...existingComp.playerIds, currentUserId || data.player.id],
-          };
-          
-          return {
-            ...prev,
-            competitions: prev.competitions.map(c => 
-              c.id === _compId ? updatedComp : c
-            ),
-          };
-        }
-        return prev;
-      }
+      const existing = prev.competitions.find(c => c.id === _compId);
+      if (existing && existing.players.some(p => p.id === playerId)) return prev;
       return prev;
     });
 
-    // Update in Supabase
     try {
-      const { data: existingComp } = await supabase
+      const { data: existingComp, error: fetchError } = await supabase
         .from('competitions')
-        .select('*')
+        .select('player_ids, player_names')
         .eq('id', _compId)
         .single();
 
-      if (existingComp) {
-        const playerIds = existingComp.player_ids || [];
-        const playerNames = existingComp.player_names || [];
+      if (fetchError || !existingComp) return;
+
+      const pIds = existingComp.player_ids || [];
+      const pNames = existingComp.player_names || [];
+
+      if (!pIds.includes(playerId)) {
+        const { error } = await supabase
+          .from('competitions')
+          .update({
+            player_ids: [...pIds, playerId],
+            player_names: [...pNames, playerName],
+          })
+          .eq('id', _compId);
         
-        if (!playerIds.includes(currentUserId || data.player.id)) {
-          await supabase
-            .from('competitions')
-            .update({
-              player_ids: [...playerIds, currentUserId || data.player.id],
-              player_names: [...playerNames, currentUserName],
-            })
-            .eq('id', _compId);
-        }
+        if (error) console.error('Join comp error:', error);
       }
     } catch (e) {
-      console.error('Failed to join competition in DB:', e);
+      console.error('Join competition error:', e);
     }
   }, [data.player]);
 
@@ -472,28 +431,18 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     }));
 
     try {
-      await supabase
-        .from('competition_rounds')
-        .delete()
-        .eq('competition_id', compId);
-
-      const { error } = await supabase
-        .from('competitions')
-        .delete()
-        .eq('id', compId);
-      
-      if (error) {
-        console.error('Supabase delete error:', error);
-      }
+      await supabase.from('competition_rounds').delete().eq('competition_id', compId);
+      const { error } = await supabase.from('competitions').delete().eq('id', compId);
+      if (error) console.error('Delete comp error:', error);
     } catch (e) {
-      console.error('Failed to delete competition:', e);
+      console.error('Delete competition error:', e);
     }
   }, []);
 
   const addRoundToCompetition = (compId: string, round: Round) => {
     setData(prev => ({
       ...prev,
-      competitions: prev.competitions.map(c => 
+      competitions: prev.competitions.map(c =>
         c.id === compId
           ? { ...c, rounds: [...c.rounds, round], status: 'active' as const }
           : c
@@ -501,74 +450,69 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
-  const finishCompetitionRound = useCallback(async (compId: string, round: Round, playerIds: string[]) => {
+  const finishCompetitionRound = useCallback(async (compId: string, round: Round, _playerIds: string[]) => {
+    // Update local state immediately
     setData(prev => {
       const competitions = prev.competitions.map(c => {
         if (c.id !== compId) return c;
-        const updatedRounds = [...c.rounds, round];
-        const playerIdsWithRounds = new Set(updatedRounds.map(r => r.playerId));
-        const allFinished = playerIds.every(pid => playerIdsWithRounds.has(pid));
-        return {
-          ...c,
-          rounds: updatedRounds,
-          status: allFinished ? 'finished' as const : 'active' as const,
-        };
+        const existingIdx = c.rounds.findIndex(r => r.playerId === round.playerId);
+        let newRounds: Round[];
+        if (existingIdx >= 0) {
+          newRounds = [...c.rounds];
+          newRounds[existingIdx] = round;
+        } else {
+          newRounds = [...c.rounds, round];
+        }
+        const playersWithRounds = new Set(newRounds.map(r => r.playerId));
+        const allDone = c.players.every(p => playersWithRounds.has(p.id));
+        return { ...c, rounds: newRounds, status: allDone ? 'finished' as const : 'active' as const };
       });
       return { ...prev, competitions };
     });
 
     // Save round to Supabase
     try {
-      await supabase
-        .from('competition_rounds')
-        .insert({
-          id: round.id,
-          competition_id: compId,
-          player_id: round.playerId,
-          player_name: data.player.name,
-          holes: round.holes,
-          total_score: round.totalScore,
-          total_par: round.totalPar,
-          relative_score: round.relativeScore,
-          course_name: round.courseName,
-        });
-
-      // Update competition status
-      const comp = data.competitions.find(c => c.id === compId);
-      if (comp) {
-        const allRounds = [...comp.rounds, round];
-        const playerIdsWithRounds = new Set(allRounds.map(r => r.playerId));
-        const allFinished = comp.players.every(p => playerIdsWithRounds.has(p.id));
-        
-        await supabase
-          .from('competitions')
-          .update({
-            status: allFinished ? 'finished' : 'active',
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', compId);
-      }
+      // Upsert: delete existing round for this player in this comp, then insert
+      await supabase.from('competition_rounds').delete().eq('competition_id', compId).eq('player_id', round.playerId);
+      
+      const { error } = await supabase.from('competition_rounds').insert({
+        id: round.id,
+        competition_id: compId,
+        player_id: round.playerId,
+        player_name: data.player.name,
+        holes: round.holes,
+        total_score: round.totalScore,
+        total_par: round.totalPar,
+        relative_score: round.relativeScore,
+        course_name: round.courseName,
+      });
+      if (error) console.error('Round insert error:', error);
     } catch (e) {
-      console.error('Failed to save round:', e);
+      console.error('Save round error:', e);
     }
-  }, [data.competitions, data.player]);
+  }, [data.player]);
 
   const addPlayerToCompetition = useCallback(async (compId: string, friendId: string) => {
     const friend = data.friends.find(f => f.id === friendId);
     if (!friend) return;
-    
+
     const friendSupabaseId = friend.userId || friend.id;
-    
+
+    // Update local state
     setData(prev => ({
       ...prev,
-      competitions: prev.competitions.map(c => 
-        c.id === compId && !c.players.find(p => p.id === friendSupabaseId)
-          ? { ...c, players: [...c.players, { id: friendSupabaseId, name: friend.name }], playerIds: [...c.playerIds, friendSupabaseId] }
-          : c
-      ),
+      competitions: prev.competitions.map(c => {
+        if (c.id !== compId) return c;
+        if (c.players.some(p => p.id === friendSupabaseId)) return c;
+        return {
+          ...c,
+          players: [...c.players, { id: friendSupabaseId, name: friend.name }],
+          playerIds: [...c.playerIds, friendSupabaseId],
+        };
+      }),
     }));
 
-    // Update in Supabase
+    // Update Supabase
     try {
       const { data: existingComp } = await supabase
         .from('competitions')
@@ -577,21 +521,21 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
         .single();
 
       if (existingComp) {
-        const playerIds = existingComp.player_ids || [];
-        const playerNames = existingComp.player_names || [];
-        
-        if (!playerIds.includes(friendSupabaseId)) {
-          await supabase
+        const pIds = existingComp.player_ids || [];
+        const pNames = existingComp.player_names || [];
+        if (!pIds.includes(friendSupabaseId)) {
+          const { error } = await supabase
             .from('competitions')
             .update({
-              player_ids: [...playerIds, friendSupabaseId],
-              player_names: [...playerNames, friend.name],
+              player_ids: [...pIds, friendSupabaseId],
+              player_names: [...pNames, friend.name],
             })
             .eq('id', compId);
+          if (error) console.error('Add player error:', error);
         }
       }
     } catch (e) {
-      console.error('Failed to add player to competition:', e);
+      console.error('Add player to comp error:', e);
     }
   }, [data.friends]);
 
@@ -604,33 +548,14 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
         const score = Math.max(1, Math.min(baseScore, 15));
         return { number: i + 1, par, score };
       });
-      
       const { totalScore, totalPar, relativeScore } = calculateScore(holes);
       const daysAgo = Math.floor(Math.random() * 60);
       const date = new Date();
       date.setDate(date.getDate() - daysAgo);
-      
-      return {
-        id: generateId(),
-        date: date.toISOString(),
-        courseName: courseNames[Math.floor(Math.random() * courseNames.length)],
-        holes,
-        totalScore,
-        totalPar,
-        relativeScore,
-      };
+      return { id: generateId(), date: date.toISOString(), courseName: courseNames[Math.floor(Math.random() * courseNames.length)], holes, totalScore, totalPar, relativeScore };
     });
-    
-    const sampleFriends = ['김철수', '이영희', '박민수', '정수진'].map(name => ({
-      id: generateId(),
-      name,
-    }));
-    
-    setData(prev => ({
-      ...prev,
-      rounds: [...sampleRounds, ...prev.rounds],
-      friends: [...prev.friends, ...sampleFriends],
-    }));
+    const sampleFriends = ['김철수', '이영희', '박민수', '정수진'].map(name => ({ id: generateId(), name }));
+    setData(prev => ({ ...prev, rounds: [...sampleRounds, ...prev.rounds], friends: [...prev.friends, ...sampleFriends] }));
   };
 
   const clearAllData = () => {
@@ -647,25 +572,11 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <GolfContext.Provider value={{
-      data,
-      setData,
-      addRound,
-      updateRound,
-      deleteRound,
-      updatePlayer,
-      addFriend,
-      removeFriend,
-      updateFriend,
-      createCompetition,
-      joinCompetition,
-      deleteCompetition,
-      addRoundToCompetition,
-      finishCompetitionRound,
-      addPlayerToCompetition,
-      addSampleData,
-      clearAllData,
-      clearLocalData,
-      syncing,
+      data, setData, addRound, updateRound, deleteRound, updatePlayer,
+      addFriend, removeFriend, updateFriend,
+      createCompetition, joinCompetition, deleteCompetition,
+      addRoundToCompetition, finishCompetitionRound, addPlayerToCompetition,
+      addSampleData, clearAllData, clearLocalData, syncing,
     }}>
       {children}
     </GolfContext.Provider>
@@ -674,8 +585,6 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
 
 export const useGolf = () => {
   const context = useContext(GolfContext);
-  if (!context) {
-    throw new Error('useGolf must be used within GolfProvider');
-  }
+  if (!context) throw new Error('useGolf must be used within GolfProvider');
   return context;
 };
