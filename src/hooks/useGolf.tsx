@@ -466,9 +466,18 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       await supabase
+        .from('competition_rounds')
+        .delete()
+        .eq('competition_id', compId);
+
+      const { error } = await supabase
         .from('competitions')
         .delete()
         .eq('id', compId);
+      
+      if (error) {
+        console.error('Supabase delete error:', error);
+      }
     } catch (e) {
       console.error('Failed to delete competition:', e);
     }
