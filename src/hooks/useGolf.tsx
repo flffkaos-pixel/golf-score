@@ -63,14 +63,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
           .order('created_at', { ascending: false });
         
         if (!cError && competitions) {
-          const { data: userMeta } = await supabase.auth.getUser();
-          const currentUserId = userMeta?.user?.id;
-          
           const remoteCompetitions: Competition[] = competitions
-            .filter(c => {
-              if (!currentUserId) return true;
-              return c.player_ids?.includes(currentUserId) || c.host_id === currentUserId;
-            })
             .map(c => ({
               id: c.id,
               name: c.name,
