@@ -58,11 +58,11 @@ function AuthButton() {
 }
 
 function GlobalHeader() {
-  const { data } = useGolf();
+  const { data, pendingInvites, respondToCompetitionInvite } = useGolf();
   const { t } = useAppSettings();
   const [showNotifications, setShowNotifications] = useState(false);
   
-  const hasNotifications = data.competitions.filter(c => c.status === 'active').length > 0 || data.friends.length > 0;
+  const hasNotifications = data.competitions.filter(c => c.status === 'active').length > 0 || data.friends.length > 0 || pendingInvites.length > 0;
 
   return (
     <>
@@ -83,20 +83,49 @@ function GlobalHeader() {
       </header>
 
       {showNotifications && (
-        <div className="fixed top-16 right-4 w-72 bg-white rounded-2xl shadow-xl z-50 p-4">
+        <div className="fixed top-16 right-4 w-80 max-h-[80vh] overflow-y-auto bg-white rounded-2xl shadow-xl z-50 p-4">
           <h3 className="font-bold text-primary mb-3">🔔 {t('notifications')}</h3>
-          {data.friends.length === 0 ? (
-            <p className="text-stone-500 text-sm">{t('addFriendHint')}</p>
+          
+          {pendingInvites.length === 0 && data.friends.length === 0 && data.competitions.filter(c => c.status === 'active').length === 0 ? (
+            <p className="text-stone-500 text-sm">알림이 없습니다.</p>
           ) : (
-            <div className="space-y-2">
-              {data.friends.slice(0, 3).map(friend => (
-                <div key={friend.id} className="flex items-center gap-3 p-2 bg-surface-container rounded-xl">
+            <div className="space-y-3">
+              {pendingInvites.map(invite => (
+                <div key={invite.id} className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 bg-amber-200 rounded-full flex items-center justify-center text-xs font-bold text-amber-700">
+                      {invite.fromUserName[0]}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-primary">{invite.fromUserName}</p>
+                      <p className="text-xs text-stone-500">"{invite.competitionName}" 대회에 초대했습니다!</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => respondToCompetitionInvite(invite.id, true)}
+                      className="flex-1 bg-green-500 text-white py-2 rounded-lg font-bold text-sm active:scale-95 transition-transform"
+                    >
+                      ✓ 수락
+                    </button>
+                    <button
+                      onClick={() => respondToCompetitionInvite(invite.id, false)}
+                      className="flex-1 bg-stone-200 text-stone-600 py-2 rounded-lg font-bold text-sm active:scale-95 transition-transform"
+                    >
+                      ✕ 거절
+                    </button>
+                  </div>
+                </div>
+              ))}
+              
+              {data.competitions.filter(c => c.status === 'active').slice(0, 3).map(comp => (
+                <div key={comp.id} className="flex items-center gap-3 p-2 bg-surface-container rounded-xl">
                   <div className="w-8 h-8 bg-secondary-container rounded-full flex items-center justify-center text-xs font-bold text-on-secondary-container">
-                    {friend.name[0]}
+                    {comp.name[0]}
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-primary">{friend.name}</p>
-                    <p className="text-xs text-stone-500">{t('startRound')}...</p>
+                    <p className="text-sm font-medium text-primary">{comp.name}</p>
+                    <p className="text-xs text-stone-500">진행 중 - {comp.players.length}명 참가</p>
                   </div>
                 </div>
               ))}

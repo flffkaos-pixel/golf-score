@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from 'react';
 import { supabase } from '../supabase';
-import type { GolfData, Player, Round, Competition } from '../types';
+import type { GolfData, Player, Round, Competition, CompetitionInvite } from '../types';
 import { loadData, saveData, generateId, createNewRound, calculateScore } from '../utils/storage';
 
 interface GolfContextType {
@@ -19,6 +19,9 @@ interface GolfContextType {
   addRoundToCompetition: (compId: string, round: Round) => void;
   finishCompetitionRound: (compId: string, round: Round, playerIds: string[]) => Promise<void>;
   addPlayerToCompetition: (compId: string, friendId: string) => Promise<void>;
+  sendCompetitionInvite: (compId: string, compName: string, friendId: string, friendName: string) => Promise<void>;
+  respondToCompetitionInvite: (inviteId: string, accepted: boolean) => Promise<void>;
+  pendingInvites: CompetitionInvite[];
   addSampleData: () => void;
   clearAllData: () => void;
   clearLocalData: () => void;
@@ -63,6 +66,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
   const [syncing, setSyncing] = useState(true);
   const isInitialLoadDone = useRef(false);
   const ownUserId = useRef<string | null>(null);
+  const [pendingInvites, setPendingInvites] = useState<CompetitionInvite[]>([]);
 
   // Get current user ID
   useEffect(() => {
@@ -125,6 +129,31 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
               return { ...prev, competitions: [...remoteComps, ...localOnly] };
             });
           }
+
+          // Load pending competition invites
+          const { data: invites } = await supabase
+            .from('competition_invites')
+            .select('*')
+            .eq('to_user_id', uid)
+            .eq('status', 'pending')
+            .order('created_at', { ascending: false });
+          
+          if (invites && !cancelled) {
+            const mapped: CompetitionInvite[] = invites.map(inv => ({
+              id: inv.id,
+              competitionId: inv.competition_id,
+              fromUserId: inv.from_user_id,
+              fromUserName: inv.from_user_name,
+              toUserId: inv.to_user_id,
+              toUserName: inv.to_user_name,
+              competitionName: inv.competition_name,
+              status: inv.status,
+              createdAt: inv.created_at,
+              respondedAt: inv.responded_at,
+            }));
+            setPendingInvites(mapped);
+          }
+
           setSyncing(false);
           isInitialLoadDone.current = true;
         }
@@ -283,6 +312,39 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
             ...prev,
             friends: prev.friends.filter(f => f.id !== friendId),
           }));
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'competition_invites' },
+        (payload) => {
+          const inv = payload.new as any;
+          const uid = ownUserId.current;
+          if (uid && inv.to_user_id === uid && inv.status === 'pending') {
+            setPendingInvites(prev => {
+              if (prev.some(x => x.id === inv.id)) return prev;
+              return [...prev, {
+                id: inv.id,
+                competitionId: inv.competition_id,
+                fromUserId: inv.from_user_id,
+                fromUserName: inv.from_user_name,
+                toUserId: inv.to_user_id,
+                toUserName: inv.to_user_name,
+                competitionName: inv.competition_name,
+                status: inv.status,
+                createdAt: inv.created_at,
+                respondedAt: inv.responded_at,
+              }];
+            });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'competition_invites' },
+        (payload) => {
+          const inv = payload.new as any;
+          setPendingInvites(prev => prev.filter(x => x.id !== inv.id));
         }
       )
       .subscribe();
@@ -598,6 +660,117 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [data.friends]);
 
+  const sendCompetitionInvite = useCallback(async (compId: string, compName: string, friendId: string, friendName: string) => {
+    const uid = ownUserId.current;
+    if (!uid) return;
+
+    const friend = data.friends.find(f => f.id === friendId);
+    const friendSupabaseId = friend?.userId || friendId;
+
+    // Check if already invited (pending)
+    const { data: existing } = await supabase
+      .from('competition_invites')
+      .select('*')
+      .eq('competition_id', compId)
+      .eq('to_user_id', friendSupabaseId)
+      .eq('status', 'pending');
+    
+    if (existing && existing.length > 0) return;
+
+    const inviteId = generateId();
+    const invite: CompetitionInvite = {
+      id: inviteId,
+      competitionId: compId,
+      fromUserId: uid,
+      fromUserName: data.player.name,
+      toUserId: friendSupabaseId,
+      toUserName: friendName,
+      competitionName: compName,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+    };
+
+    setPendingInvites(prev => [...prev, invite]);
+
+    try {
+      const { error } = await supabase.from('competition_invites').insert({
+        id: inviteId,
+        competition_id: compId,
+        from_user_id: uid,
+        from_user_name: data.player.name,
+        to_user_id: friendSupabaseId,
+        to_user_name: friendName,
+        competition_name: compName,
+        status: 'pending',
+      });
+      if (error) console.error('Competition invite insert error:', error);
+    } catch (e) {
+      console.error('Competition invite save error:', e);
+    }
+  }, [data.friends, data.player]);
+
+  const respondToCompetitionInvite = useCallback(async (inviteId: string, accepted: boolean) => {
+    const uid = ownUserId.current;
+    if (!uid) return;
+
+    const invite = pendingInvites.find(i => i.id === inviteId);
+    if (!invite) return;
+
+    // Remove from pending list immediately
+    setPendingInvites(prev => prev.filter(i => i.id !== inviteId));
+
+    const newStatus = accepted ? 'accepted' : 'declined';
+
+    try {
+      await supabase
+        .from('competition_invites')
+        .update({ status: newStatus, responded_at: new Date().toISOString() })
+        .eq('id', inviteId);
+
+      if (accepted) {
+        // Add player to competition
+        const comp = data.competitions.find(c => c.id === invite.competitionId);
+        if (comp && !comp.playerIds.includes(uid)) {
+          const { data: existingComp } = await supabase
+            .from('competitions')
+            .select('player_ids, player_names')
+            .eq('id', invite.competitionId)
+            .single();
+
+          if (existingComp) {
+            const pIds = existingComp.player_ids || [];
+            const pNames = existingComp.player_names || [];
+            if (!pIds.includes(uid)) {
+              await supabase
+                .from('competitions')
+                .update({
+                  player_ids: [...pIds, uid],
+                  player_names: [...pNames, data.player.name],
+                })
+                .eq('id', invite.competitionId);
+            }
+          }
+
+          // Also update local state
+          setData(prev => ({
+            ...prev,
+            competitions: prev.competitions.map(c => {
+              if (c.id !== invite.competitionId) return c;
+              if (c.playerIds.includes(uid)) return c;
+              return {
+                ...c,
+                players: [...c.players, { id: uid, name: data.player.name }],
+                playerIds: [...c.playerIds, uid],
+              };
+            }),
+          }));
+        }
+      }
+    } catch (e) {
+      console.error('Respond to invite error:', e);
+    }
+  }, [pendingInvites, data.competitions, data.player]);
+
   const addSampleData = () => {
     const sampleRounds = Array.from({ length: 8 }, () => {
       const holes = Array.from({ length: 18 }, (_, i) => {
@@ -635,6 +808,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       addFriend, removeFriend, updateFriend,
       createCompetition, joinCompetition, deleteCompetition,
       addRoundToCompetition, finishCompetitionRound, addPlayerToCompetition,
+      sendCompetitionInvite, respondToCompetitionInvite, pendingInvites,
       addSampleData, clearAllData, clearLocalData, syncing,
     }}>
       {children}

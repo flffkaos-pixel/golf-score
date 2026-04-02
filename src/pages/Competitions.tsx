@@ -15,7 +15,7 @@ interface CompetitionsProps {
 }
 
 export default function Competitions({ onBack, onStartCompetitionGame }: CompetitionsProps) {
-  const { data, createCompetition, joinCompetition, deleteCompetition, addPlayerToCompetition } = useGolf();
+  const { data, createCompetition, joinCompetition, deleteCompetition, addPlayerToCompetition, sendCompetitionInvite, pendingInvites } = useGolf();
   const { t } = useAppSettings();
   const { user } = useAuth();
   const [showCreate, setShowCreate] = useState(false);
@@ -53,12 +53,35 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
     }, 2000);
   };
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!newCompName.trim()) return;
-    createCompetition(newCompName.trim(), selectedFriends);
+    const comp = await createCompetition(newCompName.trim(), []);
     setNewCompName('');
     setShowCreate(false);
+    
+    for (const friendId of selectedFriends) {
+      const friend = data.friends.find(f => f.id === friendId);
+      if (friend) {
+        await sendCompetitionInvite(comp.id, comp.name, friendId, friend.name);
+      }
+    }
     setSelectedFriends([]);
+  };
+
+  const toggleFriend = (friendId: string) => {
+    if (selectedFriends.includes(friendId)) {
+      setSelectedFriends(prev => prev.filter(id => id !== friendId));
+    } else if (selectedFriends.length < 4) {
+      setSelectedFriends(prev => [...prev, friendId]);
+    }
+  };
+
+  const getFriendInviteStatus = (friendId: string) => {
+    const friend = data.friends.find(f => f.id === friendId);
+    if (!friend) return 'none';
+    const friendUid = friend.userId || friendId;
+    if (data.competitions.some(c => c.playerIds.includes(friendUid))) return 'joined';
+    return 'none';
   };
 
   const toggleFriend = (friendId: string) => {
@@ -89,9 +112,13 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
     setInviteCompId(compId);
   };
 
-  const confirmInviteFriend = (friendId: string) => {
+  const confirmInviteFriend = async (friendId: string) => {
     if (!inviteCompId) return;
-    addPlayerToCompetition(inviteCompId, friendId);
+    const comp = data.competitions.find(c => c.id === inviteCompId);
+    const friend = data.friends.find(f => f.id === friendId);
+    if (!comp || !friend) return;
+    
+    await sendCompetitionInvite(inviteCompId, comp.name, friendId, friend.name);
     setInviteCompId(null);
   };
 
@@ -135,22 +162,28 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
                   친구 초대 ({selectedFriends.length}/4)
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {data.friends.map(friend => (
+                  {data.friends.map(friend => {
+                    const status = getFriendInviteStatus(friend.id);
+                    return (
                     <button
                       key={friend.id}
                       onClick={() => toggleFriend(friend.id)}
-                      disabled={!selectedFriends.includes(friend.id) && selectedFriends.length >= 4}
+                      disabled={!selectedFriends.includes(friend.id) && (selectedFriends.length >= 4 || status === 'joined')}
                       className={`px-3 py-2 rounded-xl text-sm font-bold transition-all ${
                         selectedFriends.includes(friend.id)
                           ? 'bg-secondary text-white'
+                          : status === 'joined'
+                          ? 'bg-stone-200 text-stone-400 cursor-not-allowed'
                           : !selectedFriends.includes(friend.id) && selectedFriends.length >= 4
                             ? 'bg-stone-200 text-stone-400 cursor-not-allowed'
                             : 'bg-surface-container text-stone-600'
                       }`}
                     >
                       {friend.name}
+                      {status === 'joined' && <span className="ml-1 text-xs">(참여중)</span>}
                     </button>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -308,19 +341,23 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
                 {data.friends.map(friend => {
                   const comp = data.competitions.find(c => c.id === inviteCompId);
                   const alreadyJoined = comp?.players.some(p => p.id === friend.id);
+                  const alreadyInvited = pendingInvites.some(i => i.competitionId === inviteCompId && i.toUserId === (friend.userId || friend.id));
                   return (
                     <button
                       key={friend.id}
-                      onClick={() => !alreadyJoined && confirmInviteFriend(friend.id)}
-                      disabled={alreadyJoined}
+                      onClick={() => !alreadyJoined && !alreadyInvited && confirmInviteFriend(friend.id)}
+                      disabled={alreadyJoined || alreadyInvited}
                       className={`w-full p-3 rounded-xl text-left font-bold transition-all ${
                         alreadyJoined
                           ? 'bg-stone-100 text-stone-400 cursor-not-allowed'
+                          : alreadyInvited
+                          ? 'bg-amber-50 text-amber-600 cursor-not-allowed'
                           : 'bg-surface-container text-primary active:scale-98 hover:bg-secondary-container'
                       }`}
                     >
                       {friend.name}
                       {alreadyJoined && <span className="ml-2 text-xs">(이미 참여)</span>}
+                      {alreadyInvited && !alreadyJoined && <span className="ml-2 text-xs">(초대 발송됨)</span>}
                     </button>
                   );
                 })}

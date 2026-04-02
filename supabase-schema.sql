@@ -48,17 +48,35 @@ CREATE TABLE IF NOT EXISTS friend_requests (
   UNIQUE(from_user_id, to_user_id)
 );
 
+-- 대회 초대 테이블
+CREATE TABLE IF NOT EXISTS competition_invites (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  competition_id TEXT NOT NULL,
+  from_user_id TEXT NOT NULL,
+  from_user_name TEXT NOT NULL,
+  to_user_id TEXT NOT NULL,
+  to_user_name TEXT NOT NULL DEFAULT '',
+  competition_name TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  responded_at TIMESTAMPTZ
+);
+
 -- 인덱스
 CREATE INDEX IF NOT EXISTS idx_competitions_host ON competitions(host_id);
 CREATE INDEX IF NOT EXISTS idx_competitions_players ON competitions USING GIN(player_ids);
 CREATE INDEX IF NOT EXISTS idx_competition_rounds_comp ON competition_rounds(competition_id);
 CREATE INDEX IF NOT EXISTS idx_friendships_user ON friendships(user_id);
 CREATE INDEX IF NOT EXISTS idx_friend_requests_to ON friend_requests(to_user_id);
+CREATE INDEX IF NOT EXISTS idx_comp_invites_to ON competition_invites(to_user_id);
+CREATE INDEX IF NOT EXISTS idx_comp_invites_comp ON competition_invites(competition_id);
 
 -- RLS 정책
 ALTER TABLE competitions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE competition_rounds ENABLE ROW LEVEL SECURITY;
 ALTER TABLE friendships ENABLE ROW LEVEL SECURITY;
+ALTER TABLE friend_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE competition_invites ENABLE ROW LEVEL SECURITY;
 
 -- 대회: 누구나 읽기 가능 (공개 대회)
 CREATE POLICY "competitions_select" ON competitions FOR SELECT USING (true);
@@ -84,8 +102,15 @@ CREATE POLICY "friend_requests_insert" ON friend_requests FOR INSERT WITH CHECK 
 CREATE POLICY "friend_requests_update" ON friend_requests FOR UPDATE USING (true);
 CREATE POLICY "friend_requests_delete" ON friend_requests FOR DELETE USING (true);
 
+-- 대회 초대
+CREATE POLICY "competition_invites_select" ON competition_invites FOR SELECT USING (true);
+CREATE POLICY "competition_invites_insert" ON competition_invites FOR INSERT WITH CHECK (true);
+CREATE POLICY "competition_invites_update" ON competition_invites FOR UPDATE USING (true);
+CREATE POLICY "competition_invites_delete" ON competition_invites FOR DELETE USING (true);
+
 -- Realtime 활성화
 ALTER PUBLICATION supabase_realtime ADD TABLE competitions;
 ALTER PUBLICATION supabase_realtime ADD TABLE competition_rounds;
 ALTER PUBLICATION supabase_realtime ADD TABLE friendships;
 ALTER PUBLICATION supabase_realtime ADD TABLE friend_requests;
+ALTER PUBLICATION supabase_realtime ADD TABLE competition_invites;

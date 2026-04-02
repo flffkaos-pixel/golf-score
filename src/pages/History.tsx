@@ -21,6 +21,13 @@ interface SupabaseRound {
   played_at: string;
 }
 
+interface CompPlayerInfo {
+  player_id: string;
+  player_name: string;
+  round: SupabaseRound | null;
+  rank: number;
+}
+
 export default function History({ onBack }: HistoryProps) {
   const { data, deleteRound } = useGolf();
   const { t } = useAppSettings();
@@ -28,6 +35,7 @@ export default function History({ onBack }: HistoryProps) {
   const [filter, setFilter] = useState<'all' | 'comp' | 'solo'>('all');
   const [compRounds, setCompRounds] = useState<SupabaseRound[]>([]);
   const [loadingRounds, setLoadingRounds] = useState(false);
+  const [compPlayers, setCompPlayers] = useState<CompPlayerInfo[]>([]);
 
   const getScoreColor = (score: number | null, par: number) => {
     if (score === null) return 'bg-surface-container text-stone-400';
@@ -54,10 +62,28 @@ export default function History({ onBack }: HistoryProps) {
       setLoadingRounds(true);
       fetchCompetitionRounds(selectedRound.competitionId).then(rounds => {
         setCompRounds(rounds);
+        
+        // Build player list with rounds
+        const comp = data.competitions.find(c => c.id === selectedRound.competitionId);
+        if (comp) {
+          const sorted = [...rounds].sort((a, b) => a.relative_score - b.relative_score);
+          const players: CompPlayerInfo[] = comp.players.map((player, idx) => {
+            const round = rounds.find(r => r.player_id === player.id) || null;
+            const rank = round ? sorted.findIndex(r => r.player_id === player.id) + 1 : 0;
+            return {
+              player_id: player.id,
+              player_name: player.name,
+              round,
+              rank,
+            };
+          });
+          setCompPlayers(players);
+        }
+        
         setLoadingRounds(false);
       });
     }
-  }, [selectedRound?.competitionId]);
+  }, [selectedRound?.competitionId, data.competitions]);
 
   if (selectedRound) {
     const dateStr = new Date(selectedRound.date).toLocaleDateString();
@@ -120,37 +146,71 @@ export default function History({ onBack }: HistoryProps) {
             <section className="bg-surface-container-lowest rounded-[2rem] p-6 mb-8">
               <h3 className="font-headline text-lg font-bold mb-4 flex items-center gap-2">
                 <span className="material-symbols-outlined text-secondary">emoji_events</span>
-                대회 순위
+                대회 참가자 성적
               </h3>
               {loadingRounds ? (
-                <p className="text-stone-500 text-center py-4">순위 로딩중...</p>
-              ) : compRounds.length > 0 ? (
-                <div className="space-y-2">
-                  {[...compRounds]
-                    .sort((a, b) => a.relative_score - b.relative_score)
-                    .map((r, index) => {
-                      const scoreDisplay = getScoreDisplay(r.relative_score);
-                      const isCurrentUser = r.player_id === data.player.id;
+                <p className="text-stone-500 text-center py-4">로딩중...</p>
+              ) : compPlayers.length > 0 ? (
+                <div className="space-y-3">
+                  {compPlayers
+                    .sort((a, b) => {
+                      if (!a.round && !b.round) return 0;
+                      if (!a.round) return 1;
+                      if (!b.round) return -1;
+                      return a.round.relative_score - b.round.relative_score;
+                    })
+                    .map((player, index) => {
+                      const isCurrentUser = player.player_id === data.player.id;
+                      const hasRound = player.round !== null;
                       return (
-                        <div key={r.id} className={`flex items-center justify-between p-3 rounded-xl ${isCurrentUser ? 'bg-secondary/10' : 'bg-surface-container'}`}>
-                          <div className="flex items-center gap-3">
-                            <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                              index === 0 ? 'bg-yellow-400 text-stone-900' :
-                              index === 1 ? 'bg-stone-300 text-stone-700' :
-                              index === 2 ? 'bg-amber-600 text-white' : 'bg-surface-container text-stone-600'
-                            }`}>
-                              {index + 1}
-                            </span>
-                            <span className="font-bold text-primary">
-                              {r.player_name}
-                              {isCurrentUser && <span className="ml-1 text-secondary text-sm">(나)</span>}
-                            </span>
+                        <div key={player.player_id} className={`p-4 rounded-xl ${isCurrentUser ? 'bg-secondary/10 border border-secondary/20' : 'bg-surface-container'}`}>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                                hasRound ? (
+                                  index === 0 ? 'bg-yellow-400 text-stone-900' :
+                                  index === 1 ? 'bg-stone-300 text-stone-700' :
+                                  index === 2 ? 'bg-amber-600 text-white' : 'bg-surface-container text-stone-600'
+                                ) : 'bg-stone-200 text-stone-400'
+                              }`}>
+                                {hasRound ? index + 1 : '-'}
+                              </div>
+                              <span className="font-bold text-primary">
+                                {player.player_name}
+                                {isCurrentUser && <span className="ml-1 text-secondary text-sm">(나)</span>}
+                              </span>
+                            </div>
+                            {hasRound ? (
+                              <div className="text-right">
+                                <div className={`font-bold ${getScoreDisplay(player.round!.relative_score).color}`}>
+                                  {player.round!.total_score} ({getScoreDisplay(player.round!.relative_score).text})
+                                </div>
+                                <div className="text-xs text-stone-400">{player.round!.course_name}</div>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-stone-400 bg-stone-100 px-3 py-1 rounded-full">아직 미완료</span>
+                            )}
                           </div>
-                          <div className="text-right">
-                            <span className={`font-bold ${scoreDisplay.color}`}>
-                              {r.total_score} ({scoreDisplay.text})
-                            </span>
-                          </div>
+                          {hasRound && player.round && (
+                            <div className="flex gap-1 flex-wrap mt-2">
+                              {player.round.holes.slice(0, 18).map((hole: any, i: number) => {
+                                if (hole.score === null || hole.score === undefined) return null;
+                                const diff = hole.score - hole.par;
+                                let color = 'bg-stone-200 text-stone-600';
+                                if (diff <= -2) color = 'bg-blue-500 text-white';
+                                else if (diff === -1) color = 'bg-secondary text-white';
+                                else if (diff === 0) color = 'bg-surface-container text-stone-600';
+                                else if (diff === 1) color = 'bg-yellow-400 text-stone-800';
+                                else if (diff === 2) color = 'bg-orange-400 text-white';
+                                else color = 'bg-red-500 text-white';
+                                return (
+                                  <div key={i} className={`w-6 h-6 rounded text-[10px] font-bold flex items-center justify-center ${color}`}>
+                                    {hole.score}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       );
                     })}

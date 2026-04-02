@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useGolf } from '../hooks/useGolf';
 import { useAppSettings } from '../hooks/useAppSettings';
 import { calculateScore } from '../utils/storage';
 import { saveCompetitionRoundToSupabase, fetchCompetitionRounds } from '../utils/supabaseCompetition';
+import { supabase } from '../supabase';
 
 interface PlayGameProps {
   onBack: () => void;
@@ -20,8 +21,53 @@ export default function PlayGame({ onBack, onComplete, competitionId }: PlayGame
   const [achievement, setAchievement] = useState<string | null>(null);
   const [showRankPopup, setShowRankPopup] = useState(false);
   const [compRankings, setCompRankings] = useState<{player: string; score: number; relative: number}[]>([]);
+  const [liveOpponentScores, setLiveOpponentScores] = useState<Array<{playerId: string; playerName: string; totalScore: number; totalPar: number; relativeScore: number; completedHoles: number}>>([]);
 
   const inProgressRounds = data.rounds.filter(r => r.holes.some(h => h.score !== null) && r.holes.some(h => h.score === null));
+
+  // Fetch live opponent scores during competition play
+  useEffect(() => {
+    if (!competitionId) return;
+    
+    const fetchOpponentScores = async () => {
+      const { data: rounds } = await supabase
+        .from('competition_rounds')
+        .select('*')
+        .eq('competition_id', competitionId);
+      
+      if (rounds) {
+        const comp = data.competitions.find(c => c.id === competitionId);
+        const opponents = rounds
+          .filter(r => r.player_id !== data.player.id)
+          .map(r => {
+            const holes = r.holes as any[];
+            const completedHoles = holes.filter(h => h.score !== null).length;
+            return {
+              playerId: r.player_id,
+              playerName: r.player_name,
+              totalScore: r.total_score,
+              totalPar: r.total_par,
+              relativeScore: r.relative_score,
+              completedHoles,
+            };
+          });
+        setLiveOpponentScores(opponents);
+      }
+    };
+
+    fetchOpponentScores();
+    
+    const channel = supabase
+      .channel(`comp-live-${competitionId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'competition_rounds', filter: `competition_id=eq.${competitionId}` },
+        () => { fetchOpponentScores(); }
+      )
+      .subscribe();
+    
+    return () => { supabase.removeChannel(channel); };
+  }, [competitionId, data.player.id, data.competitions]);
 
   const handleStart = () => {
     if (!courseName.trim()) return;
@@ -328,6 +374,47 @@ export default function PlayGame({ onBack, onComplete, competitionId }: PlayGame
           </p>
         </div>
       </header>
+
+      {competitionId && liveOpponentScores.length > 0 && (
+        <div className="px-4 mt-4 max-w-md mx-auto">
+          <div className="bg-surface-container rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="material-symbols-outlined text-sm text-secondary">compare_arrows</span>
+              <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">실시간 비교</span>
+            </div>
+            <div className="space-y-2">
+              {liveOpponentScores.map(opp => {
+                const diff = round.relativeScore - opp.relativeScore;
+                const isBehind = diff > 0;
+                const isAhead = diff < 0;
+                const isTied = diff === 0;
+                return (
+                  <div key={opp.playerId} className="flex items-center justify-between bg-surface-container-lowest rounded-xl px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                        opp.completedHoles === 18 ? 'bg-secondary/20 text-secondary' : 'bg-stone-200 text-stone-500'
+                      }`}>
+                        {opp.completedHoles}
+                      </div>
+                      <span className="text-sm font-bold text-primary">{opp.playerName}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className={`text-sm font-bold ${
+                        isAhead ? 'text-secondary' : isBehind ? 'text-error' : 'text-stone-500'
+                      }`}>
+                        {isTied ? '동률' : isAhead ? `${Math.abs(diff)}타 앞` : `${diff}타 뒤`}
+                      </span>
+                      <span className="text-xs text-stone-400 ml-1">
+                        ({opp.totalScore})
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="pt-6 px-4 max-w-md mx-auto">
         <section className="relative overflow-hidden rounded-[1.5rem] bg-primary text-white p-6 mb-6 shadow-lg">

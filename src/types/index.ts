@@ -42,3 +42,16 @@ export interface GolfData {
   friends: Player[];
   competitions: Competition[];
 }
+
+export interface CompetitionInvite {
+  id: string;
+  competitionId: string;
+  fromUserId: string;
+  fromUserName: string;
+  toUserId: string;
+  toUserName: string;
+  competitionName: string;
+  status: 'pending' | 'accepted' | 'declined';
+  createdAt: string;
+  respondedAt?: string;
+}
