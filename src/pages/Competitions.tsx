@@ -198,14 +198,6 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
                     </div>
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => onStartCompetitionGame(comp.id)}
-                        className="px-3 py-2 bg-secondary text-white rounded-full text-sm font-bold flex items-center gap-1 hover:bg-secondary-container transition-colors"
-                        title="참가하기"
-                      >
-                        <span className="material-symbols-outlined text-lg">how_to_reg</span>
-                        참가하기
-                      </button>
-                      <button
                         onClick={() => handleInviteFriend(comp.id)}
                         className="p-2 rounded-full transition-colors bg-surface-container text-stone-600 hover:bg-secondary-container"
                         title="친구 초대"
@@ -292,14 +284,12 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
                     </div>
                   )}
 
-                  {!comp.players.find(p => p.id === data.player.id) && (
-                    <button
-                      onClick={() => joinCompetition(comp.id)}
-                      className="w-full bg-primary text-white py-3 rounded-xl font-bold active:scale-98 transition-transform"
-                    >
-                      {t('join')}
-                    </button>
-                  )}
+                  <button
+                    onClick={() => onStartCompetitionGame(comp.id)}
+                    className="w-full bg-secondary text-white py-4 rounded-2xl font-bold text-lg active:scale-98 transition-transform shadow-lg"
+                  >
+                    참가하기
+                  </button>
                 </div>
               ))}
             </div>
