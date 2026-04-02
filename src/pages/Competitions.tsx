@@ -200,10 +200,10 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
                       <button
                         onClick={() => onStartCompetitionGame(comp.id)}
                         className="px-3 py-2 bg-secondary text-white rounded-full text-sm font-bold flex items-center gap-1 hover:bg-secondary-container transition-colors"
-                        title="새라운딩 시작"
+                        title="참가하기"
                       >
-                        <span className="material-symbols-outlined text-lg">play_arrow</span>
-                        시작
+                        <span className="material-symbols-outlined text-lg">how_to_reg</span>
+                        참가하기
                       </button>
                       <button
                         onClick={() => handleInviteFriend(comp.id)}
