@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useGolf } from '../hooks/useGolf';
 import { useAppSettings } from '../hooks/useAppSettings';
 import { calculateScore } from '../utils/storage';
+import { saveCompetitionRoundToSupabase, fetchCompetitionRounds } from '../utils/supabaseCompetition';
 
 interface PlayGameProps {
   onBack: () => void;
@@ -103,11 +104,17 @@ export default function PlayGame({ onBack, onComplete, competitionId }: PlayGame
     }
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     if (competitionId) {
       const comp = data.competitions.find(c => c.id === competitionId);
       if (comp) {
         const updatedRound = { ...round!, playerId: data.player.id, competitionId };
+        
+        // Save to Supabase
+        await saveCompetitionRoundToSupabase(competitionId, updatedRound, data.player.name);
+        
+        // Fetch latest rounds from Supabase
+        await fetchCompetitionRounds(competitionId);
         
         // Update competition rounds
         const existingRoundIndex = comp.rounds.findIndex(r => r.playerId === data.player.id);

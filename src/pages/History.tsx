@@ -1,10 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useGolf } from '../hooks/useGolf';
 import { useAppSettings } from '../hooks/useAppSettings';
 import { getScoreDisplay } from '../utils/storage';
+import { fetchCompetitionRounds } from '../utils/supabaseCompetition';
 
 interface HistoryProps {
   onBack: () => void;
+}
+
+interface SupabaseRound {
+  id: string;
+  competition_id: string;
+  player_id: string;
+  player_name: string;
+  holes: any[];
+  total_score: number;
+  total_par: number;
+  relative_score: number;
+  course_name: string;
+  played_at: string;
 }
 
 export default function History({ onBack }: HistoryProps) {
@@ -12,6 +26,8 @@ export default function History({ onBack }: HistoryProps) {
   const { t } = useAppSettings();
   const [selectedRound, setSelectedRound] = useState<typeof data.rounds[0] | null>(null);
   const [filter, setFilter] = useState<'all' | 'comp' | 'solo'>('all');
+  const [compRounds, setCompRounds] = useState<SupabaseRound[]>([]);
+  const [loadingRounds, setLoadingRounds] = useState(false);
 
   const getScoreColor = (score: number | null, par: number) => {
     if (score === null) return 'bg-surface-container text-stone-400';
@@ -32,6 +48,16 @@ export default function History({ onBack }: HistoryProps) {
 
   const compRoundsCount = data.rounds.filter(r => r.competitionId).length;
   const soloRoundsCount = data.rounds.filter(r => !r.competitionId).length;
+
+  useEffect(() => {
+    if (selectedRound?.competitionId) {
+      setLoadingRounds(true);
+      fetchCompetitionRounds(selectedRound.competitionId).then(rounds => {
+        setCompRounds(rounds);
+        setLoadingRounds(false);
+      });
+    }
+  }, [selectedRound?.competitionId]);
 
   if (selectedRound) {
     const dateStr = new Date(selectedRound.date).toLocaleDateString();
@@ -89,6 +115,51 @@ export default function History({ onBack }: HistoryProps) {
               <p className="text-xs text-stone-500 font-bold">{t('bogey')}+</p>
             </div>
           </div>
+
+          {comp && (
+            <section className="bg-surface-container-lowest rounded-[2rem] p-6 mb-8">
+              <h3 className="font-headline text-lg font-bold mb-4 flex items-center gap-2">
+                <span className="material-symbols-outlined text-secondary">emoji_events</span>
+                대회 순위
+              </h3>
+              {loadingRounds ? (
+                <p className="text-stone-500 text-center py-4">순위 로딩중...</p>
+              ) : compRounds.length > 0 ? (
+                <div className="space-y-2">
+                  {[...compRounds]
+                    .sort((a, b) => a.relative_score - b.relative_score)
+                    .map((r, index) => {
+                      const scoreDisplay = getScoreDisplay(r.relative_score);
+                      const isCurrentUser = r.player_id === data.player.id;
+                      return (
+                        <div key={r.id} className={`flex items-center justify-between p-3 rounded-xl ${isCurrentUser ? 'bg-secondary/10' : 'bg-surface-container'}`}>
+                          <div className="flex items-center gap-3">
+                            <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                              index === 0 ? 'bg-yellow-400 text-stone-900' :
+                              index === 1 ? 'bg-stone-300 text-stone-700' :
+                              index === 2 ? 'bg-amber-600 text-white' : 'bg-surface-container text-stone-600'
+                            }`}>
+                              {index + 1}
+                            </span>
+                            <span className="font-bold text-primary">
+                              {r.player_name}
+                              {isCurrentUser && <span className="ml-1 text-secondary text-sm">(나)</span>}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span className={`font-bold ${scoreDisplay.color}`}>
+                              {r.total_score} ({scoreDisplay.text})
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              ) : (
+                <p className="text-stone-500 text-center py-4">아직 다른 참가자의 기록이 없습니다</p>
+              )}
+            </section>
+          )}
 
           <section className="bg-surface-container-lowest rounded-[2rem] p-6 mb-8">
             <h3 className="font-headline text-lg font-bold mb-4 flex items-center gap-2">
