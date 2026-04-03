@@ -169,7 +169,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
 
     loadAll();
     return () => { cancelled = true; };
-  }, [ownUserId.current]);
+  }, []);
 
   // Realtime subscriptions
   useEffect(() => {
@@ -181,7 +181,6 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
         async (payload) => {
           const c = payload.new as any;
           const uid = ownUserId.current;
-          // Only add if current user is a participant
           if (uid && c.player_ids && !c.player_ids.includes(uid) && c.host_id !== uid) return;
           
           const { data: rounds } = await supabase
@@ -201,11 +200,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
         { event: 'UPDATE', schema: 'public', table: 'competitions' },
         async (payload) => {
           const c = payload.new as any;
-          setData(prev => {
-            // Only update if we already have this competition locally
-            if (!prev.competitions.some(x => x.id === c.id)) return prev;
-            return prev; // Will be updated by rounds subscription
-          });
+          const uid = ownUserId.current;
           
           const { data: rounds } = await supabase
             .from('competition_rounds')
@@ -213,10 +208,19 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
             .eq('competition_id', c.id);
           
           const updatedComp = mapDbCompToComp(c, rounds || []);
-          setData(prev => ({
-            ...prev,
-            competitions: prev.competitions.map(x => x.id === updatedComp.id ? updatedComp : x),
-          }));
+          setData(prev => {
+            if (prev.competitions.some(x => x.id === c.id)) {
+              return {
+                ...prev,
+                competitions: prev.competitions.map(x => x.id === updatedComp.id ? updatedComp : x),
+              };
+            }
+            // If we don't have this competition locally but we're a participant, add it
+            if (uid && c.player_ids && c.player_ids.includes(uid)) {
+              return { ...prev, competitions: [...prev.competitions, updatedComp] };
+            }
+            return prev;
+          });
         }
       )
       .on(
@@ -460,6 +464,9 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
         start_date: comp.startDate,
       });
       if (error) console.error('Competition insert error:', error);
+
+      // Send invites to friends who were NOT selected during creation
+      // (friends selected during creation are already added as players)
     } catch (e) {
       console.error('Competition save error:', e);
     }
@@ -572,7 +579,6 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const finishCompetitionRound = useCallback(async (compId: string, round: Round, _playerIds: string[]) => {
-    // Update local state immediately
     setData(prev => {
       const competitions = prev.competitions.map(c => {
         if (c.id !== compId) return c;
@@ -591,12 +597,8 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       return { ...prev, competitions };
     });
 
-    // Save round to Supabase
     try {
-      // Upsert: delete existing round for this player in this comp, then insert
-      await supabase.from('competition_rounds').delete().eq('competition_id', compId).eq('player_id', round.playerId);
-      
-      const { error } = await supabase.from('competition_rounds').insert({
+      const { error } = await supabase.from('competition_rounds').upsert({
         id: round.id,
         competition_id: compId,
         player_id: round.playerId,
@@ -606,7 +608,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
         total_par: round.totalPar,
         relative_score: round.relativeScore,
         course_name: round.courseName,
-      });
+      }, { onConflict: 'competition_id,player_id' });
       if (error) console.error('Round insert error:', error);
     } catch (e) {
       console.error('Save round error:', e);
@@ -716,7 +718,6 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     const invite = pendingInvites.find(i => i.id === inviteId);
     if (!invite) return;
 
-    // Remove from pending list immediately
     setPendingInvites(prev => prev.filter(i => i.id !== inviteId));
 
     const newStatus = accepted ? 'accepted' : 'declined';
@@ -728,48 +729,63 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
         .eq('id', inviteId);
 
       if (accepted) {
-        // Add player to competition
-        const comp = data.competitions.find(c => c.id === invite.competitionId);
-        if (comp && !comp.playerIds.includes(uid)) {
-          const { data: existingComp } = await supabase
-            .from('competitions')
-            .select('player_ids, player_names')
-            .eq('id', invite.competitionId)
-            .single();
+        // Fetch the competition from Supabase
+        const { data: existingComp } = await supabase
+          .from('competitions')
+          .select('*')
+          .eq('id', invite.competitionId)
+          .single();
 
-          if (existingComp) {
-            const pIds = existingComp.player_ids || [];
-            const pNames = existingComp.player_names || [];
-            if (!pIds.includes(uid)) {
-              await supabase
-                .from('competitions')
-                .update({
-                  player_ids: [...pIds, uid],
-                  player_names: [...pNames, data.player.name],
-                })
-                .eq('id', invite.competitionId);
-            }
+        if (existingComp) {
+          const pIds = existingComp.player_ids || [];
+          const pNames = existingComp.player_names || [];
+          if (!pIds.includes(uid)) {
+            await supabase
+              .from('competitions')
+              .update({
+                player_ids: [...pIds, uid],
+                player_names: [...pNames, data.player.name],
+              })
+              .eq('id', invite.competitionId);
           }
-
-          // Also update local state
-          setData(prev => ({
-            ...prev,
-            competitions: prev.competitions.map(c => {
-              if (c.id !== invite.competitionId) return c;
-              if (c.playerIds.includes(uid)) return c;
-              return {
-                ...c,
-                players: [...c.players, { id: uid, name: data.player.name }],
-                playerIds: [...c.playerIds, uid],
-              };
-            }),
-          }));
         }
+
+        // Update local state - add player to existing competition or create it
+        setData(prev => {
+          const existingLocal = prev.competitions.find(c => c.id === invite.competitionId);
+          if (existingLocal) {
+            if (existingLocal.playerIds.includes(uid)) return prev;
+            return {
+              ...prev,
+              competitions: prev.competitions.map(c => {
+                if (c.id !== invite.competitionId) return c;
+                return {
+                  ...c,
+                  players: [...c.players, { id: uid, name: data.player.name }],
+                  playerIds: [...c.playerIds, uid],
+                };
+              }),
+            };
+          }
+          // Competition not in local state - create it from invite info
+          const newComp: Competition = {
+            id: invite.competitionId,
+            name: invite.competitionName,
+            hostId: invite.fromUserId,
+            hostName: invite.fromUserName,
+            players: [{ id: uid, name: data.player.name }],
+            playerIds: [uid],
+            rounds: [],
+            startDate: new Date().toISOString(),
+            status: 'pending',
+          };
+          return { ...prev, competitions: [...prev.competitions, newComp] };
+        });
       }
     } catch (e) {
       console.error('Respond to invite error:', e);
     }
-  }, [pendingInvites, data.competitions, data.player]);
+  }, [pendingInvites, data.player]);
 
   const addSampleData = () => {
     const sampleRounds = Array.from({ length: 8 }, () => {

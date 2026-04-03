@@ -14,19 +14,17 @@ export default function Friends({ onBack }: FriendsProps) {
   const { user } = useAuth();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
-  const [inviteCode, setInviteCode] = useState('');
-  const [showRedeem, setShowRedeem] = useState(false);
-  const [showEmailInvite, setShowEmailInvite] = useState(false);
-  const [emailInput, setEmailInput] = useState('');
   const [inviteLinkCopied, setInviteLinkCopied] = useState(false);
   const [pendingRequests, setPendingRequests] = useState<Array<{id: string; from_user_id: string; from_user_name: string}>>([]);
+  const [showAddFriend, setShowAddFriend] = useState(false);
+  const [friendUserId, setFriendUserId] = useState('');
+  const [friendUserName, setFriendUserName] = useState('');
 
   // Load pending friend requests
   useEffect(() => {
     if (!user) return;
     
     const loadPendingRequests = async () => {
-      // Get pending requests where someone invited me
       const { data: requests } = await supabase
         .from('friend_requests')
         .select('*')
@@ -39,6 +37,24 @@ export default function Friends({ onBack }: FriendsProps) {
     };
     
     loadPendingRequests();
+
+    // Realtime subscription for new friend requests
+    const channel = supabase
+      .channel('friend-requests-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'friend_requests', filter: `to_user_id=eq.${user.id}` },
+        (payload) => {
+          const req = payload.new as any;
+          setPendingRequests(prev => {
+            if (prev.some(r => r.id === req.id)) return prev;
+            return [...prev, { id: req.id, from_user_id: req.from_user_id, from_user_name: req.from_user_name }];
+          });
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
   useEffect(() => {
@@ -71,93 +87,70 @@ export default function Friends({ onBack }: FriendsProps) {
     setTimeout(() => setInviteLinkCopied(false), 2000);
   };
 
-  const handleEmailInvite = async () => {
-    if (!emailInput.trim() || !user) return;
-    
-    const { data: existingUser } = await supabase
-      .from('user_data')
-      .select('user_id')
-      .eq('email', emailInput.trim())
-      .single();
-    
-    if (!existingUser) {
-      alert('해당 이메일로 가입한 사용자가 없습니다.\n초대 링크를 보내주세요.');
+  const handleSendFriendRequest = async () => {
+    if (!friendUserId.trim() || !friendUserName.trim() || !user) {
+      alert('사용자 ID와 이름을 모두 입력해주세요.');
       return;
     }
-    
-    const { data: userMeta } = await supabase.auth.getUser(existingUser.user_id);
-    const friendName = userMeta.user?.user_metadata?.full_name || '친구';
-    
-    const exists = data.friends.some(f => f.userId === existingUser.user_id);
-    if (exists) {
-      alert('이미 추가된 친구입니다.');
-    } else {
-      addFriend(friendName, existingUser.user_id);
-      alert(`${friendName}님을 친구로 추가했습니다!`);
+
+    if (friendUserId === user.id) {
+      alert('자신에게는 친구 요청을 보낼 수 없습니다.');
+      return;
     }
-    
-    setEmailInput('');
-    setShowEmailInvite(false);
-  };
 
-  const handleEditStart = (id: string, name: string) => {
-    setEditingId(id);
-    setEditName(name);
-  };
-
-  const handleEditSave = (id: string) => {
-    if (editName.trim()) {
-      updateFriend(id, editName.trim());
+    const alreadyFriend = data.friends.some(f => f.userId === friendUserId);
+    if (alreadyFriend) {
+      alert('이미 친구로 추가되어 있습니다.');
+      return;
     }
-    setEditingId(null);
-    setEditName('');
-  };
 
-  const handleRedeem = async () => {
-    if (!inviteCode.trim()) return;
-    const code = inviteCode.trim().toUpperCase();
-    
-    const { data: invite, error } = await supabase
-      .from('friend_invites')
+    // Check if already sent a pending request
+    const { data: existing } = await supabase
+      .from('friend_requests')
       .select('*')
-      .eq('code', code)
-      .single();
-    
-    if (error || !invite) {
-      alert('유효하지 않은 초대 코드입니다.');
+      .eq('from_user_id', user.id)
+      .eq('to_user_id', friendUserId)
+      .eq('status', 'pending');
+
+    if (existing && existing.length > 0) {
+      alert('이미 친구 요청을 보냈습니다.');
       return;
     }
-    
-    if (invite.inviter_id === user?.id) {
-      alert('자신의 코드는 사용할 수 없습니다.');
-      return;
+
+    // Add friend locally (optimistic)
+    addFriend(friendUserName.trim(), friendUserId.trim());
+
+    // Send friend request to Supabase
+    try {
+      const { error } = await supabase.from('friend_requests').insert({
+        from_user_id: user.id,
+        from_user_name: data.player.name,
+        to_user_id: friendUserId.trim(),
+        status: 'pending',
+      });
+      if (error) {
+        console.error('Friend request error:', error);
+        alert('친구 요청 전송에 실패했습니다. 상대의 사용자 ID를 확인해주세요.');
+      } else {
+        alert(`${friendUserName.trim()}님에게 친구 요청을 보냈습니다!`);
+      }
+    } catch (e) {
+      console.error('Friend request error:', e);
     }
-    
-    const exists = data.friends.some(f => f.userId === invite.inviter_id);
-    if (exists) {
-      alert('이미 추가된 친구입니다.');
-    } else {
-      addFriend(invite.inviter_name, invite.inviter_id);
-      alert(`${invite.inviter_name}님을 친구로 추가했습니다!`);
-      
-      await supabase.from('friend_invites').delete().eq('code', code);
-    }
-    
-    setInviteCode('');
-    setShowRedeem(false);
+
+    setFriendUserId('');
+    setFriendUserName('');
+    setShowAddFriend(false);
   };
 
   const acceptFriendRequest = async (requestId: string, fromUserId: string, fromUserName: string) => {
-    // Add as friend
     addFriend(fromUserName, fromUserId);
     
-    // Update request status
     await supabase
       .from('friend_requests')
       .update({ status: 'accepted' })
       .eq('id', requestId);
     
-    // Create mutual friendship (they added me, now I add them back)
     await supabase
       .from('friendships')
       .upsert({
@@ -176,6 +169,19 @@ export default function Friends({ onBack }: FriendsProps) {
       .eq('id', requestId);
     
     setPendingRequests(prev => prev.filter(r => r.id !== requestId));
+  };
+
+  const handleEditStart = (id: string, name: string) => {
+    setEditingId(id);
+    setEditName(name);
+  };
+
+  const handleEditSave = (id: string) => {
+    if (editName.trim()) {
+      updateFriend(id, editName.trim());
+    }
+    setEditingId(null);
+    setEditName('');
   };
 
   return (
@@ -231,59 +237,36 @@ export default function Friends({ onBack }: FriendsProps) {
         </button>
 
         <button
-          onClick={() => setShowEmailInvite(!showEmailInvite)}
+          onClick={() => setShowAddFriend(!showAddFriend)}
           className="w-full bg-tertiary text-white py-3 rounded-2xl font-headline font-bold text-base flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-lg mb-3"
         >
-          <span className="material-symbols-outlined">mail</span>
-          {showEmailInvite ? '취소' : '이메일로 초대'}
+          <span className="material-symbols-outlined">person_add</span>
+          {showAddFriend ? '취소' : '친구 ID로 추가'}
         </button>
 
-        {showEmailInvite && (
+        {showAddFriend && (
           <div className="bg-surface-container-lowest rounded-2xl p-6 mb-3">
             <input
-              type="email"
-              value={emailInput}
-              onChange={(e) => setEmailInput(e.target.value)}
-              placeholder="친구의 이메일 입력"
-              className="w-full bg-surface-container border-none rounded-xl px-4 py-4 outline-none mb-4 text-lg text-primary"
-              onKeyDown={(e) => e.key === 'Enter' && handleEmailInvite()}
+              type="text"
+              value={friendUserId}
+              onChange={(e) => setFriendUserId(e.target.value)}
+              placeholder="친구의 Supabase 사용자 ID"
+              className="w-full bg-surface-container border-none rounded-xl px-4 py-4 outline-none mb-3 text-sm text-primary"
             />
-            <button
-              onClick={handleEmailInvite}
-              disabled={!emailInput.trim()}
-              className="w-full bg-tertiary text-white py-4 rounded-xl font-bold disabled:opacity-50 active:scale-98 transition-transform"
-            >
-              친구 추가
-            </button>
-          </div>
-        )}
-
-        <div className="flex gap-3">
-          <button
-            onClick={() => setShowRedeem(!showRedeem)}
-            className="flex-1 bg-stone-400 text-white py-3 rounded-2xl font-headline font-bold text-base flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-lg"
-          >
-            <span className="material-symbols-outlined">vpn_key</span>
-            {showRedeem ? '취소' : '초대 코드 입력'}
-          </button>
-        </div>
-
-        {showRedeem && (
-          <div className="bg-surface-container-lowest rounded-2xl p-6 mt-3">
             <input
               type="text"
-              value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-              placeholder="초대 코드 입력"
+              value={friendUserName}
+              onChange={(e) => setFriendUserName(e.target.value)}
+              placeholder="친구 이름"
               className="w-full bg-surface-container border-none rounded-xl px-4 py-4 outline-none mb-4 text-lg text-primary"
-              onKeyDown={(e) => e.key === 'Enter' && handleRedeem()}
+              onKeyDown={(e) => e.key === 'Enter' && handleSendFriendRequest()}
             />
             <button
-              onClick={handleRedeem}
-              disabled={!inviteCode.trim()}
-              className="w-full bg-stone-400 text-white py-4 rounded-xl font-bold disabled:opacity-50 active:scale-98 transition-transform"
+              onClick={handleSendFriendRequest}
+              disabled={!friendUserId.trim() || !friendUserName.trim()}
+              className="w-full bg-tertiary text-white py-4 rounded-xl font-bold disabled:opacity-50 active:scale-98 transition-transform"
             >
-              친구 추가
+              친구 요청 보내기
             </button>
           </div>
         )}

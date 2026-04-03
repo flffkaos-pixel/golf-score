@@ -15,7 +15,7 @@ interface CompetitionsProps {
 }
 
 export default function Competitions({ onBack, onStartCompetitionGame }: CompetitionsProps) {
-  const { data, createCompetition, joinCompetition, deleteCompetition, addPlayerToCompetition, sendCompetitionInvite, pendingInvites } = useGolf();
+  const { data, createCompetition, joinCompetition, deleteCompetition, sendCompetitionInvite, pendingInvites } = useGolf();
   const { t } = useAppSettings();
   const { user } = useAuth();
   const [showCreate, setShowCreate] = useState(false);
@@ -55,16 +55,9 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
 
   const handleCreate = async () => {
     if (!newCompName.trim()) return;
-    const comp = await createCompetition(newCompName.trim(), []);
+    await createCompetition(newCompName.trim(), selectedFriends);
     setNewCompName('');
     setShowCreate(false);
-    
-    for (const friendId of selectedFriends) {
-      const friend = data.friends.find(f => f.id === friendId);
-      if (friend) {
-        await sendCompetitionInvite(comp.id, comp.name, friendId, friend.name);
-      }
-    }
     setSelectedFriends([]);
   };
 
@@ -82,14 +75,6 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
     const friendUid = friend.userId || friendId;
     if (data.competitions.some(c => c.playerIds.includes(friendUid))) return 'joined';
     return 'none';
-  };
-
-  const toggleFriend = (friendId: string) => {
-    if (selectedFriends.includes(friendId)) {
-      setSelectedFriends(prev => prev.filter(id => id !== friendId));
-    } else if (selectedFriends.length < 4) {
-      setSelectedFriends(prev => [...prev, friendId]);
-    }
   };
 
   const getStatusColor = (status: string) => {

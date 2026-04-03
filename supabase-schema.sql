@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS competition_rounds (
   total_par INTEGER NOT NULL,
   relative_score INTEGER NOT NULL,
   course_name TEXT NOT NULL,
-  played_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  played_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(competition_id, player_id)
 );
 
 -- 친구 관계 테이블 (양방향)

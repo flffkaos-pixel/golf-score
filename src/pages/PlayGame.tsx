@@ -36,7 +36,6 @@ export default function PlayGame({ onBack, onComplete, competitionId }: PlayGame
         .eq('competition_id', competitionId);
       
       if (rounds) {
-        const comp = data.competitions.find(c => c.id === competitionId);
         const opponents = rounds
           .filter(r => r.player_id !== data.player.id)
           .map(r => {

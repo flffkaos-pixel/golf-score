@@ -32,6 +32,7 @@ export const saveCompetitionRoundToSupabase = async (
 ): Promise<boolean> => {
   try {
     const { error } = await supabase.from('competition_rounds').upsert({
+      id: round.id,
       competition_id: competitionId,
       player_id: round.playerId || '',
       player_name: playerName,

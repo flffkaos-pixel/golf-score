@@ -33,7 +33,7 @@ export default function History({ onBack }: HistoryProps) {
   const { t } = useAppSettings();
   const [selectedRound, setSelectedRound] = useState<typeof data.rounds[0] | null>(null);
   const [filter, setFilter] = useState<'all' | 'comp' | 'solo'>('all');
-  const [compRounds, setCompRounds] = useState<SupabaseRound[]>([]);
+  const [, setCompRounds] = useState<SupabaseRound[]>([]);
   const [loadingRounds, setLoadingRounds] = useState(false);
   const [compPlayers, setCompPlayers] = useState<CompPlayerInfo[]>([]);
 
@@ -67,7 +67,7 @@ export default function History({ onBack }: HistoryProps) {
         const comp = data.competitions.find(c => c.id === selectedRound.competitionId);
         if (comp) {
           const sorted = [...rounds].sort((a, b) => a.relative_score - b.relative_score);
-          const players: CompPlayerInfo[] = comp.players.map((player, idx) => {
+          const players: CompPlayerInfo[] = comp.players.map((player) => {
             const round = rounds.find(r => r.player_id === player.id) || null;
             const rank = round ? sorted.findIndex(r => r.player_id === player.id) + 1 : 0;
             return {
