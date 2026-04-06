@@ -23,6 +23,7 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [shareLinkCompId, setShareLinkCompId] = useState<string | null>(null);
   const [inviteCompId, setInviteCompId] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -39,6 +40,11 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, [user, data.competitions]);
+
+  const handleRefresh = () => {
+    setRefreshKey(k => k + 1);
+    window.location.reload();
+  };
 
   const handleShareComp = async (compId: string) => {
     const baseUrl = window.location.origin + window.location.pathname;
@@ -116,9 +122,14 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
           <span className="material-symbols-outlined text-stone-500">arrow_back</span>
         </button>
         <h1 className="text-xl font-extrabold text-primary font-headline">{t('competitions')}</h1>
-        <button onClick={() => setShowCreate(!showCreate)} className="text-secondary font-bold">
-          {showCreate ? t('cancel') : '+ 만들기'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={handleRefresh} className="p-2 text-secondary" title="새로고침">
+            <span className="material-symbols-outlined">refresh</span>
+          </button>
+          <button onClick={() => setShowCreate(!showCreate)} className="text-secondary font-bold">
+            {showCreate ? t('cancel') : '+ 만들기'}
+          </button>
+        </div>
       </header>
 
       <main className="px-6 pt-6 max-w-5xl mx-auto">

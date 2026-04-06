@@ -33,6 +33,21 @@ const GolfContext = createContext<GolfContextType | null>(null);
 const courseNames = ['하늘CC', 'ocean 파크', '숲속高尔夫', 'lakeサイド', 'sunsetCC', '마운틴View', '바다RESORT', '골든밸리'];
 
 function mapDbCompToComp(c: any, rounds: any[] = []): Competition {
+  const compRounds = rounds.map((r: any) => ({
+    id: r.id,
+    date: r.played_at,
+    courseName: r.course_name,
+    holes: r.holes,
+    totalScore: r.total_score,
+    totalPar: r.total_par,
+    relativeScore: r.relative_score,
+    competitionId: r.competition_id,
+    playerId: r.player_id,
+  }));
+  
+  const playersWithRounds = new Set(compRounds.map(r => r.playerId));
+  const allDone = (c.player_ids || []).every((p: string) => playersWithRounds.has(p));
+  
   return {
     id: c.id,
     name: c.name,
@@ -43,20 +58,10 @@ function mapDbCompToComp(c: any, rounds: any[] = []): Competition {
       name,
     })),
     playerIds: c.player_ids || [],
-    rounds: rounds.map((r: any) => ({
-      id: r.id,
-      date: r.played_at,
-      courseName: r.course_name,
-      holes: r.holes,
-      totalScore: r.total_score,
-      totalPar: r.total_par,
-      relativeScore: r.relative_score,
-      competitionId: r.competition_id,
-      playerId: r.player_id,
-    })),
+    rounds: compRounds,
     startDate: c.start_date || c.created_at,
     endDate: c.end_date,
-    status: c.status,
+    status: allDone ? 'finished' : c.status,
   };
 }
 
@@ -288,7 +293,9 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
               };
               const newRounds = [...c.rounds];
               newRounds[idx] = updatedRound;
-              return { ...c, rounds: newRounds };
+              const playersWithRounds = new Set(newRounds.map(x => x.playerId));
+              const allDone = c.players.every(p => playersWithRounds.has(p.id));
+              return { ...c, rounds: newRounds, status: allDone ? 'finished' as const : 'active' as const };
             }),
           }));
         }
