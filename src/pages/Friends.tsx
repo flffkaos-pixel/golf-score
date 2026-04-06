@@ -16,9 +16,6 @@ export default function Friends({ onBack }: FriendsProps) {
   const [editName, setEditName] = useState('');
   const [inviteLinkCopied, setInviteLinkCopied] = useState(false);
   const [pendingRequests, setPendingRequests] = useState<Array<{id: string; from_user_id: string; from_user_name: string}>>([]);
-  const [showAddFriend, setShowAddFriend] = useState(false);
-  const [friendUserId, setFriendUserId] = useState('');
-  const [friendUserName, setFriendUserName] = useState('');
 
   // Load pending friend requests
   useEffect(() => {
@@ -85,62 +82,6 @@ export default function Friends({ onBack }: FriendsProps) {
     await navigator.clipboard.writeText(inviteLink);
     setInviteLinkCopied(true);
     setTimeout(() => setInviteLinkCopied(false), 2000);
-  };
-
-  const handleSendFriendRequest = async () => {
-    if (!friendUserId.trim() || !friendUserName.trim() || !user) {
-      alert('사용자 ID와 이름을 모두 입력해주세요.');
-      return;
-    }
-
-    if (friendUserId === user.id) {
-      alert('자신에게는 친구 요청을 보낼 수 없습니다.');
-      return;
-    }
-
-    const alreadyFriend = data.friends.some(f => f.userId === friendUserId);
-    if (alreadyFriend) {
-      alert('이미 친구로 추가되어 있습니다.');
-      return;
-    }
-
-    // Check if already sent a pending request
-    const { data: existing } = await supabase
-      .from('friend_requests')
-      .select('*')
-      .eq('from_user_id', user.id)
-      .eq('to_user_id', friendUserId)
-      .eq('status', 'pending');
-
-    if (existing && existing.length > 0) {
-      alert('이미 친구 요청을 보냈습니다.');
-      return;
-    }
-
-    // Add friend locally (optimistic)
-    addFriend(friendUserName.trim(), friendUserId.trim());
-
-    // Send friend request to Supabase
-    try {
-      const { error } = await supabase.from('friend_requests').insert({
-        from_user_id: user.id,
-        from_user_name: data.player.name,
-        to_user_id: friendUserId.trim(),
-        status: 'pending',
-      });
-      if (error) {
-        console.error('Friend request error:', error);
-        alert('친구 요청 전송에 실패했습니다. 상대의 사용자 ID를 확인해주세요.');
-      } else {
-        alert(`${friendUserName.trim()}님에게 친구 요청을 보냈습니다!`);
-      }
-    } catch (e) {
-      console.error('Friend request error:', e);
-    }
-
-    setFriendUserId('');
-    setFriendUserName('');
-    setShowAddFriend(false);
   };
 
   const acceptFriendRequest = async (requestId: string, fromUserId: string, fromUserName: string) => {
@@ -235,41 +176,6 @@ export default function Friends({ onBack }: FriendsProps) {
           <span className="material-symbols-outlined">link</span>
           {inviteLinkCopied ? '링크 복사됨!' : '초대 링크 만들기'}
         </button>
-
-        <button
-          onClick={() => setShowAddFriend(!showAddFriend)}
-          className="w-full bg-tertiary text-white py-3 rounded-2xl font-headline font-bold text-base flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-lg mb-3"
-        >
-          <span className="material-symbols-outlined">person_add</span>
-          {showAddFriend ? '취소' : '친구 ID로 추가'}
-        </button>
-
-        {showAddFriend && (
-          <div className="bg-surface-container-lowest rounded-2xl p-6 mb-3">
-            <input
-              type="text"
-              value={friendUserId}
-              onChange={(e) => setFriendUserId(e.target.value)}
-              placeholder="친구의 Supabase 사용자 ID"
-              className="w-full bg-surface-container border-none rounded-xl px-4 py-4 outline-none mb-3 text-sm text-primary"
-            />
-            <input
-              type="text"
-              value={friendUserName}
-              onChange={(e) => setFriendUserName(e.target.value)}
-              placeholder="친구 이름"
-              className="w-full bg-surface-container border-none rounded-xl px-4 py-4 outline-none mb-4 text-lg text-primary"
-              onKeyDown={(e) => e.key === 'Enter' && handleSendFriendRequest()}
-            />
-            <button
-              onClick={handleSendFriendRequest}
-              disabled={!friendUserId.trim() || !friendUserName.trim()}
-              className="w-full bg-tertiary text-white py-4 rounded-xl font-bold disabled:opacity-50 active:scale-98 transition-transform"
-            >
-              친구 요청 보내기
-            </button>
-          </div>
-        )}
 
         <div className="mt-8">
           <h2 className="font-headline font-bold text-lg mb-4">
