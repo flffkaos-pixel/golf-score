@@ -61,6 +61,10 @@ function GlobalHeader() {
   const { data, pendingInvites, respondToCompetitionInvite } = useGolf();
   const { t } = useAppSettings();
   const [showNotifications, setShowNotifications] = useState(false);
+
+  const dismissInvite = (inviteId: string) => {
+    setPendingInvites(prev => prev.filter(i => i.id !== inviteId));
+  };
   
   const hasNotifications = data.competitions.filter(c => c.status === 'active').length > 0 || data.friends.length > 0 || pendingInvites.length > 0;
 
@@ -84,14 +88,25 @@ function GlobalHeader() {
 
       {showNotifications && (
         <div className="fixed top-16 right-4 w-80 max-h-[80vh] overflow-y-auto bg-white rounded-2xl shadow-xl z-50 p-4">
-          <h3 className="font-bold text-primary mb-3">🔔 {t('notifications')}</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-bold text-primary">🔔 {t('notifications')}</h3>
+            <button onClick={() => setShowNotifications(false)} className="text-stone-400 hover:text-stone-600">
+              <span className="material-symbols-outlined">close</span>
+            </button>
+          </div>
           
           {pendingInvites.length === 0 && data.friends.length === 0 && data.competitions.filter(c => c.status === 'active').length === 0 ? (
             <p className="text-stone-500 text-sm">알림이 없습니다.</p>
           ) : (
             <div className="space-y-3">
               {pendingInvites.map(invite => (
-                <div key={invite.id} className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                <div key={invite.id} className="bg-amber-50 border border-amber-200 rounded-xl p-3 relative">
+                  <button
+                    onClick={() => dismissInvite(invite.id)}
+                    className="absolute top-2 right-2 text-amber-400 hover:text-amber-600"
+                  >
+                    <span className="material-symbols-outlined text-sm">close</span>
+                  </button>
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-8 h-8 bg-amber-200 rounded-full flex items-center justify-center text-xs font-bold text-amber-700">
                       {invite.fromUserName[0]}
