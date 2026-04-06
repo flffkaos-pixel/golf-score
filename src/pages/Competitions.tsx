@@ -122,14 +122,9 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
           <span className="material-symbols-outlined text-stone-500">arrow_back</span>
         </button>
         <h1 className="text-xl font-extrabold text-primary font-headline">{t('competitions')}</h1>
-        <div className="flex items-center gap-2">
-          <button onClick={handleRefresh} className="p-2 text-secondary" title="새로고침">
-            <span className="material-symbols-outlined">refresh</span>
-          </button>
-          <button onClick={() => setShowCreate(!showCreate)} className="text-secondary font-bold">
-            {showCreate ? t('cancel') : '+ 만들기'}
-          </button>
-        </div>
+        <button onClick={handleRefresh} className="p-2 text-secondary" title="새로고침">
+          <span className="material-symbols-outlined">refresh</span>
+        </button>
       </header>
 
       <main className="px-6 pt-6 max-w-5xl mx-auto">
