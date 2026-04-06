@@ -153,23 +153,33 @@ export default function PlayGame({ onBack, onComplete, competitionId }: PlayGame
     if (competitionId) {
       const comp = data.competitions.find(c => c.id === competitionId);
       if (comp) {
-        const updatedRound = { ...round!, playerId: data.player.id, competitionId };
+        const playerId = data.player.id;
+        const updatedRound = { ...round!, playerId, competitionId };
         
         // Save to Supabase
-        await saveCompetitionRoundToSupabase(competitionId, updatedRound, data.player.name);
+        const saveResult = await saveCompetitionRoundToSupabase(competitionId, updatedRound, data.player.name);
+        console.log('Save result:', saveResult);
         
         // Fetch latest rounds from Supabase
-        await fetchCompetitionRounds(competitionId);
+        const freshRounds = await fetchCompetitionRounds(competitionId);
+        console.log('Fresh rounds from DB:', freshRounds);
         
-        // Update competition rounds
-        const existingRoundIndex = comp.rounds.findIndex(r => r.playerId === data.player.id);
-        let allRounds: typeof comp.rounds;
-        if (existingRoundIndex >= 0) {
-          allRounds = [...comp.rounds];
-          allRounds[existingRoundIndex] = updatedRound;
-        } else {
-          allRounds = [...comp.rounds, updatedRound];
-        }
+        // Build all rounds from fresh data + current player's round
+        const otherPlayersRounds = freshRounds.filter(r => r.player_id !== playerId);
+        let allRounds = [...otherPlayersRounds, {
+          id: updatedRound.id,
+          date: updatedRound.date,
+          courseName: updatedRound.courseName,
+          holes: updatedRound.holes,
+          totalScore: updatedRound.totalScore,
+          totalPar: updatedRound.totalPar,
+          relativeScore: updatedRound.relativeScore,
+          competitionId: competitionId,
+          playerId: playerId
+        }];
+        
+        console.log('All rounds:', allRounds);
+        console.log('Competition players:', comp.players);
         
         const sorted = allRounds.sort((a, b) => a.relativeScore - b.relativeScore);
         const rankings = sorted.map(r => {
@@ -186,6 +196,17 @@ export default function PlayGame({ onBack, onComplete, competitionId }: PlayGame
         // Check if all players have finished
         const playerIdsWithRounds = new Set(allRounds.map(r => r.playerId));
         const allFinished = comp.players.every(p => playerIdsWithRounds.has(p.id));
+        
+        console.log('All finished:', allFinished, 'playerIdsWithRounds:', playerIdsWithRounds, 'comp players:', comp.players.map(p => p.id));
+        
+        // Update competition status in Supabase
+        if (allFinished) {
+          const { error: statusError } = await supabase
+            .from('competitions')
+            .update({ status: 'finished' })
+            .eq('id', competitionId);
+          console.log('Status update result:', statusError);
+        }
         
         // Update both round and competition in one state update
         setData(prev => {
