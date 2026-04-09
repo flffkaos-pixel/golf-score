@@ -4,6 +4,8 @@ import { useAppSettings } from '../hooks/useAppSettings';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../supabase';
 
+console.log('[Friends] Module loaded');
+
 interface FriendsProps {
   onBack: () => void;
 }
@@ -20,64 +22,75 @@ export default function Friends({ onBack }: FriendsProps) {
   
   console.log('[Friends] User info:', { userId: user?.id, userName: data.player?.name, friendsCount: data.friends?.length });
 
-   // Load pending friend requests
-   useEffect(() => {
-     if (!user) return;
-     
-     const loadPendingRequests = async () => {
-       console.log('[Friends] Loading pending friend requests for user:', user.id);
-       const { data: requests, error } = await supabase
-         .from('friend_requests')
-         .select('*')
-         .eq('to_user_id', user.id)
-         .eq('status', 'pending');
-       
-       if (error) {
-         console.error('[Friends] Error loading pending requests:', error);
-       } else if (requests) {
-         console.log('[Friends] Loaded pending requests:', requests);
-         setPendingRequests(requests);
-       }
-     };
-     
-     loadPendingRequests();
+    // Load pending friend requests
+    useEffect(() => {
+      console.log('[Friends] Pending requests useEffect called');
+      if (!user) {
+        console.log('[Friends] No user, returning early from pending requests effect');
+        return;
+      }
+      
+      console.log('[Friends] Loading pending friend requests for user:', user.id);
+      const loadPendingRequests = async () => {
+        console.log('[Friends] Loading pending friend requests for user:', user.id);
+        const { data: requests, error } = await supabase
+          .from('friend_requests')
+          .select('*')
+          .eq('to_user_id', user.id)
+          .eq('status', 'pending');
+        
+        if (error) {
+          console.error('[Friends] Error loading pending requests:', error);
+        } else if (requests) {
+          console.log('[Friends] Loaded pending requests:', requests);
+          setPendingRequests(requests);
+        }
+      };
+      
+      loadPendingRequests();
  
-     // Realtime subscription for new friend requests
-     const channel = supabase
-       .channel('friend-requests-realtime')
-       .on(
-         'postgres_changes',
-         { event: 'INSERT', schema: 'public', table: 'friend_requests', filter: `to_user_id=eq.${user.id}` },
-         (payload) => {
-           const req = payload.new as any;
-           console.log('[Friends] Received new friend request:', req);
-           setPendingRequests(prev => {
-             if (prev.some(r => r.id === req.id)) return prev;
-             return [...prev, { id: req.id, from_user_id: req.from_user_id, from_user_name: req.from_user_name }];
-           });
-         }
-       )
-       .on(
-         'postgres_changes',
-         { event: 'UPDATE', schema: 'public', table: 'friend_requests' },
-         (payload) => {
-           const req = payload.new as any;
-           console.log('[Friends] Friend request updated:', req);
-           if (req.status === 'accepted' || req.status === 'rejected') {
-             setPendingRequests(prev => prev.filter(r => r.id !== req.id));
-           }
-         }
-       )
-       .on(
-         'postgres_changes',
-         { event: 'DELETE', schema: 'public', table: 'friend_requests' },
-         (payload) => {
-           const req = payload.old as any;
-           console.log('[Friends] Friend request deleted:', req);
-           setPendingRequests(prev => prev.filter(r => r.id !== req.id));
-         }
-       )
-       .subscribe();
+      // Realtime subscription for new friend requests
+      console.log('[Friends] Setting up realtime subscription for user:', user?.id);
+      const channel = supabase
+        .channel('friend-requests-realtime')
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'friend_requests', filter: `to_user_id=eq.${user.id}` },
+          (payload) => {
+            const req = payload.new as any;
+            console.log('[Friends] Received new friend request:', req);
+            setPendingRequests(prev => {
+              if (prev.some(r => r.id === req.id)) return prev;
+              return [...prev, { id: req.id, from_user_id: req.from_user_id, from_user_name: req.from_user_name }];
+            });
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'friend_requests' },
+          (payload) => {
+            const req = payload.new as any;
+            console.log('[Friends] Friend request updated:', req);
+            if (req.status === 'accepted' || req.status === 'rejected') {
+              setPendingRequests(prev => prev.filter(r => r.id !== req.id));
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: 'DELETE', schema: 'public', table: 'friend_requests' },
+          (payload) => {
+            const req = payload.old as any;
+            console.log('[Friends] Friend request deleted:', req);
+            setPendingRequests(prev => prev.filter(r => r.id !== req.id));
+          }
+        )
+        .subscribe();
+      
+      return () => {
+        console.log('[Friends] Cleaning up realtime subscription');
+        supabase.removeChannel(channel);
+      };
  
      return () => { supabase.removeChannel(channel); };
    }, [user]);
@@ -163,36 +176,77 @@ export default function Friends({ onBack }: FriendsProps) {
     setTimeout(() => setInviteLinkCopied(false), 2000);
   };
 
-   const acceptFriendRequest = async (requestId: string, fromUserId: string, fromUserName: string) => {
-     // Add friend locally (this user sees the requester as friend)
-     addFriend(fromUserName, fromUserId);
-     
-     await supabase
-       .from('friend_requests')
-       .update({ status: 'accepted' })
-       .eq('id', requestId);
-     
-     // Create bidirectional friendship records
-     // 1. Requester sees current user as their friend
-     await supabase
-       .from('friendships')
-       .upsert({
-         user_id: fromUserId,
-         friend_id: user?.id,
-         friend_name: data.player.name,
-       }, { onConflict: 'user_id,friend_id' });
-       
-     // 2. Current user sees requester as their friend
-     await supabase
-       .from('friendships')
-       .upsert({
-         user_id: user?.id,
-         friend_id: fromUserId,
-         friend_name: fromUserName,
-       }, { onConflict: 'user_id,friend_id' });
-     
-     setPendingRequests(prev => prev.filter(r => r.id !== requestId));
-   };
+    const acceptFriendRequest = async (requestId: string, fromUserId: string, fromUserName: string) => {
+      console.log('[Friends] Accepting friend request:', { requestId, fromUserId, fromUserName, userId: user?.id, playerName: data.player?.name });
+      
+      // Add friend locally (this user sees the requester as friend)
+      addFriend(fromUserName, fromUserId);
+      
+      try {
+        const { error: updateError } = await supabase
+          .from('friend_requests')
+          .update({ status: 'accepted' })
+          .eq('id', requestId);
+          
+        if (updateError) {
+          console.error('[Friends] Error updating friend request status:', updateError);
+          throw updateError;
+        }
+        
+        console.log('[Friends] Friend request status updated to accepted');
+        
+        // Create bidirectional friendship records
+        // 1. Requester sees current user as their friend
+        console.log('[Friends] Creating friendship: requester sees accepter', { 
+          user_id: fromUserId, 
+          friend_id: user?.id, 
+          friend_name: data.player?.name 
+        });
+        const { error: error1 } = await supabase
+          .from('friendships')
+          .upsert({
+            user_id: fromUserId,
+            friend_id: user?.id,
+            friend_name: data.player.name,
+          }, { onConflict: 'user_id,friend_id' });
+          
+        if (error1) {
+          console.error('[Friends] Error creating friendship (requester->accepter):', error1);
+          throw error1;
+        }
+        
+        console.log('[Friends] Friendship created: requester sees accepter');
+        
+        // 2. Current user sees requester as their friend
+        console.log('[Friends] Creating friendship: accepter sees requester', { 
+          user_id: user?.id, 
+          friend_id: fromUserId, 
+          friend_name: fromUserName 
+        });
+        const { error: error2 } = await supabase
+          .from('friendships')
+          .upsert({
+            user_id: user?.id,
+            friend_id: fromUserId,
+            friend_name: fromUserName,
+          }, { onConflict: 'user_id,friend_id' });
+          
+        if (error2) {
+          console.error('[Friends] Error creating friendship (accepter->requester):', error2);
+          throw error2;
+        }
+        
+        console.log('[Friends] Friendship created: accepter sees requester');
+        
+        setPendingRequests(prev => prev.filter(r => r.id !== requestId));
+        console.log('[Friends] Request removed from pending list');
+        
+      } catch (error) {
+        console.error('[Friends] Failed to accept friend request:', error);
+        alert('친구 수락 중 오류가 발생했습니다.');
+        throw error;
+      }
+    };
 
   const declineFriendRequest = async (requestId: string) => {
     await supabase
