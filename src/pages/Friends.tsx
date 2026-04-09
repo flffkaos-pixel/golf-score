@@ -91,8 +91,6 @@ export default function Friends({ onBack }: FriendsProps) {
         console.log('[Friends] Cleaning up realtime subscription');
         supabase.removeChannel(channel);
       };
- 
-     return () => { supabase.removeChannel(channel); };
    }, [user]);
 
    useEffect(() => {

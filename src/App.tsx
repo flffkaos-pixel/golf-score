@@ -277,6 +277,7 @@ function AppContent() {
 }
 
 function App() {
+  console.log('[App] Component mounting');
   return (
     <AppSettingsProvider>
       <AuthProvider>
