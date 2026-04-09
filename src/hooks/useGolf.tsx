@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from 'react';
 import { supabase } from '../supabase';
-import type { GolfData, Player, Round, Competition, CompetitionInvite } from '../types';
+import type { GolfData, Player, Round, Competition } from '../types';
 import { loadData, saveData, generateId, createNewRound, calculateScore } from '../utils/storage';
 
 interface GolfContextType {
@@ -19,9 +19,6 @@ interface GolfContextType {
   addRoundToCompetition: (compId: string, round: Round) => void;
   finishCompetitionRound: (compId: string, round: Round, playerIds: string[]) => Promise<void>;
   addPlayerToCompetition: (compId: string, friendId: string) => Promise<void>;
-  sendCompetitionInvite: (compId: string, compName: string, friendId: string, friendName: string) => Promise<void>;
-  respondToCompetitionInvite: (inviteId: string, accepted: boolean) => Promise<void>;
-  pendingInvites: CompetitionInvite[];
   addSampleData: () => void;
   clearAllData: () => void;
   clearLocalData: () => void;
@@ -33,21 +30,6 @@ const GolfContext = createContext<GolfContextType | null>(null);
 const courseNames = ['하늘CC', 'ocean 파크', '숲속高尔夫', 'lakeサイド', 'sunsetCC', '마운틴View', '바다RESORT', '골든밸리'];
 
 function mapDbCompToComp(c: any, rounds: any[] = []): Competition {
-  const compRounds = rounds.map((r: any) => ({
-    id: r.id,
-    date: r.played_at,
-    courseName: r.course_name,
-    holes: r.holes,
-    totalScore: r.total_score,
-    totalPar: r.total_par,
-    relativeScore: r.relative_score,
-    competitionId: r.competition_id,
-    playerId: r.player_id,
-  }));
-  
-  const playersWithRounds = new Set(compRounds.map(r => r.playerId));
-  const allDone = (c.player_ids || []).every((p: string) => playersWithRounds.has(p));
-  
   return {
     id: c.id,
     name: c.name,
@@ -58,10 +40,20 @@ function mapDbCompToComp(c: any, rounds: any[] = []): Competition {
       name,
     })),
     playerIds: c.player_ids || [],
-    rounds: compRounds,
+    rounds: rounds.map((r: any) => ({
+      id: r.id,
+      date: r.played_at,
+      courseName: r.course_name,
+      holes: r.holes,
+      totalScore: r.total_score,
+      totalPar: r.total_par,
+      relativeScore: r.relative_score,
+      competitionId: r.competition_id,
+      playerId: r.player_id,
+    })),
     startDate: c.start_date || c.created_at,
     endDate: c.end_date,
-    status: allDone ? 'finished' : c.status,
+    status: c.status,
   };
 }
 
@@ -71,18 +63,21 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
   const [syncing, setSyncing] = useState(true);
   const isInitialLoadDone = useRef(false);
   const ownUserId = useRef<string | null>(null);
-  const [pendingInvites, setPendingInvites] = useState<CompetitionInvite[]>([]);
 
-  // Get current user ID
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      ownUserId.current = user?.id || null;
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      ownUserId.current = session?.user?.id || null;
-    });
-    return () => subscription.unsubscribe();
-  }, []);
+   // Get current user ID
+   useEffect(() => {
+     supabase.auth.getUser().then(({ data: { user } }) => {
+       ownUserId.current = user?.id || null;
+       // Set local player's userId to match Supabase ID for consistent identification
+       if (user) setData(prev => ({ ...prev, player: { ...prev.player, userId: user.id } }));
+     });
+     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+       ownUserId.current = session?.user?.id || null;
+       // Update local player's userId when auth state changes
+       if (session?.user) setData(prev => ({ ...prev, player: { ...prev.player, userId: session.user.id } }));
+     });
+     return () => subscription.unsubscribe();
+   }, []);
 
   // Initial load from Supabase — wait for auth
   useEffect(() => {
@@ -134,31 +129,6 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
               return { ...prev, competitions: [...remoteComps, ...localOnly] };
             });
           }
-
-          // Load pending competition invites
-          const { data: invites } = await supabase
-            .from('competition_invites')
-            .select('*')
-            .eq('to_user_id', uid)
-            .eq('status', 'pending')
-            .order('created_at', { ascending: false });
-          
-          if (invites && !cancelled) {
-            const mapped: CompetitionInvite[] = invites.map(inv => ({
-              id: inv.id,
-              competitionId: inv.competition_id,
-              fromUserId: inv.from_user_id,
-              fromUserName: inv.from_user_name,
-              toUserId: inv.to_user_id,
-              toUserName: inv.to_user_name,
-              competitionName: inv.competition_name,
-              status: inv.status,
-              createdAt: inv.created_at,
-              respondedAt: inv.responded_at,
-            }));
-            setPendingInvites(mapped);
-          }
-
           setSyncing(false);
           isInitialLoadDone.current = true;
         }
@@ -174,7 +144,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
 
     loadAll();
     return () => { cancelled = true; };
-  }, []);
+  }, [ownUserId.current]);
 
   // Realtime subscriptions
   useEffect(() => {
@@ -186,6 +156,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
         async (payload) => {
           const c = payload.new as any;
           const uid = ownUserId.current;
+          // Only add if current user is a participant
           if (uid && c.player_ids && !c.player_ids.includes(uid) && c.host_id !== uid) return;
           
           const { data: rounds } = await supabase
@@ -200,34 +171,23 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
           });
         }
       )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'competitions' },
-        async (payload) => {
-          const c = payload.new as any;
-          const uid = ownUserId.current;
-          
-          const { data: rounds } = await supabase
-            .from('competition_rounds')
-            .select('*')
-            .eq('competition_id', c.id);
-          
-          const updatedComp = mapDbCompToComp(c, rounds || []);
-          setData(prev => {
-            if (prev.competitions.some(x => x.id === c.id)) {
-              return {
-                ...prev,
-                competitions: prev.competitions.map(x => x.id === updatedComp.id ? updatedComp : x),
-              };
-            }
-            // If we don't have this competition locally but we're a participant, add it
-            if (uid && c.player_ids && c.player_ids.includes(uid)) {
-              return { ...prev, competitions: [...prev.competitions, updatedComp] };
-            }
-            return prev;
-          });
-        }
-      )
+       .on(
+         'postgres_changes',
+         { event: 'UPDATE', schema: 'public', table: 'competitions' },
+         async (payload) => {
+           const c = payload.new as any;
+           const { data: rounds } = await supabase
+             .from('competition_rounds')
+             .select('*')
+             .eq('competition_id', c.id);
+           
+           const updatedComp = mapDbCompToComp(c, rounds || []);
+           setData(prev => ({
+             ...prev,
+             competitions: prev.competitions.map(x => x.id === updatedComp.id ? updatedComp : x),
+           }));
+         }
+       )
       .on(
         'postgres_changes',
         { event: 'DELETE', schema: 'public', table: 'competitions' },
@@ -244,7 +204,6 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
         { event: 'INSERT', schema: 'public', table: 'competition_rounds' },
         (payload) => {
           const r = payload.new as any;
-          console.log('Realtime: New round INSERT received:', r);
           setData(prev => ({
             ...prev,
             competitions: prev.competitions.map(c => {
@@ -262,11 +221,9 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
                 competitionId: r.competition_id,
                 playerId: r.player_id,
               };
-              console.log('Adding round to competition:', c.name, 'Round playerId:', r.player_id, 'Competition players:', c.players.map(p => p.id));
               const newRounds = [...c.rounds, newRound];
               const playersWithRounds = new Set(newRounds.map(x => x.playerId));
               const allDone = c.players.every(p => playersWithRounds.has(p.id));
-              console.log('All done:', allDone, 'Players with rounds:', playersWithRounds);
               return { ...c, rounds: newRounds, status: allDone ? 'finished' as const : 'active' as const };
             }),
           }));
@@ -296,71 +253,82 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
               };
               const newRounds = [...c.rounds];
               newRounds[idx] = updatedRound;
-              const playersWithRounds = new Set(newRounds.map(x => x.playerId));
-              const allDone = c.players.every(p => playersWithRounds.has(p.id));
-              return { ...c, rounds: newRounds, status: allDone ? 'finished' as const : 'active' as const };
+              return { ...c, rounds: newRounds };
             }),
           }));
         }
       )
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'friendships' },
-        (payload) => {
-          const f = payload.new as any;
-          setData(prev => {
-            if (prev.friends.some(x => x.id === f.friend_id)) return prev;
-            return {
-              ...prev,
-              friends: [...prev.friends, { id: f.friend_id, name: f.friend_name, userId: f.friend_id }],
-            };
-          });
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'DELETE', schema: 'public', table: 'friendships' },
-        (payload) => {
-          const friendId = (payload.old as any).friend_id;
-          setData(prev => ({
-            ...prev,
-            friends: prev.friends.filter(f => f.id !== friendId),
-          }));
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'competition_invites' },
-        (payload) => {
-          const inv = payload.new as any;
-          const uid = ownUserId.current;
-          if (uid && inv.to_user_id === uid && inv.status === 'pending') {
-            setPendingInvites(prev => {
-              if (prev.some(x => x.id === inv.id)) return prev;
-              return [...prev, {
-                id: inv.id,
-                competitionId: inv.competition_id,
-                fromUserId: inv.from_user_id,
-                fromUserName: inv.from_user_name,
-                toUserId: inv.to_user_id,
-                toUserName: inv.to_user_name,
-                competitionName: inv.competition_name,
-                status: inv.status,
-                createdAt: inv.created_at,
-                respondedAt: inv.responded_at,
-              }];
-            });
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'competition_invites' },
-        (payload) => {
-          const inv = payload.new as any;
-          setPendingInvites(prev => prev.filter(x => x.id !== inv.id));
-        }
-      )
+       .on(
+         'postgres_changes',
+         { event: 'INSERT', schema: 'public', table: 'friendships' },
+         (payload) => {
+           const f = payload.new as any;
+           setData(prev => {
+             if (prev.friends.some(x => x.id === f.friend_id)) return prev;
+             return {
+               ...prev,
+               friends: [...prev.friends, { id: f.friend_id, name: f.friend_name, userId: f.friend_id }],
+             };
+           });
+         }
+       )
+       .on(
+         'postgres_changes',
+         { event: 'DELETE', schema: 'public', table: 'friendships' },
+         (payload) => {
+           const friendId = (payload.old as any).friend_id;
+           setData(prev => ({
+             ...prev,
+             friends: prev.friends.filter(f => f.id !== friendId),
+           }));
+         }
+       )
+       .on(
+         'postgres_changes',
+         { event: 'INSERT', schema: 'public', table: 'friend_requests' },
+         (payload) => {
+           const fr = payload.new as any;
+           // Handle friend request updates if needed in UI
+         }
+       )
+       .on(
+         'postgres_changes',
+         { event: 'UPDATE', schema: 'public', table: 'friend_requests' },
+         (payload) => {
+           const fr = payload.new as any;
+           // Handle friend request updates if needed in UI
+         }
+       )
+       .on(
+         'postgres_changes',
+         { event: 'DELETE', schema: 'public', table: 'friend_requests' },
+         (payload) => {
+           // Handle friend request deletions if needed in UI
+         }
+       )
+       .on(
+         'postgres_changes',
+         { event: 'INSERT', schema: 'public', table: 'competition_invitations' },
+         (payload) => {
+           const ci = payload.new as any;
+           // Handle competition invitation updates if needed in UI
+         }
+       )
+       .on(
+         'postgres_changes',
+         { event: 'UPDATE', schema: 'public', table: 'competition_invitations' },
+         (payload) => {
+           const ci = payload.new as any;
+           // Handle competition invitation updates if needed in UI
+         }
+       )
+       .on(
+         'postgres_changes',
+         { event: 'DELETE', schema: 'public', table: 'competition_invitations' },
+         (payload) => {
+           // Handle competition invitation deletions if needed in UI
+         }
+       )
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
@@ -474,9 +442,6 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
         start_date: comp.startDate,
       });
       if (error) console.error('Competition insert error:', error);
-
-      // Send invites to friends who were NOT selected during creation
-      // (friends selected during creation are already added as players)
     } catch (e) {
       console.error('Competition save error:', e);
     }
@@ -589,21 +554,31 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const finishCompetitionRound = useCallback(async (compId: string, round: Round, _playerIds: string[]) => {
-    const comp = data.competitions.find(c => c.id === compId);
-    if (!comp) return;
+    // Update local state immediately
+    setData(prev => {
+      const competitions = prev.competitions.map(c => {
+        if (c.id !== compId) return c;
+        const existingIdx = c.rounds.findIndex(r => r.playerId === round.playerId);
+        let newRounds: Round[];
+        if (existingIdx >= 0) {
+          newRounds = [...c.rounds];
+          newRounds[existingIdx] = round;
+        } else {
+          newRounds = [...c.rounds, round];
+        }
+        const playersWithRounds = new Set(newRounds.map(r => r.playerId));
+        const allDone = c.players.every(p => playersWithRounds.has(p.id));
+        return { ...c, rounds: newRounds, status: allDone ? 'finished' as const : 'active' as const };
+      });
+      return { ...prev, competitions };
+    });
 
-    let newRounds: Round[];
-    const existingIdx = comp.rounds.findIndex(r => r.playerId === round.playerId);
-    if (existingIdx >= 0) {
-      newRounds = [...comp.rounds];
-      newRounds[existingIdx] = round;
-    } else {
-      newRounds = [...comp.rounds, round];
-    }
-
-    // Save to Supabase first
+    // Save round to Supabase
     try {
-      const { error } = await supabase.from('competition_rounds').upsert({
+      // Upsert: delete existing round for this player in this comp, then insert
+      await supabase.from('competition_rounds').delete().eq('competition_id', compId).eq('player_id', round.playerId);
+      
+      const { error } = await supabase.from('competition_rounds').insert({
         id: round.id,
         competition_id: compId,
         player_id: round.playerId,
@@ -613,36 +588,12 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
         total_par: round.totalPar,
         relative_score: round.relativeScore,
         course_name: round.courseName,
-      }, { onConflict: 'competition_id,player_id' });
+      });
       if (error) console.error('Round insert error:', error);
     } catch (e) {
       console.error('Save round error:', e);
     }
-
-    // Update local state
-    const playersWithRounds = new Set(newRounds.map(r => r.playerId));
-    const allDone = comp.players.every(p => playersWithRounds.has(p.id));
-    const newStatus = allDone ? 'finished' : 'active';
-
-    // Update competition status in Supabase
-    try {
-      const { error: updateError } = await supabase
-        .from('competitions')
-        .update({ status: newStatus })
-        .eq('id', compId);
-      if (updateError) console.error('Competition status update error:', updateError);
-    } catch (e) {
-      console.error('Update competition status error:', e);
-    }
-
-    setData(prev => {
-      const competitions = prev.competitions.map(c => {
-        if (c.id !== compId) return c;
-        return { ...c, rounds: newRounds, status: newStatus as 'active' | 'finished' };
-      });
-      return { ...prev, competitions };
-    });
-  }, [data.competitions, data.player]);
+  }, [data.player]);
 
   const addPlayerToCompetition = useCallback(async (compId: string, friendId: string) => {
     const friend = data.friends.find(f => f.id === friendId);
@@ -691,131 +642,6 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [data.friends]);
 
-  const sendCompetitionInvite = useCallback(async (compId: string, compName: string, friendId: string, friendName: string) => {
-    const uid = ownUserId.current;
-    if (!uid) return;
-
-    const friend = data.friends.find(f => f.id === friendId);
-    const friendSupabaseId = friend?.userId || friendId;
-
-    // Check if already invited (pending)
-    const { data: existing } = await supabase
-      .from('competition_invites')
-      .select('*')
-      .eq('competition_id', compId)
-      .eq('to_user_id', friendSupabaseId)
-      .eq('status', 'pending');
-    
-    if (existing && existing.length > 0) return;
-
-    const inviteId = generateId();
-    const invite: CompetitionInvite = {
-      id: inviteId,
-      competitionId: compId,
-      fromUserId: uid,
-      fromUserName: data.player.name,
-      toUserId: friendSupabaseId,
-      toUserName: friendName,
-      competitionName: compName,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-    };
-
-    setPendingInvites(prev => [...prev, invite]);
-
-    try {
-      const { error } = await supabase.from('competition_invites').insert({
-        id: inviteId,
-        competition_id: compId,
-        from_user_id: uid,
-        from_user_name: data.player.name,
-        to_user_id: friendSupabaseId,
-        to_user_name: friendName,
-        competition_name: compName,
-        status: 'pending',
-      });
-      if (error) console.error('Competition invite insert error:', error);
-    } catch (e) {
-      console.error('Competition invite save error:', e);
-    }
-  }, [data.friends, data.player]);
-
-  const respondToCompetitionInvite = useCallback(async (inviteId: string, accepted: boolean) => {
-    const uid = ownUserId.current;
-    if (!uid) return;
-
-    const invite = pendingInvites.find(i => i.id === inviteId);
-    if (!invite) return;
-
-    setPendingInvites(prev => prev.filter(i => i.id !== inviteId));
-
-    const newStatus = accepted ? 'accepted' : 'declined';
-
-    try {
-      await supabase
-        .from('competition_invites')
-        .update({ status: newStatus, responded_at: new Date().toISOString() })
-        .eq('id', inviteId);
-
-      if (accepted) {
-        // Fetch the competition from Supabase
-        const { data: existingComp } = await supabase
-          .from('competitions')
-          .select('*')
-          .eq('id', invite.competitionId)
-          .single();
-
-        if (existingComp) {
-          const pIds = existingComp.player_ids || [];
-          const pNames = existingComp.player_names || [];
-          if (!pIds.includes(uid)) {
-            await supabase
-              .from('competitions')
-              .update({
-                player_ids: [...pIds, uid],
-                player_names: [...pNames, data.player.name],
-              })
-              .eq('id', invite.competitionId);
-          }
-        }
-
-        // Update local state - add player to existing competition or create it
-        setData(prev => {
-          const existingLocal = prev.competitions.find(c => c.id === invite.competitionId);
-          if (existingLocal) {
-            if (existingLocal.playerIds.includes(uid)) return prev;
-            return {
-              ...prev,
-              competitions: prev.competitions.map(c => {
-                if (c.id !== invite.competitionId) return c;
-                return {
-                  ...c,
-                  players: [...c.players, { id: uid, name: data.player.name }],
-                  playerIds: [...c.playerIds, uid],
-                };
-              }),
-            };
-          }
-          // Competition not in local state - create it from invite info
-          const newComp: Competition = {
-            id: invite.competitionId,
-            name: invite.competitionName,
-            hostId: invite.fromUserId,
-            hostName: invite.fromUserName,
-            players: [{ id: uid, name: data.player.name }],
-            playerIds: [uid],
-            rounds: [],
-            startDate: new Date().toISOString(),
-            status: 'pending',
-          };
-          return { ...prev, competitions: [...prev.competitions, newComp] };
-        });
-      }
-    } catch (e) {
-      console.error('Respond to invite error:', e);
-    }
-  }, [pendingInvites, data.player]);
-
   const addSampleData = () => {
     const sampleRounds = Array.from({ length: 8 }, () => {
       const holes = Array.from({ length: 18 }, (_, i) => {
@@ -853,7 +679,6 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
       addFriend, removeFriend, updateFriend,
       createCompetition, joinCompetition, deleteCompetition,
       addRoundToCompetition, finishCompetitionRound, addPlayerToCompetition,
-      sendCompetitionInvite, respondToCompetitionInvite, pendingInvites,
       addSampleData, clearAllData, clearLocalData, syncing,
     }}>
       {children}

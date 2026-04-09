@@ -3,6 +3,19 @@ import { useGolf } from '../hooks/useGolf';
 import { useAppSettings } from '../hooks/useAppSettings';
 import { useAuth } from '../hooks/useAuth';
 import { getScoreDisplay } from '../utils/storage';
+import { fetchCompetitionRounds, sendCompetitionInvitation } from '../utils/supabaseCompetition';
+
+interface SupabaseRound {
+  id: string;
+  competition_id: string;
+  player_id: string;
+  player_name: string;
+  total_score: number;
+  total_par: number;
+  relative_score: number;
+  course_name: string;
+  played_at: string;
+}
 
 function isHost(comp: any, user: any, playerId: string): boolean {
   const uid = user?.id || playerId;
@@ -15,7 +28,7 @@ interface CompetitionsProps {
 }
 
 export default function Competitions({ onBack, onStartCompetitionGame }: CompetitionsProps) {
-  const { data, createCompetition, joinCompetition, deleteCompetition, sendCompetitionInvite, pendingInvites } = useGolf();
+  const { data, createCompetition, joinCompetition, deleteCompetition, addPlayerToCompetition } = useGolf();
   const { t } = useAppSettings();
   const { user } = useAuth();
   const [showCreate, setShowCreate] = useState(false);
@@ -23,7 +36,7 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [shareLinkCompId, setShareLinkCompId] = useState<string | null>(null);
   const [inviteCompId, setInviteCompId] = useState<string | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [compRounds, setCompRounds] = useState<Record<string, SupabaseRound[]>>({});
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -41,10 +54,15 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
     }
   }, [user, data.competitions]);
 
-  const handleRefresh = () => {
-    setRefreshKey(k => k + 1);
-    window.location.reload();
-  };
+  useEffect(() => {
+    data.competitions.forEach(comp => {
+      if (comp.status !== 'finished') {
+        fetchCompetitionRounds(comp.id).then(rounds => {
+          setCompRounds(prev => ({ ...prev, [comp.id]: rounds }));
+        });
+      }
+    });
+  }, [data.competitions]);
 
   const handleShareComp = async (compId: string) => {
     const baseUrl = window.location.origin + window.location.pathname;
@@ -59,9 +77,9 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
     }, 2000);
   };
 
-  const handleCreate = async () => {
+  const handleCreate = () => {
     if (!newCompName.trim()) return;
-    await createCompetition(newCompName.trim(), selectedFriends);
+    createCompetition(newCompName.trim(), selectedFriends);
     setNewCompName('');
     setShowCreate(false);
     setSelectedFriends([]);
@@ -73,14 +91,6 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
     } else if (selectedFriends.length < 4) {
       setSelectedFriends(prev => [...prev, friendId]);
     }
-  };
-
-  const getFriendInviteStatus = (friendId: string) => {
-    const friend = data.friends.find(f => f.id === friendId);
-    if (!friend) return 'none';
-    const friendUid = friend.userId || friendId;
-    if (data.competitions.some(c => c.playerIds.includes(friendUid))) return 'joined';
-    return 'none';
   };
 
   const getStatusColor = (status: string) => {
@@ -105,15 +115,51 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
 
   const confirmInviteFriend = async (friendId: string) => {
     if (!inviteCompId) return;
-    const comp = data.competitions.find(c => c.id === inviteCompId);
     const friend = data.friends.find(f => f.id === friendId);
-    if (!comp || !friend) return;
-    
-    await sendCompetitionInvite(inviteCompId, comp.name, friendId, friend.name);
+    const comp = data.competitions.find(c => c.id === inviteCompId);
+    if (!friend || !comp) return;
+
+    addPlayerToCompetition(inviteCompId, friendId);
+
+    await sendCompetitionInvitation(
+      comp.id,
+      comp.name,
+      data.player.id,
+      data.player.name,
+      friend.userId || friend.id,
+      friend.name
+    );
+
     setInviteCompId(null);
   };
 
   const activeComps = data.competitions.filter(c => c.status !== 'finished');
+
+  const getAllRoundsForComp = (compId: string) => {
+    const supabaseRounds = compRounds[compId] || [];
+    const comp = data.competitions.find(c => c.id === compId);
+    if (!comp) return supabaseRounds;
+
+    const supabasePlayerIds = new Set(supabaseRounds.map(r => r.player_id));
+
+    const localOnly = comp.rounds.filter(r => r.playerId && !supabasePlayerIds.has(r.playerId));
+    const merged = [
+      ...supabaseRounds,
+      ...localOnly.map(r => ({
+        id: r.id,
+        competition_id: r.competitionId || compId,
+        player_id: r.playerId || '',
+        player_name: comp.players.find(p => p.id === r.playerId)?.name || 'Unknown',
+        total_score: r.totalScore,
+        total_par: r.totalPar,
+        relative_score: r.relativeScore,
+        course_name: r.courseName,
+        played_at: r.date,
+      })),
+    ];
+
+    return merged;
+  };
 
   return (
     <div className="min-h-screen bg-surface pb-32">
@@ -122,8 +168,8 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
           <span className="material-symbols-outlined text-stone-500">arrow_back</span>
         </button>
         <h1 className="text-xl font-extrabold text-primary font-headline">{t('competitions')}</h1>
-        <button onClick={handleRefresh} className="p-2 text-secondary" title="새로고침">
-          <span className="material-symbols-outlined">refresh</span>
+        <button onClick={() => setShowCreate(!showCreate)} className="text-secondary font-bold">
+          {showCreate ? t('cancel') : '+ 만들기'}
         </button>
       </header>
 
@@ -153,28 +199,22 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
                   친구 초대 ({selectedFriends.length}/4)
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {data.friends.map(friend => {
-                    const status = getFriendInviteStatus(friend.id);
-                    return (
+                  {data.friends.map(friend => (
                     <button
                       key={friend.id}
                       onClick={() => toggleFriend(friend.id)}
-                      disabled={!selectedFriends.includes(friend.id) && (selectedFriends.length >= 4 || status === 'joined')}
+                      disabled={!selectedFriends.includes(friend.id) && selectedFriends.length >= 4}
                       className={`px-3 py-2 rounded-xl text-sm font-bold transition-all ${
                         selectedFriends.includes(friend.id)
                           ? 'bg-secondary text-white'
-                          : status === 'joined'
-                          ? 'bg-stone-200 text-stone-400 cursor-not-allowed'
                           : !selectedFriends.includes(friend.id) && selectedFriends.length >= 4
                             ? 'bg-stone-200 text-stone-400 cursor-not-allowed'
                             : 'bg-surface-container text-stone-600'
                       }`}
                     >
                       {friend.name}
-                      {status === 'joined' && <span className="ml-1 text-xs">(참여중)</span>}
                     </button>
-                    );
-                  })}
+                  ))}
                 </div>
               </div>
             )}
@@ -213,7 +253,12 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
             </div>
           ) : (
             <div className="space-y-4">
-              {activeComps.map(comp => (
+              {activeComps.map(comp => {
+                const allRounds = getAllRoundsForComp(comp.id);
+                const sortedRounds = [...allRounds].sort((a, b) => a.relative_score - b.relative_score);
+                const invitedFriends = comp.players.filter(p => p.id !== data.player.id && !allRounds.some(r => r.player_id === p.id));
+
+                return (
                 <div key={comp.id} className="bg-surface-container-lowest rounded-2xl p-5">
                   <div className="flex items-start justify-between mb-4">
                     <div>
@@ -275,15 +320,14 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
                     <span className="text-sm text-stone-500">{comp.players.length}명</span>
                   </div>
 
-                  {comp.rounds.length > 0 && (
+                  {sortedRounds.length > 0 && (
                     <div className="bg-surface-container rounded-xl p-4 mb-4">
                       <p className="text-xs text-stone-500 font-bold mb-2">{t('ranking')}</p>
-                      {comp.rounds
-                        .sort((a, b) => a.relativeScore - b.relativeScore)
+                      {sortedRounds
                         .map((round, i) => {
-                          const player = comp.players.find(p => p.id === round.playerId) || { name: 'Unknown' };
-                          const scoreDisplay = getScoreDisplay(round.relativeScore);
-                          const isCurrentUser = round.playerId === data.player.id;
+                          const player = comp.players.find(p => p.id === round.player_id) || { name: round.player_name };
+                          const scoreDisplay = getScoreDisplay(round.relative_score);
+                          const isCurrentUser = round.player_id === data.player.id;
                           return (
                             <div key={round.id} className={`flex items-center justify-between text-sm mb-2 last:mb-0 rounded-lg px-2 py-1 ${isCurrentUser ? 'bg-secondary/10' : ''}`}>
                               <div className="flex items-center gap-2">
@@ -300,11 +344,23 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
                                 </span>
                               </div>
                               <span className={`font-bold ${scoreDisplay.color}`}>
-                                {round.totalScore} ({scoreDisplay.text})
+                                {round.total_score} ({scoreDisplay.text})
                               </span>
                             </div>
                           );
                         })}
+                    </div>
+                  )}
+
+                  {invitedFriends.length > 0 && (
+                    <div className="bg-surface-container rounded-xl p-4 mb-4">
+                      <p className="text-xs text-stone-500 font-bold mb-2">초대된 친구</p>
+                      {invitedFriends.map(friend => (
+                        <div key={friend.id} className="flex items-center gap-2 text-sm text-stone-500 py-1">
+                          <span className="material-symbols-outlined text-sm">schedule</span>
+                          {friend.name} - 대기중
+                        </div>
+                      ))}
                     </div>
                   )}
 
@@ -315,7 +371,7 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
                     참가하기
                   </button>
                 </div>
-              ))}
+              )})}
             </div>
           )}
         </section>
@@ -332,23 +388,19 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
                 {data.friends.map(friend => {
                   const comp = data.competitions.find(c => c.id === inviteCompId);
                   const alreadyJoined = comp?.players.some(p => p.id === friend.id);
-                  const alreadyInvited = pendingInvites.some(i => i.competitionId === inviteCompId && i.toUserId === (friend.userId || friend.id));
                   return (
                     <button
                       key={friend.id}
-                      onClick={() => !alreadyJoined && !alreadyInvited && confirmInviteFriend(friend.id)}
-                      disabled={alreadyJoined || alreadyInvited}
+                      onClick={() => !alreadyJoined && confirmInviteFriend(friend.id)}
+                      disabled={alreadyJoined}
                       className={`w-full p-3 rounded-xl text-left font-bold transition-all ${
                         alreadyJoined
                           ? 'bg-stone-100 text-stone-400 cursor-not-allowed'
-                          : alreadyInvited
-                          ? 'bg-amber-50 text-amber-600 cursor-not-allowed'
                           : 'bg-surface-container text-primary active:scale-98 hover:bg-secondary-container'
                       }`}
                     >
                       {friend.name}
                       {alreadyJoined && <span className="ml-2 text-xs">(이미 참여)</span>}
-                      {alreadyInvited && !alreadyJoined && <span className="ml-2 text-xs">(초대 발송됨)</span>}
                     </button>
                   );
                 })}
