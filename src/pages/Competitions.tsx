@@ -77,13 +77,28 @@ export default function Competitions({ onBack, onStartCompetitionGame }: Competi
     }, 2000);
   };
 
-  const handleCreate = () => {
-    if (!newCompName.trim()) return;
-    createCompetition(newCompName.trim(), selectedFriends);
-    setNewCompName('');
-    setShowCreate(false);
-    setSelectedFriends([]);
-  };
+   const handleCreate = async () => {
+     if (!newCompName.trim()) return;
+     const comp = await createCompetition(newCompName.trim(), selectedFriends);
+     setNewCompName('');
+     setShowCreate(false);
+     setSelectedFriends([]);
+     
+     // Send invitations to selected friends after competition is created
+     for (const friendId of selectedFriends) {
+       const friend = data.friends.find(f => f.id === friendId);
+       if (friend) {
+         await sendCompetitionInvitation(
+           comp.id,
+           comp.name,
+           data.player.id,
+           data.player.name,
+           friend.userId || friend.id,
+           friend.name
+         );
+       }
+     }
+   };
 
   const toggleFriend = (friendId: string) => {
     if (selectedFriends.includes(friendId)) {
