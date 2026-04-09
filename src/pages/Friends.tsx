@@ -9,6 +9,7 @@ interface FriendsProps {
 }
 
 export default function Friends({ onBack }: FriendsProps) {
+  console.log('[Friends] Component mounting');
   const { data, addFriend, removeFriend, updateFriend } = useGolf();
   const { t } = useAppSettings();
   const { user } = useAuth();
@@ -16,6 +17,8 @@ export default function Friends({ onBack }: FriendsProps) {
   const [editName, setEditName] = useState('');
   const [inviteLinkCopied, setInviteLinkCopied] = useState(false);
   const [pendingRequests, setPendingRequests] = useState<Array<{id: string; from_user_id: string; from_user_name: string}>>([]);
+  
+  console.log('[Friends] User info:', { userId: user?.id, userName: data.player?.name, friendsCount: data.friends?.length });
 
    // Load pending friend requests
    useEffect(() => {
