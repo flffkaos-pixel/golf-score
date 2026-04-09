@@ -4,6 +4,8 @@ import { useAppSettings } from '../hooks/useAppSettings';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../supabase';
 
+console.log('[Friends] Module loaded - absolute top of file');
+
 console.log('[Friends] Module loaded');
 
 interface FriendsProps {
@@ -11,15 +13,45 @@ interface FriendsProps {
 }
 
 export default function Friends({ onBack }: FriendsProps) {
-  console.log('[Friends] Component mounting');
-  const { data, addFriend, removeFriend, updateFriend } = useGolf();
-  const { t } = useAppSettings();
-  const { user } = useAuth();
+  console.log('[Friends] Component function called - START');
+  console.log('[Friends] Props received:', { onBack: !!onBack });
+  
+  try {
+    console.log('[Friends] Calling useGolf hook');
+    const golfHookResult = useGolf();
+    console.log('[Friends] useGolf hook returned:', golfHookResult);
+    const { data, addFriend, removeFriend, updateFriend } = golfHookResult;
+    console.log('[Friends] Destructured useGolf result:', { data: !!data, addFriend: !!addFriend, removeFriend: !!removeFriend, updateFriend: !!updateFriend });
+  } catch (golfError) {
+    console.error('[Friends] Error in useGolf hook:', golfError);
+    throw golfError;
+  }
+  
+  try {
+    console.log('[Friends] Calling useAppSettings hook');
+    const { t } = useAppSettings();
+    console.log('[Friends] useAppSettings hook returned t:', !!t);
+  } catch (settingsError) {
+    console.error('[Friends] Error in useAppSettings hook:', settingsError);
+    throw settingsError;
+  }
+  
+  try {
+    console.log('[Friends] Calling useAuth hook');
+    const { user } = useAuth();
+    console.log('[Friends] useAuth hook returned user:', { userId: user?.id, userExists: !!user });
+  } catch (authError) {
+    console.error('[Friends] Error in useAuth hook:', authError);
+    throw authError;
+  }
+  
+  console.log('[Friends] Initializing state variables');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [inviteLinkCopied, setInviteLinkCopied] = useState(false);
   const [pendingRequests, setPendingRequests] = useState<Array<{id: string; from_user_id: string; from_user_name: string}>>([]);
   
+  console.log('[Friends] State variables initialized');
   console.log('[Friends] User info:', { userId: user?.id, userName: data.player?.name, friendsCount: data.friends?.length });
 
     // Load pending friend requests
