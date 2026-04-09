@@ -54,21 +54,53 @@ export default function Friends({ onBack }: FriendsProps) {
     return () => { supabase.removeChannel(channel); };
   }, [user]);
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const inviteId = params.get('invite');
-    const inviterName = params.get('name');
-    const inviterId = params.get('id');
-    
-    if (inviteId && inviterName && inviterId && user) {
-      const exists = data.friends.some(f => f.userId === inviterId);
-      if (!exists) {
-        addFriend(inviterName, inviterId);
-        alert(`${inviterName}님을 친구로 추가했습니다!`);
-        window.history.replaceState({}, '', window.location.pathname);
-      }
-    }
-  }, [user, data.friends]);
+   useEffect(() => {
+     const params = new URLSearchParams(window.location.search);
+     const inviteId = params.get('invite');
+     const inviterName = params.get('name');
+     const inviterId = params.get('id');
+     
+     if (inviteId && inviterName && inviterId && user) {
+       // Check if already friends
+       const alreadyFriends = data.friends.some(f => f.userId === inviterId);
+       // Check if we've already sent a request to them
+       const alreadyRequestedFromUs = pendingRequests.some(r => r.from_user_id === inviterId);
+       // Check if they've already sent a request to us (pending request from them)
+       const alreadyRequestedToUs = pendingRequests.some(r => r.to_user_id === inviterId);
+       
+       if (alreadyFriends) {
+         // Already friends
+         alert(`${inviterName}님은 이미 당신의 친구입니다.`);
+         window.history.replaceState({}, '', window.location.pathname);
+       } else if (alreadyRequestedFromUs) {
+         // We already sent them a request
+         alert(`${inviterName}님에게 이미 친구 요청을 보냈습니다.`);
+         window.history.replaceState({}, '', window.location.pathname);
+       } else if (alreadyRequestedToUs) {
+         // They've already sent us a request - accept it
+         const existingRequest = pendingRequests.find(r => r.to_user_id === inviterId);
+         if (existingRequest) {
+           await acceptFriendRequest(existingRequest.id, inviterId, inviterName);
+           alert(`${inviterName}님의 친구 요청을 수락했습니다. 이제 친구가 됩니다!`);
+         }
+         window.history.replaceState({}, '', window.location.pathname);
+       } else {
+         // No existing relationship - send friend request
+         await supabase
+           .from('friend_requests')
+           .insert({
+             from_user_id: user.id,
+             from_user_name: data.player.name,
+             to_user_id: inviterId,
+             to_user_name: inviterName,
+             status: 'pending'
+           });
+         
+         alert(`${inviterName}님에게 친구 요청을 보냈습니다. 수락되면 친구가 됩니다.`);
+         window.history.replaceState({}, '', window.location.pathname);
+       }
+     }
+   }, [user, data.friends, pendingRequests, acceptFriendRequest]);
 
   const generateInviteLink = async () => {
     if (!user) {
@@ -84,24 +116,36 @@ export default function Friends({ onBack }: FriendsProps) {
     setTimeout(() => setInviteLinkCopied(false), 2000);
   };
 
-  const acceptFriendRequest = async (requestId: string, fromUserId: string, fromUserName: string) => {
-    addFriend(fromUserName, fromUserId);
-    
-    await supabase
-      .from('friend_requests')
-      .update({ status: 'accepted' })
-      .eq('id', requestId);
-    
-    await supabase
-      .from('friendships')
-      .upsert({
-        user_id: fromUserId,
-        friend_id: user?.id,
-        friend_name: data.player.name,
-      }, { onConflict: 'user_id,friend_id' });
-    
-    setPendingRequests(prev => prev.filter(r => r.id !== requestId));
-  };
+   const acceptFriendRequest = async (requestId: string, fromUserId: string, fromUserName: string) => {
+     // Add friend locally (this user sees the requester as friend)
+     addFriend(fromUserName, fromUserId);
+     
+     await supabase
+       .from('friend_requests')
+       .update({ status: 'accepted' })
+       .eq('id', requestId);
+     
+     // Create bidirectional friendship records
+     // 1. Requester sees current user as their friend
+     await supabase
+       .from('friendships')
+       .upsert({
+         user_id: fromUserId,
+         friend_id: user?.id,
+         friend_name: data.player.name,
+       }, { onConflict: 'user_id,friend_id' });
+       
+     // 2. Current user sees requester as their friend
+     await supabase
+       .from('friendships')
+       .upsert({
+         user_id: user?.id,
+         friend_id: fromUserId,
+         friend_name: fromUserName,
+       }, { onConflict: 'user_id,friend_id' });
+     
+     setPendingRequests(prev => prev.filter(r => r.id !== requestId));
+   };
 
   const declineFriendRequest = async (requestId: string) => {
     await supabase
