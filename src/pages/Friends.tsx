@@ -17,42 +17,67 @@ export default function Friends({ onBack }: FriendsProps) {
   const [inviteLinkCopied, setInviteLinkCopied] = useState(false);
   const [pendingRequests, setPendingRequests] = useState<Array<{id: string; from_user_id: string; from_user_name: string}>>([]);
 
-  // Load pending friend requests
-  useEffect(() => {
-    if (!user) return;
-    
-    const loadPendingRequests = async () => {
-      const { data: requests } = await supabase
-        .from('friend_requests')
-        .select('*')
-        .eq('to_user_id', user.id)
-        .eq('status', 'pending');
-      
-      if (requests) {
-        setPendingRequests(requests);
-      }
-    };
-    
-    loadPendingRequests();
-
-    // Realtime subscription for new friend requests
-    const channel = supabase
-      .channel('friend-requests-realtime')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'friend_requests', filter: `to_user_id=eq.${user.id}` },
-        (payload) => {
-          const req = payload.new as any;
-          setPendingRequests(prev => {
-            if (prev.some(r => r.id === req.id)) return prev;
-            return [...prev, { id: req.id, from_user_id: req.from_user_id, from_user_name: req.from_user_name }];
-          });
-        }
-      )
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [user]);
+   // Load pending friend requests
+   useEffect(() => {
+     if (!user) return;
+     
+     const loadPendingRequests = async () => {
+       console.log('[Friends] Loading pending friend requests for user:', user.id);
+       const { data: requests, error } = await supabase
+         .from('friend_requests')
+         .select('*')
+         .eq('to_user_id', user.id)
+         .eq('status', 'pending');
+       
+       if (error) {
+         console.error('[Friends] Error loading pending requests:', error);
+       } else if (requests) {
+         console.log('[Friends] Loaded pending requests:', requests);
+         setPendingRequests(requests);
+       }
+     };
+     
+     loadPendingRequests();
+ 
+     // Realtime subscription for new friend requests
+     const channel = supabase
+       .channel('friend-requests-realtime')
+       .on(
+         'postgres_changes',
+         { event: 'INSERT', schema: 'public', table: 'friend_requests', filter: `to_user_id=eq.${user.id}` },
+         (payload) => {
+           const req = payload.new as any;
+           console.log('[Friends] Received new friend request:', req);
+           setPendingRequests(prev => {
+             if (prev.some(r => r.id === req.id)) return prev;
+             return [...prev, { id: req.id, from_user_id: req.from_user_id, from_user_name: req.from_user_name }];
+           });
+         }
+       )
+       .on(
+         'postgres_changes',
+         { event: 'UPDATE', schema: 'public', table: 'friend_requests' },
+         (payload) => {
+           const req = payload.new as any;
+           console.log('[Friends] Friend request updated:', req);
+           if (req.status === 'accepted' || req.status === 'rejected') {
+             setPendingRequests(prev => prev.filter(r => r.id !== req.id));
+           }
+         }
+       )
+       .on(
+         'postgres_changes',
+         { event: 'DELETE', schema: 'public', table: 'friend_requests' },
+         (payload) => {
+           const req = payload.old as any;
+           console.log('[Friends] Friend request deleted:', req);
+           setPendingRequests(prev => prev.filter(r => r.id !== req.id));
+         }
+       )
+       .subscribe();
+ 
+     return () => { supabase.removeChannel(channel); };
+   }, [user]);
 
    useEffect(() => {
      const params = new URLSearchParams(window.location.search);
@@ -61,32 +86,17 @@ export default function Friends({ onBack }: FriendsProps) {
      const inviterId = params.get('id');
      
      if (inviteId && inviterName && inviterId && user) {
-       // Check if already friends
+       // When someone visits an invite link, send them a friend request
+       // Don't auto-add as friend - let them decide via the request system
        const alreadyFriends = data.friends.some(f => f.userId === inviterId);
-       // Check if we've already sent a request to them
-       const alreadyRequestedFromUs = pendingRequests.some(r => r.from_user_id === inviterId);
-       // Check if they've already sent a request to us (pending request from them)
-       const alreadyRequestedToUs = pendingRequests.some(r => r.to_user_id === inviterId);
+       const alreadyRequested = pendingRequests.some(r => 
+         (r.from_user_id === user.id && r.to_user_id === inviterId) ||  // We sent to them
+         (r.from_user_id === inviterId && r.to_user_id === user.id)   // They sent to us
+       );
        
-       if (alreadyFriends) {
-         // Already friends
-         alert(`${inviterName}님은 이미 당신의 친구입니다.`);
-         window.history.replaceState({}, '', window.location.pathname);
-       } else if (alreadyRequestedFromUs) {
-         // We already sent them a request
-         alert(`${inviterName}님에게 이미 친구 요청을 보냈습니다.`);
-         window.history.replaceState({}, '', window.location.pathname);
-       } else if (alreadyRequestedToUs) {
-         // They've already sent us a request - accept it
-         const existingRequest = pendingRequests.find(r => r.to_user_id === inviterId);
-         if (existingRequest) {
-           await acceptFriendRequest(existingRequest.id, inviterId, inviterName);
-           alert(`${inviterName}님의 친구 요청을 수락했습니다. 이제 친구가 됩니다!`);
-         }
-         window.history.replaceState({}, '', window.location.pathname);
-       } else {
-         // No existing relationship - send friend request
-         await supabase
+       if (!alreadyFriends && !alreadyRequested) {
+         // Send friend request to the person who sent the invite
+         supabase
            .from('friend_requests')
            .insert({
              from_user_id: user.id,
@@ -94,13 +104,25 @@ export default function Friends({ onBack }: FriendsProps) {
              to_user_id: inviterId,
              to_user_name: inviterName,
              status: 'pending'
+           })
+           .then(() => {
+             alert(`${inviterName}님에게 친구 요청을 보냈습니다.`);
+             window.history.replaceState({}, '', window.location.pathname);
+           })
+           .catch(error => {
+             console.error('[Friends] Error sending friend request:', error);
+             alert('친구 요청 전송에 실패했습니다.');
            });
-         
-         alert(`${inviterName}님에게 친구 요청을 보냈습니다. 수락되면 친구가 됩니다.`);
+       } else if (alreadyFriends) {
+         alert(`${inviterName}님은 이미 당신의 친구입니다.`);
+         window.history.replaceState({}, '', window.location.pathname);
+       } else {
+         // Request already sent (either direction)
+         alert('이미 친구 요청이 보내졌거나 받은 상태입니다.');
          window.history.replaceState({}, '', window.location.pathname);
        }
      }
-   }, [user, data.friends, pendingRequests, acceptFriendRequest]);
+   }, [user, data.friends, pendingRequests]);
 
   const generateInviteLink = async () => {
     if (!user) {
