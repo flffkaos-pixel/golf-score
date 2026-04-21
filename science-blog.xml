@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html>
+<html b:css='false' b:defaultwidgetversion='2' b:layoutsVersion='3' b:responsive='true' b:templateVersion='1.0.0' expr:dir='data:blog.languageDirection' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
+<head>
+<meta content='width=device-width, initial-scale=1' name='viewport'/>
+<meta expr:content='data:blog.metaDescription' name='description'/>
+<title><data:blog.pageTitle/></title>
+<b:skin><![CDATA[
+
+]]></b:skin>
+</head>
+<body>
+<div class='container'>
+  <header>
+    <h1><data:blog.title/></h1>
+    <p class='tagline'><data:blog.description/></p>
+  </header>
+
+  <b:section id='main' showaddelement='yes'>
+    <b:widget id='Blog1' locked='true' title='Blog Posts' type='Blog' version='2' visible='true'>
+      <b:includable id='main' var='default'>
+        <b:include name='loop'/>
+      </b:includable>
+      <b:includable id='loop' var='posts'>
+        <b:loop values='data:posts' var='post'>
+          <article class='post'>
+            <b:if cond='data:post.title'>
+              <h2 class='post-title'><a expr:href='data:post.url'><data:post.title/></a></h2>
+            </b:if>
+            <div class='post-meta'>
+              <span class='author'><data:post.author/></span>
+              <span class='date'><data:post.date/></span>
+            </div>
+            <div class='post-body'>
+              <data:post.body/>
+            </div>
+          </article>
+        </b:loop>
+      </b:includable>
+    </b:widget>
+  </b:section>
+</div>
+
+<footer>
+  <nav>
+    <a href='/'>Home</a>
+    <a href='/search?q=about'>About</a>
+    <a href='/search?q=contact'>Contact</a>
+    <a href='/p/privacy-policy.html'>Privacy Policy</a>
+  </nav>
+  <p class='copyright'>&copy; <data:blog.title/> All Rights Reserved</p>
+</footer>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9fa; color: #212529; line-height: 1.7; }
+.container { max-width: 900px; margin: 0 auto; padding: 0 20px; }
+header { background: #fff; padding: 40px 20px; text-align: center; border-bottom: 3px solid #1a73e8; margin-bottom: 30px; }
+header h1 { font-size: 32px; font-weight: 700; color: #1a73e8; margin-bottom: 8px; }
+.tagline { color: #6c757d; font-size: 16px; }
+.post { background: #fff; margin-bottom: 25px; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.post-title { font-size: 26px; margin-bottom: 12px; }
+.post-title a { color: #1a73e8; text-decoration: none; font-weight: 600; }
+.post-title a:hover { color: #1557b0; }
+.post-meta { color: #868e96; font-size: 13px; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid #eee; }
+.post-meta span { margin-right: 15px; }
+.post-body { font-size: 16px; }
+.post-body img { max-width: 100%; height: auto; border-radius: 8px; margin: 15px 0; }
+.post-body h2 { font-size: 22px; margin: 25px 0 12px; color: #212529; }
+.post-body h3 { font-size: 18px; margin: 20px 0 10px; }
+.post-body p { margin-bottom: 15px; }
+.post-body ul, .post-body ol { margin: 15px 0 15px 25px; }
+.post-body li { margin-bottom: 8px; }
+.post-body a { color: #1a73e8; }
+.post-body blockquote { border-left: 4px solid #1a73e8; padding-left: 15px; margin: 15px 0; color: #495057; background: #f8f9fa; padding: 10px 15px; }
+footer { background: #212529; color: #fff; padding: 40px 20px; margin-top: 50px; text-align: center; }
+footer nav { margin-bottom: 20px; }
+footer nav a { color: #adb5bd; text-decoration: none; margin: 0 12px; font-size: 15px; }
+footer nav a:hover { color: #fff; }
+footer .copyright { color: #6c757d; font-size: 13px; }
+@media (max-width: 600px) {
+  header h1 { font-size: 24px; }
+  .post-title { font-size: 20px; }
+  .post-body { font-size: 15px; }
+  footer nav a { display: block; margin: 10px 0; }
+}
+</style>
+</body>
+</html>
