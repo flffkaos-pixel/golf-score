@@ -74,36 +74,37 @@ ALTER TABLE competitions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE competition_rounds ENABLE ROW LEVEL SECURITY;
 ALTER TABLE friendships ENABLE ROW LEVEL SECURITY;
 ALTER TABLE friend_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE competition_invitations ENABLE ROW LEVEL SECURITY;
 
 -- 대회: 호스트만 수정 가능, 누구나 읽기 가능 (공개 대회)
 CREATE POLICY "competitions_select" ON competitions FOR SELECT USING (true);
 CREATE POLICY "competitions_insert" ON competitions FOR INSERT WITH CHECK (true);
-CREATE POLICY "competitions_update" ON competitions FOR UPDATE USING (auth.uid()::text = host_id);
-CREATE POLICY "competitions_delete" ON competitions FOR DELETE USING (auth.uid()::text = host_id);
+CREATE POLICY "competitions_update" ON competitions FOR UPDATE USING ((SELECT auth.uid())::text = host_id);
+CREATE POLICY "competitions_delete" ON competitions FOR DELETE USING ((SELECT auth.uid())::text = host_id);
 
 -- 대회 라운드: 자신이 생성한 라운드만 수정 가능
 CREATE POLICY "competition_rounds_select" ON competition_rounds FOR SELECT USING (true);
-CREATE POLICY "competition_rounds_insert" ON competition_rounds FOR INSERT WITH CHECK (auth.uid()::text = player_id);
-CREATE POLICY "competition_rounds_update" ON competition_rounds FOR UPDATE USING (auth.uid()::text = player_id);
-CREATE POLICY "competition_rounds_delete" ON competition_rounds FOR DELETE USING (auth.uid()::text = player_id);
+CREATE POLICY "competition_rounds_insert" ON competition_rounds FOR INSERT WITH CHECK ((SELECT auth.uid())::text = player_id);
+CREATE POLICY "competition_rounds_update" ON competition_rounds FOR UPDATE USING ((SELECT auth.uid())::text = player_id);
+CREATE POLICY "competition_rounds_delete" ON competition_rounds FOR DELETE USING ((SELECT auth.uid())::text = player_id);
 
 -- 친구 관계: 자신이 관련된 관계만 볼 수 있고 수정 가능
-CREATE POLICY "friendships_select" ON friendships FOR SELECT USING (auth.uid()::text = user_id OR auth.uid()::text = friend_id);
-CREATE POLICY "friendships_insert" ON friendships FOR INSERT WITH CHECK (auth.uid()::text = user_id);
-CREATE POLICY "friendships_update" ON friendships FOR UPDATE USING (auth.uid()::text = user_id);
-CREATE POLICY "friendships_delete" ON friendships FOR DELETE USING (auth.uid()::text = user_id);
+CREATE POLICY "friendships_select" ON friendships FOR SELECT USING ((SELECT auth.uid())::text = user_id OR (SELECT auth.uid())::text = friend_id);
+CREATE POLICY "friendships_insert" ON friendships FOR INSERT WITH CHECK ((SELECT auth.uid())::text = user_id);
+CREATE POLICY "friendships_update" ON friendships FOR UPDATE USING ((SELECT auth.uid())::text = user_id);
+CREATE POLICY "friendships_delete" ON friendships FOR DELETE USING ((SELECT auth.uid())::text = user_id);
 
 -- 친구 요청: 수신자만 볼 수 있고 수정 가능, 발신자만 생성 가능
-CREATE POLICY "friend_requests_select" ON friend_requests FOR SELECT USING (auth.uid()::text = from_user_id OR auth.uid()::text = to_user_id);
-CREATE POLICY "friend_requests_insert" ON friend_requests FOR INSERT WITH CHECK (auth.uid()::text = from_user_id);
-CREATE POLICY "friend_requests_update" ON friend_requests FOR UPDATE USING (auth.uid()::text = to_user_id); -- 수신자만 상태 변경 가능
-CREATE POLICY "friend_requests_delete" ON friend_requests FOR DELETE USING (auth.uid()::text = from_user_id OR auth.uid()::text = to_user_id);
+CREATE POLICY "friend_requests_select" ON friend_requests FOR SELECT USING ((SELECT auth.uid())::text = from_user_id OR (SELECT auth.uid())::text = to_user_id);
+CREATE POLICY "friend_requests_insert" ON friend_requests FOR INSERT WITH CHECK ((SELECT auth.uid())::text = from_user_id);
+CREATE POLICY "friend_requests_update" ON friend_requests FOR UPDATE USING ((SELECT auth.uid())::text = to_user_id); -- 수신자만 상태 변경 가능
+CREATE POLICY "friend_requests_delete" ON friend_requests FOR DELETE USING ((SELECT auth.uid())::text = from_user_id OR (SELECT auth.uid())::text = to_user_id);
 
 -- 대회 초대: 발신자는 생성 가능, 수신자는 볼 수 있고 상태만 수정 가능
-CREATE POLICY "competition_invitations_select" ON competition_invitations FOR SELECT USING (auth.uid()::text = from_user_id OR auth.uid()::text = to_user_id);
-CREATE POLICY "competition_invitations_insert" ON competition_invitations FOR INSERT WITH CHECK (auth.uid()::text = from_user_id);
-CREATE POLICY "competition_invitations_update" ON competition_invitations FOR UPDATE USING (auth.uid()::text = to_user_id); -- 수신자만 상태 변경 가능
-CREATE POLICY "competition_invitations_delete" ON competition_invitations FOR DELETE USING (auth.uid()::text = from_user_id);
+CREATE POLICY "competition_invitations_select" ON competition_invitations FOR SELECT USING ((SELECT auth.uid())::text = from_user_id OR (SELECT auth.uid())::text = to_user_id);
+CREATE POLICY "competition_invitations_insert" ON competition_invitations FOR INSERT WITH CHECK ((SELECT auth.uid())::text = from_user_id);
+CREATE POLICY "competition_invitations_update" ON competition_invitations FOR UPDATE USING ((SELECT auth.uid())::text = to_user_id); -- 수신자만 상태 변경 가능
+CREATE POLICY "competition_invitations_delete" ON competition_invitations FOR DELETE USING ((SELECT auth.uid())::text = from_user_id);
 
 -- Realtime 활성화
 ALTER PUBLICATION supabase_realtime ADD TABLE competitions;
