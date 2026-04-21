@@ -125,72 +125,7 @@ export default function Friends({ onBack }: FriendsProps) {
       };
    }, [user]);
 
-   useEffect(() => {
-     const params = new URLSearchParams(window.location.search);
-     const inviteId = params.get('invite');
-     const inviterName = params.get('name');
-     const inviterId = params.get('id');
-     
-     console.log('[Friends] URL params check:', { inviteId, inviterName, inviterId, userId: user?.id });
-     
-     if (inviteId && inviterName && inviterId && user) {
-       console.log('[Friends] Processing invite link for user:', user.id);
-       // When someone visits an invite link, send them a friend request
-       // Don't auto-add as friend - let them decide via the request system
-       const alreadyFriends = data.friends.some(f => f.userId === inviterId);
-       const alreadyRequested = pendingRequests.some(r => 
-         (r.from_user_id === user.id && r.to_user_id === inviterId) ||  // We sent to them
-         (r.from_user_id === inviterId && r.to_user_id === user.id)   // They sent to us
-       );
-       
-       console.log('[Friends] Relationship check:', {
-         alreadyFriends,
-         alreadyRequested,
-         friendsCount: data.friends.length,
-         pendingCount: pendingRequests.length
-       });
-       
-       if (!alreadyFriends && !alreadyRequested) {
-         // Send friend request to the person who sent the invite
-         console.log('[Friends] Sending friend request from', user.id, 'to', inviterId);
-         supabase
-           .from('friend_requests')
-           .insert({
-             from_user_id: user.id,
-             from_user_name: data.player.name,
-             to_user_id: inviterId,
-             to_user_name: inviterName,
-             status: 'pending'
-           })
-           .then(() => {
-             console.log('[Friends] Friend request sent successfully');
-             alert(`${inviterName}님에게 친구 요청을 보냈습니다.`);
-             window.history.replaceState({}, '', window.location.pathname);
-           })
-           .catch(error => {
-             console.error('[Friends] Error sending friend request:', error);
-             alert('친구 요청 전송에 실패했습니다.');
-           });
-       } else if (alreadyFriends) {
-         // Already friends
-         console.log('[Friends] Already friends with', inviterId);
-         alert(`${inviterName}님은 이미 당신의 친구입니다.`);
-         window.history.replaceState({}, '', window.location.pathname);
-       } else {
-         // Request already sent (either direction)
-         console.log('[Friends] Request already exists in either direction');
-         alert('이미 친구 요청이 보내졌거나 받은 상태입니다.');
-         window.history.replaceState({}, '', window.location.pathname);
-       }
-     } else {
-       console.log('[Friends] Invite link params missing:', { 
-         hasInviteId: !!inviteId, 
-         hasInviterName: !!inviterName, 
-         hasInviterId: !!inviterId, 
-         hasUser: !!user 
-       });
-     }
-   }, [user, data.friends, pendingRequests]);
+    
 
   const generateInviteLink = async () => {
     if (!user) {

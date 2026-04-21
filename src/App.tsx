@@ -10,6 +10,7 @@ import Stats from './pages/Stats';
 import History from './pages/History';
 import Settings from './pages/Settings';
 import { fetchMyInvitations, respondToInvitation, type CompetitionInvitation } from './utils/supabaseCompetition';
+import { supabase } from './supabase';
 
 type Page = 'home' | 'play' | 'friends' | 'competitions' | 'stats' | 'history' | 'settings';
 
@@ -250,6 +251,9 @@ function NavigationBar({ onNavigate, currentPage }: NavigationBarProps) {
 function AppContent() {
   const [page, setPage] = useState<Page>('home');
   const [competitionId, setCompetitionId] = useState<string | undefined>();
+  const [showFriendInviteDialog, setShowFriendInviteDialog] = useState<{name: string; id: string} | null>(null);
+  const { user } = useAuth();
+  const { data } = useGolf();
 
   const navigate = (newPage: Page) => setPage(newPage);
 
@@ -258,9 +262,88 @@ function AppContent() {
     setPage('play');
   };
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const inviteId = params.get('invite');
+    const inviterName = params.get('name');
+    const inviterId = params.get('id');
+    
+    console.log('[App] URL params check:', { inviteId, inviterName, inviterId, userId: user?.id });
+    
+    if (inviteId && inviterName && inviterId && user && data.player?.name) {
+      console.log('[App] Processing invite link for user:', user.id);
+      const alreadyFriends = data.friends?.some(f => f.userId === inviterId) || false;
+      
+      if (!alreadyFriends) {
+        console.log('[App] Showing friend invite dialog for', inviterName);
+        setShowFriendInviteDialog({ name: inviterName, id: inviterId });
+      }
+    }
+  }, [user, data.friends, data.player?.name]);
+
+  const handleFriendInviteConfirm = async () => {
+    if (!showFriendInviteDialog || !user || !data.player?.name) return;
+    
+    const { name: inviterName, id: inviterId } = showFriendInviteDialog;
+    
+    console.log('[App] Sending friend request from', user.id, 'to', inviterId);
+    const { error } = await supabase
+      .from('friend_requests')
+      .insert({
+        from_user_id: user.id,
+        from_user_name: data.player.name,
+        to_user_id: inviterId,
+        to_user_name: inviterName,
+        status: 'pending'
+      });
+      
+    if (error) {
+      console.error('[App] Error sending friend request:', error);
+      alert('친구 요청 전송에 실패했습니다.');
+    } else {
+      console.log('[App] Friend request sent successfully');
+      alert(`${inviterName}님에게 친구 요청을 보냈습니다.`);
+    }
+    
+    setShowFriendInviteDialog(null);
+    window.history.replaceState({}, '', window.location.pathname);
+  };
+
+  const handleFriendInviteCancel = () => {
+    setShowFriendInviteDialog(null);
+    window.history.replaceState({}, '', window.location.pathname);
+  };
+
   return (
-    <div className="min-h-screen bg-surface">
-      <LoginWarning />
+    <>
+      {showFriendInviteDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
+            <h3 className="text-xl font-bold text-primary font-headline mb-4">친구 추가</h3>
+            <p className="text-stone-600 mb-6">
+              <strong>{showFriendInviteDialog.name}</strong>님이 친구 추가를 요청했습니다.
+              <br />
+              수락하시겠습니까?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleFriendInviteCancel}
+                className="flex-1 bg-stone-200 text-stone-700 py-3 rounded-xl font-bold active:scale-98 transition-transform"
+              >
+                거절
+              </button>
+              <button
+                onClick={handleFriendInviteConfirm}
+                className="flex-1 bg-green-500 text-white py-3 rounded-xl font-bold active:scale-98 transition-transform"
+              >
+                수락
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="min-h-screen bg-surface">
+        <LoginWarning />
       <NavigationBar 
         onNavigate={navigate} 
         currentPage={page} 
@@ -272,14 +355,15 @@ function AppContent() {
       {page === 'stats' && <Stats onBack={() => navigate('home')} />}
       {page === 'history' && <History onBack={() => navigate('home')} />}
       {page === 'settings' && <Settings onBack={() => navigate('home')} />}
-    </div>
-  );
-}
+        </div>
+      </>
+    );
+  }
 
-function App() {
-  console.log('[App] Component mounting');
-  return (
-    <AppSettingsProvider>
+  function App() {
+    console.log('[App] Component mounting');
+    return (
+      <AppSettingsProvider>
       <AuthProvider>
         <GolfProvider>
           <AppContent />
