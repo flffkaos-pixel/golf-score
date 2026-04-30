@@ -60,18 +60,18 @@ function AuthButton() {
 }
 
 function GlobalHeader() {
-  const { data } = useGolf();
+  const { data, joinCompetition } = useGolf();
   const { t } = useAppSettings();
   const { user } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
   const [invitations, setInvitations] = useState<CompetitionInvitation[]>([]);
-  
+
   useEffect(() => {
     if (user) {
       fetchMyInvitations(user.id).then(setInvitations);
     }
   }, [user, showNotifications]);
-  
+
   const hasNotifications = invitations.length > 0 || data.competitions.filter(c => c.status === 'active').length > 0;
 
   const handleAccept = async (inv: CompetitionInvitation) => {
@@ -80,6 +80,8 @@ function GlobalHeader() {
     if (!comp) {
       alert(`"${inv.competition_name}" 대회에 참가했습니다!`);
     }
+    // Join the competition as a player
+    await joinCompetition(inv.competition_id, inv.from_user_id, inv.competition_name);
     setInvitations(prev => prev.filter(i => i.id !== inv.id));
   };
 
@@ -95,7 +97,7 @@ function GlobalHeader() {
         <h1 className="text-2xl font-extrabold tracking-tight text-primary font-headline">
           GreenScore
         </h1>
-        <button 
+        <button
           onClick={() => setShowNotifications(!showNotifications)}
           className="text-stone-500 p-2 rounded-full active:scale-95 transition-transform relative"
         >
@@ -109,7 +111,7 @@ function GlobalHeader() {
       {showNotifications && (
         <div className="fixed top-16 right-4 w-80 bg-white rounded-2xl shadow-xl z-50 p-4 max-h-96 overflow-y-auto">
           <h3 className="font-bold text-primary mb-3">🔔 {t('notifications')}</h3>
-          
+
           {invitations.length > 0 && (
             <div className="mb-4">
               <p className="text-xs text-stone-500 font-bold mb-2 uppercase tracking-wider">대회 초대</p>
@@ -156,7 +158,7 @@ function GlobalHeader() {
 
 function NavigationBar({ onNavigate, currentPage }: NavigationBarProps) {
   const { data } = useGolf();
-  
+
   const navigate = (newPage: Page) => onNavigate(newPage);
   const isActive = (p: Page) => currentPage === p;
 
@@ -267,13 +269,13 @@ function AppContent() {
     const inviteId = params.get('invite');
     const inviterName = params.get('name');
     const inviterId = params.get('id');
-    
+
     console.log('[App] URL params check:', { inviteId, inviterName, inviterId, userId: user?.id });
-    
+
     if (inviteId && inviterName && inviterId && user && data.player?.name) {
       console.log('[App] Processing invite link for user:', user.id);
       const alreadyFriends = data.friends?.some(f => f.userId === inviterId) || false;
-      
+
       if (!alreadyFriends) {
         console.log('[App] Showing friend invite dialog for', inviterName);
         setShowFriendInviteDialog({ name: inviterName, id: inviterId });
@@ -285,24 +287,48 @@ function AppContent() {
     if (!showFriendInviteDialog || !user || !data.player?.name) return;
     
     const { name: inviterName, id: inviterId } = showFriendInviteDialog;
+    const currentUserId = user.id;
+    const currentUserName = data.player.name;
     
-    console.log('[App] Sending friend request from', user.id, 'to', inviterId);
-    const { error } = await supabase
-      .from('friend_requests')
-      .insert({
-        from_user_id: user.id,
-        from_user_name: data.player.name,
-        to_user_id: inviterId,
-        to_user_name: inviterName,
-        status: 'pending'
-      });
+    console.log('[App] Accepting friend invite from', inviterId, 'for current user', currentUserId);
+    
+    try {
+      // Create bidirectional friendship records
+      // 1. Current user sees inviter as friend
+      const { error: error1 } = await supabase
+        .from('friendships')
+        .upsert({
+          user_id: currentUserId,
+          friend_id: inviterId,
+          friend_name: inviterName,
+        }, { onConflict: 'user_id,friend_id' });
+        
+      // 2. Inviter sees current user as friend
+      const { error: error2 } = await supabase
+        .from('friendships')
+        .upsert({
+          user_id: inviterId,
+          friend_id: currentUserId,
+          friend_name: currentUserName,
+        }, { onConflict: 'user_id,friend_id' });
       
-    if (error) {
-      console.error('[App] Error sending friend request:', error);
-      alert('친구 요청 전송에 실패했습니다.');
-    } else {
-      console.log('[App] Friend request sent successfully');
-      alert(`${inviterName}님에게 친구 요청을 보냈습니다.`);
+      // Clean up any existing friend request records between these users
+      const { error: error3 } = await supabase
+        .from('friend_requests')
+        .delete()
+        .or(`and(from_user_id.eq.${currentUserId},to_user_id.eq.${inviterId}),and(from_user_id.eq.${inviterId},to_user_id.eq.${currentUserId})`);
+      
+      if (error1 || error2 || error3) {
+        console.error('[App] Error creating friendships:', error1 || error2 || error3);
+        throw new Error('친구 관계 생성 중 오류가 발생했습니다.');
+      }
+      
+      console.log('[App] Bidirectional friendship created successfully');
+      alert(`${inviterName}님과 친구가 되었습니다!`);
+      
+    } catch (error) {
+      console.error('[App] Failed to accept friend invite:', error);
+      alert('친구 추가 중 오류가 발생했습니다.');
     }
     
     setShowFriendInviteDialog(null);
@@ -344,9 +370,9 @@ function AppContent() {
       )}
       <div className="min-h-screen bg-surface">
         <LoginWarning />
-      <NavigationBar 
-        onNavigate={navigate} 
-        currentPage={page} 
+      <NavigationBar
+        onNavigate={navigate}
+        currentPage={page}
       />
       {page === 'home' && <Home onStartGame={() => navigate('play')} />}
       {page === 'play' && <PlayGame onBack={() => { setPage('home'); setCompetitionId(undefined); }} onComplete={() => navigate('history')} competitionId={competitionId} />}
