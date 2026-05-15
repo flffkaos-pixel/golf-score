@@ -64,20 +64,28 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
   const isInitialLoadDone = useRef(false);
   const ownUserId = useRef<string | null>(null);
 
-   // Get current user ID
-   useEffect(() => {
-     supabase.auth.getUser().then(({ data: { user } }) => {
-       ownUserId.current = user?.id || null;
-       // Set local player's userId to match Supabase ID for consistent identification
-       if (user) setData(prev => ({ ...prev, player: { ...prev.player, userId: user.id } }));
-     });
-     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-       ownUserId.current = session?.user?.id || null;
-       // Update local player's userId when auth state changes
-       if (session?.user) setData(prev => ({ ...prev, player: { ...prev.player, userId: session.user.id } }));
-     });
-     return () => subscription.unsubscribe();
-   }, []);
+    // Get current user ID — sync local player.id with Supabase UID
+    useEffect(() => {
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        ownUserId.current = user?.id || null;
+        if (user) {
+          setData(prev => ({
+            ...prev,
+            player: { ...prev.player, id: user.id, userId: user.id, name: prev.player.name || user.user_metadata?.full_name || 'golfer' }
+          }));
+        }
+      });
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        ownUserId.current = session?.user?.id || null;
+        if (session?.user) {
+          setData(prev => ({
+            ...prev,
+            player: { ...prev.player, id: session.user.id, userId: session.user.id, name: prev.player.name || session.user.user_metadata?.full_name || 'golfer' }
+          }));
+        }
+      });
+      return () => subscription.unsubscribe();
+    }, []);
 
   // Initial load from Supabase — wait for auth
   useEffect(() => {
@@ -438,7 +446,7 @@ export const GolfProvider = ({ children }: { children: ReactNode }) => {
         host_name: hostName,
         player_ids: allPlayerIds,
         player_names: allPlayerNames,
-        status: 'pending',
+        status: 'active',
         start_date: comp.startDate,
       });
       if (error) console.error('Competition insert error:', error);
